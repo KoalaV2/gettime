@@ -52,25 +52,6 @@ function updateTimetable(){
 		else{
 			day = 0;
 		}
-	    // switch(currentDay){
-	    // 	case 1:
-	    // 		day = 1;
-	    // 		break;
-	    // 	case 2:
-	    // 		day = 2;
-	    // 		break;
-	    // 	case 3:
-	    // 		day = 3;
-	    // 		break;
-	    // 	case 4:
-	    // 		day = 4;
-	    // 		break;
-	    // 	case 5:
-	    // 		day = 5;
-	    // 		break;
-	    // 	default:
-	    // 		day = 0;
-    	// }
 
 	} else {
 
@@ -86,15 +67,10 @@ function updateTimetable(){
 
 		if (document.getElementById('schedule').classList.contains('menuBgBlur')){
 			url += '&classes=menuBgBlur'
-			console.log("yess")
 		}
-		
-
-		//var url = 'https://www.gettime.ga/script/_getTime/' + idnumber + "/" + day + "/" + week + "/" + width + "/" + height
-
 
 		/* This code asks the server to generate a new schedule for you */
-		console.log("Requesting schedule with url : " + url)
+		console.log("Requesting schedule with this url : " + url)
 		jQuery.getJSON(url, function(data) {
 
 			/* Saves the included timestamp (age) of the returned schedule */
