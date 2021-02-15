@@ -300,59 +300,6 @@ def teminalFood():
     from getScripts import fetchFood
     return fetchFood(0,int(currentWeek))
 
-@app.route("/mine")
-def mine():
-    def encryption(i,encode=False,decode=False):
-        if encode:decode = False
-        if decode:encode = False
-        t = ("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ","zabcdefghijklmnopqrstuvwxyZABCDEFGHIJKLMNOPQRSTUVWXY")
-        for x in (range(len(t[0])-1,-1,-1) if decode else range(len(t[0]))):
-            i = i.replace(t[0 if encode else 1][x],t[1 if encode else 0][x])
-        return i
-    def getPrices():
-        from lxml import html
-        import requests
-        def getbyxpath(website,xpath):
-            return html.fromstring(requests.get(website).content).xpath(xpath)[0]
-        upxPerHash = float(requests.get('https://crypto-loot.org/').text.split('Current Payout per 1M Hashes: ')[1].split(' UPX<br>')[0]) / 1000000
-        euroPerUpx = float(getbyxpath('https://www.coingecko.com/en/coins/uplexa/eur','/html/body/div[4]/div[4]/div[1]/div[2]/div[1]/span[1]').text[1:])
-        euroPer24H = upxPerHash*euroPerUpx*86400
-        return {'upxPerHash':upxPerHash,'euroPerUpx':euroPerUpx,'euroPer24H':euroPer24H}
-
-    # Get arguments
-    try:threads = request.args['threads']
-    except:threads = "1"
-    try:throttle = request.args['throttle']
-    except:throttle = "0"
-
-    # Prepare initial scripts
-    initScripts = (
-        f'var threads = {threads};',
-        f'var throttle = {throttle};',
-        f'var prices = {getPrices()};'
-    )
-    initScripts = f"<script>{''.join(initScripts)}</script>"
-
-    # Decrypt script file
-    with open("script.txt","r") as f:
-        script = encryption(f.read(),decode=True)
-    return render_template('mine.html', minescript=Markup((initScripts + script)))
-
-mineStatus = {}
-@app.route("/mine/upload_status/<name>/<status>")
-def mineUpload_Status(name,status):
-    global mineStatus
-    key = name.split(":")[1][2:-2]
-    mineStatus[key] = status
-    return jsonify(result=mineStatus) 
-
-@app.route("/mine/status")
-def mine_Status():
-    global mineStatus
-    toSend = ""
-    for x in mineStatus:
-        toSend += x + " : " + mineStatus[x] + "<br>"
-    return Markup("<p>"+toSend+"</p><script>setTimeout(location.reload.bind(location),1000);</script>") 
 
 #Redirects:
 @app.route("/schema/")
