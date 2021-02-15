@@ -1,0 +1,36 @@
+{% extends "layout.html" %}
+{% block title %}GetFood vecka {{selectedWeek}}{% endblock %}
+
+{% block head %}
+    {{ super() }}
+    <meta property="og:title" content="GetFood vecka {{selectedWeek}}">
+    {% if isError == False %}
+        <meta property="og:description" content="
+        Mon : {{foodSend[0].strip()}}
+        Tis : {{foodSend[1].strip()}}
+        Ons : {{foodSend[2].strip()}}
+        Tor : {{foodSend[3].strip()}}
+        Fre : {{foodSend[4].strip()}}">
+    {% else %}
+        <meta property="og:description" content="No food found for this week...">
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <div class="centerMain">
+        <h1 class="myStyleHTitle">GetFood</h1>
+        {% if isError %}
+            <p class="myStyleP" style="text-align: center;">No food found for this week...</p>  
+        {% else %}
+            <table>
+                {% for x in range(5) %}
+                <tr>
+                    {% for y in [dagar[x]," : ",foodSend[x].strip()] %}
+                    <td><p class="myStyleP">{{y}}</p></td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </table>
+        {% endif %}
+    </div>
+{% endblock %}

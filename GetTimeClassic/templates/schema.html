@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+{% block title %}{{SID[1] + (" (Mobile)" if SID[0] == "vm" else " (Desktop)")}}{% endblock %}
+
+{% block head %}
+	{{ super() }}
+	<meta property="og:description" content="Here is your schedule!">
+{% endblock %}
+
+{% block content %}
+	<!--<p style="text-align: center; padding-top: 10px;">GetTime is currently undergoing some changes behind the scenes. If you get the wrong schedule, please try refreshing the page.</p>-->
+	<div id="schema">
+		{{htmlSchema}}
+	</div>
+{% endblock %}

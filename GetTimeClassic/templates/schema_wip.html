@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+{% block title %}testing{% endblock %}
+
+{% block head %}
+	{{ super() }}
+	<meta property="og:description" content="Here is your schedule!">
+{% endblock %}
+
+{% block content %}
+	<div class="padd"></div>
+        <!--preserveAspectRatio="none"-->
+        <svg id="schemaNEW" viewBox="0 0 {{width}} {{height}}" shape-rendering="crispEdges">{{htmlSchema}}</svg>
+    <div class="padd"></div>
+{% endblock %}
