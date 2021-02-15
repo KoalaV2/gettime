@@ -313,12 +313,6 @@ def routeToMainpage2(a):
 #Main:
 if __name__ == "__main__":
     try:
-        try:
-            with open("private.txt","r") as f:
-                ipConfig = [x.strip("\n") for x in f.readlines()]    
-            app.run(debug=False, host=ipConfig[0], port=ipConfig[1])
-        except:
-            logging.info("Could not load private.txt")
-            app.run(debug=False)
+        app.run(debug=False, host="0.0.0.0", port="80")
     except Exception as e:
         logging.info(e);input()
