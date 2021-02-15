@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<script>
+			var loadAutomaticly = {{loadAutomaticly}};
+		</script>
+		<!-- This code is for debugging and testing! !! DO NOT REMOVE !! -->
+		<!-- <script>
+			const origConsoleLog = console.log;
+			const logArr = [];
+			console.log = (...args) => {
+			origConsoleLog.apply(console, args);
+			logArr.push(args);
+			};
+			const logAll = () => {
+			origConsoleLog.call(console, logArr.join('\n'));
+			};
+		</script>
+		<script>
+			window.onerror = function(msg, url, line, col, error) {
+				// Note that col & error are new to the HTML 5 spec and may not be 
+				// supported in every browser.  It worked for me in Chrome.
+				var extra = !col ? '' : '\ncolumn: ' + col;
+				extra += !error ? '' : '\nerror: ' + error;
+
+				// You can view the information in an alert to see things working like this:
+				alert("Error: " + msg + "\nurl: " + url + "\nline: " + line + extra);
+
+				// TODO: Report this error via ajax so you can keep track
+				//       of what pages have JS issues
+
+				var suppressErrorAlert = true;
+				// If you return true, then error alerts (like in older versions of 
+				// Internet Explorer) will be suppressed.
+				return suppressErrorAlert;
+			};
+		</script> -->
+
+		
+		<!-- Set title -->
+		<title>GetTime - 2021</title>
+
+		<!-- JS Libraries -->
+		<script type="text/javascript" src="{{ url_for('static', filename='js/jquery-3.4.0.min.js') }}"></script>
+		<script type="text/javascript" src="{{ url_for('static', filename='js/jquery.touchSwipe.min.js') }}"></script>
+		<script type="text/javascript" src="{{ url_for('static', filename='js/cookies.js') }}"></script>
+		<script type="text/javascript" src="{{ url_for('static', filename='js/touchEvents.js') }}"></script>
+		<script type="text/javascript" src="{{ url_for('static', filename='js/script.js') }}"></script>
+		<script type="text/javascript" src="{{ url_for('static', filename='js/updateTimetable.js') }}"></script>
+		<!-- <script type="text/javascript" src="{{ url_for('static', filename='service-worker.js') }}"></script> -->
+		
+		<!-- Basic meta tags -->
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no">
+		<META NAME="Title" CONTENT="GetTime - 2021">
+		<META NAME="Keywords" CONTENT="GetTime, Södertörn, NTI, NTI-Gymnasiet, NTI-Gymnasiet Södertörn">
+		<META NAME="Description" CONTENT="Schemaläsare för elever och personal på NTI-Gymnasiet Södertörn">
+		<META NAME="Subject" CONTENT="NTI Södertörn Schema">
+		<META NAME="Language" CONTENT="Swedish">
+
+		<!-- To prevent caching -->
+		<meta http-equiv='cache-control' content='no-cache'> 
+		<meta http-equiv='expires' content='0'> 
+		<meta http-equiv='pragma' content='no-cache'> 
+
+		<!-- Set Style colors -->
+		<!-- Chrome, Firefox OS and Opera -->
+		<meta name="theme-color" content="#4343b2">
+
+		<!-- Windows Phone -->
+		<meta name="msapplication-navbutton-color" content="#4343b2">
+		<meta name="msapplication-TileColor" content="#4343b2">
+
+		<!-- iOS Safari -->
+		<meta name="apple-mobile-web-app-status-bar-style" content="#4343b2">
+
+		<!-- Import favicons -->
+		<link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='img/apple-touch-icon.png') }}">
+		<link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='img/favicon-32x32.png') }}">
+		<link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='img/favicon-16x16.png') }}">
+		<link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
+		<link rel="mask-icon" href="{{ url_for('static', filename='safari-pinned-tab.svg') }}" color="#4343b2">
+
+		<!-- Import CSS Libraries -->
+		<link href="https://fonts.googleapis.com/css?family=Roboto:100,300|Rubik" rel="stylesheet">
+		<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+
+		<!-- Custom stylesheets -->
+		<link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/style.css') }}">
+		<link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/mobile.css') }}">
+		<link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/toggle.css') }}">
+		<link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/roller.css') }}">
+	</head>
+	<body>
+
+		<!-- Wrapper div for overflow hiding on mobile devices -->
+		<div class="wrapper">
+
+			<!-- Background loader to show user when timetable is gone -->
+			<div class="lds-roller" id="background-roller"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+
+			<!-- Top navbar -->
+			<nav class="navbar">
+
+				<!-- Main input, personal id, class etc -->
+				<input onclick="void(0)" class="input-idnumber control" type="text" name="idnumber" placeholder="PERSONNR/KLASS"/>
+
+				<!-- Arrows for fast date navigation -->
+				<i class="fas arrow arrow-left fa-angle-left" title="Last week"></i>
+				<i class="fas arrow arrow-center fa-circle" title="Current week"></i>
+				<span class="arrow arrow-center arrow-center-text" title="Current week">12</span>
+				<i class="fas arrow arrow-right fa-angle-right" title="Next week"></i>
+
+				<!-- Menu button -->
+				<div onclick="void(0)" class="menuIcon menuButton fas fa-bars"></div>
+			</nav>
+
+			<!-- Menu dropdown container parent -->
+			<div class="controls">
+
+				<!-- Menu dropdown container child -->
+				<div class="controls-container">
+
+					<!-- Week input -->
+					<div class="control control-container input-week-container">
+						<span>Week&nbsp;&nbsp;</span>
+						<input onclick="void(0)" class="input-week label" type="number" name="week" placeholder="XX" min="1" max="53"/>
+					</div>
+
+					<!-- Show saved timetables button -->
+					<div class="control savebutton saveBox control-container" onclick="showSaved()">
+						<span>Saved&nbsp;&nbsp;</span>
+						<i class="far fa-save control-right"></i>
+					</div>
+
+					<!-- Redirect to school lunch link -->
+					
+					<a href="https://skolmaten.se/nti-gymnasiet-sodertorn" class="foodLink control control-container">
+						<span>Food&nbsp;&nbsp;</span>
+						<i class="fas fa-link control-right"></i>
+					</a>
+
+					<!-- Rounded mode toggle switch -->
+					<label class="roundedModeBox mobileOnly toggleBox control-container" for="roundedMode">
+						<span>
+							Rounded&nbsp;&nbsp;	
+						</span>
+						<label class="switch ">
+						<input id="roundedMode" name="roundedMode" type="checkbox">
+						<span class="slider round control control-right"></span>
+						</label>
+					</label>
+
+					<!-- Day only mode toggle switch -->
+					<label class="dayModeBox toggleBox control-container" for="input-day">
+						<span>
+							Day&nbsp;&nbsp;	
+						</span>
+						<label class="switch ">
+						<input type="checkbox" name="input-day" id="input-day"/>
+						<span class="slider round control control-right"></span>
+						</label>
+					</label>
+
+				</div>
+			</div>
+
+			<!-- Saved timetables dropdown container parent-->
+			<div class="savedIDs">
+
+				<!-- Saved timetables dropdown container -->
+				<div class="saved-container">
+
+					<!-- Saved timetables list -->
+					<ul class="savedList"></ul>
+
+					<!-- Create new save entry -->
+					<input type="text" class="mobileSaved control-container" name="saveItem" id="saveItem" title="Press enter ⏎ to save" placeholder="New timetable | ⏎">
+
+					<!-- Remove saved entries -->
+					<button class="clearSavedItems mobileSaved control-container" onclick="createCookie('savedIDs', '', 360);showSaved();">Clear saved</button>
+				</div>
+			</div>
+
+			<!-- Main timetable object -->
+			<div id="scheduleBox" style="position: fixed; text-shadow: none;">
+				<svg id="schedule"></svg>
+			</div>
+
+			<!-- GDPR and cookies info div -->
+			<div class="info">
+				<h1>GetTime Cookie Policy</h1>
+				<h2>TLDR;<br>If you use GetTime, we store cookies on your device for you to be able to save timetables.</h2>
+
+				<p>Last updated: November 14, 2018</p>
+
+				<p>GetTime ("us", "we", or "our") uses cookies on the http://gettime.ga/ website (the "Service"). By using the Service, you consent to the use of cookies.</p>
+
+				<p>Our Cookies Policy explains what cookies are, how we use cookies, how third-parties we may partner with may use cookies on the Service, your choices regarding cookies and further information about cookies.</p>
+
+				<h2>What are cookies</h2>
+
+				<p>Cookies are small pieces of text sent by your web browser by a website you visit. A cookie file is stored in your web browser and allows the Service or a third-party to recognize you and make your next visit easier and the Service more useful to you.</p>
+
+				<p>Cookies can be "persistent" or "session" cookies. Persistent cookies remain on your personal computer or mobile device when you go offline, while session cookies are deleted as soon as you close your web browser.</p>
+
+				<h2>How GetTime uses cookies</h2>
+
+				<p>When you use and access the Service, we may place a number of cookies files in your web browser.</p>
+
+				<p>We use cookies for the following purposes:</p>
+
+				<ul>
+				<li>
+					<p>To enable certain functions of the Service</p>
+					
+					<p>We use both session and persistent cookies on the Service and we use different types of cookies to run the Service:</p>
+
+					<p>Essential cookies. We use cookies to remember your information to make your experience seamless.</p>
+				</li>
+				</ul>
+
+				<h2>What are your choices regarding cookies</h2>
+
+				<p>If you'd like to delete cookies or instruct your web browser to delete or refuse cookies, please visit the help pages of your web browser. As an European citizen, under GDPR, you have certain individual rights. You can learn more about these rights in the <a href="https://termsfeed.com/blog/gdpr/#Individual_Rights_Under_the_GDPR">GDPR Guide</a>.</p>
+
+				<p>Please note, however, that if you delete cookies or refuse to accept them, you might not be able to use all of the features we offer, you may not be able to store your preferences, and some of our pages might not display properly.</p>
+
+				<ul>
+				<li>
+					<p>For the Chrome web browser, please visit this page from Google: <a href="https://support.google.com/accounts/answer/32050">https://support.google.com/accounts/answer/32050</a></p>
+				</li>
+				<li>
+					<p>For the Internet Explorer web browser, please visit this page from Microsoft: <a href="http://support.microsoft.com/kb/278835">http://support.microsoft.com/kb/278835</a></p>
+				</li>
+				<li>
+					<p>For the Firefox web browser, please visit this page from Mozilla: <a href="https://support.mozilla.org/en-US/kb/delete-cookies-remove-info-websites-stored">https://support.mozilla.org/en-US/kb/delete-cookies-remove-info-websites-stored</a></p>
+				</li>
+				<li>
+					<p>For the Safari web browser, please visit this page from Apple: <a href="https://support.apple.com/kb/PH21411?locale=en_US">https://support.apple.com/kb/PH21411?locale=en_US</a></p>
+				</li>
+				<li>
+					<p>For any other web browser, please visit your web browser's official web pages.</p>
+				</li>
+				</ul>
+
+				<h2>Where can you find more information about cookies</h2>
+
+				<p>You can learn more about cookies and the following third-party websites:</p>
+
+				<ul>
+				<li>
+					<p>AllAboutCookies: <a href="http://www.allaboutcookies.org/">http://www.allaboutcookies.org/</a></p>
+				</li>
+				<li>
+					<p>Network Advertising Initiative: <a href="http://www.networkadvertising.org/">http://www.networkadvertising.org/</a></p>
+				</li>
+				</ul>
+
+				<!-- Accept policy button -->
+				<span onclick="infoClose()" class="infoClose">Close and accept</span>
+				<br>
+
+			</div>
+
+			<!-- Full CSS Loader page, slides up as page is loaded. "hides the ugly" -->
+			<div class="loader-main">
+				<div class="lds-roller"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+				<h1 class="label">GetTime</h1>
+			</div>
+		</div>
+
+		{{parseCode}}
+
+		<!-- This code is for debugging and testing! !! DO NOT REMOVE !! -->
+		<!-- <p id="debuglog" style="position: fixed;left: 0;bottom: 0;color: black; background: rgba(255,255,255,0.5);" onclick="$(this).hide();">None</p>
+		<script>
+			console.log("THIS IS A DEBUG LOG BECAUSE THE SITE CURRENTLY DOES NOT WORK ON IOS SAFARI, AND IM TRYING TO FIGURE OUT WHY<br><br>!!YOU CAN HIDE THIS BOX BY CLICKING IT!!<br>")
+			setInterval(function () {
+				document.getElementById("debuglog").innerHTML = logArr.join('<br>');
+			}, 1000);
+		</script> -->
+
+	</body>
+</html>

@@ -1,0 +1,11 @@
+här är alla saker som python-koden behöver rn
+
+json
+requests
+flask
+flask_cors
+flask_mobility
+os
+time
+logging
+datetime
