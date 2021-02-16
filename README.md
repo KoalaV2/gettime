@@ -1,4 +1,10 @@
-# gettime
+# GetTime/Sodschema
 Get schedule for NTI gymnasiet söderntörn.
 
-# Cred to https://github.com/TayIsAsleep for creating almost all of gettime and cred to https://github.com/PierreLeFevre/ for creating sodschema ( rip ) 
+# Credit
+
+Thanks to https://github.com/PierreLeFevre for creating Sodschema.
+
+Thanks to https://github.com/TayIsAsleep for creating the original GetTime code, and for porting and updating Sodschema's code.
+
+Thanks to https://github.com/KoalaV2 for creating the new backend and for hosting the website.
