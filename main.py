@@ -319,28 +319,6 @@ def getAll():
     
     return jsonify(myRequest.getData())
 
-# CODE FROM OLD GETTIME THAT HAS TO BE FIXED
-# @app.route("/getfood")
-# @app.route("/food")
-# @app.route("/mat")
-# def getFoodReRoute():
-#     return redirect(f"{mainLink}mat/{alltime()['week']}")
-# @app.route("/mat/<selectedWeek>")
-# def getFoodSite(selectedWeek):
-#     from getScripts import fetchFood
-#     weekFood = fetchFood(0,int(selectedWeek))
-#     if weekFood == "Error":
-#         return render_template('food.html',foodSend=[None,None,None,None],dagar=["Mån","Tis","Ons","Tor","Fre"],selectedWeek=selectedWeek,isError=True)
-#     else:
-#         return render_template('food.html',foodSend=[weekFood[x] for x in range(0,len(weekFood)-1,2)],dagar=["Mån","Tis","Ons","Tor","Fre"],selectedWeek=selectedWeek,isError=False)
-# @app.route('/terminal/food')
-# def teminalFood():
-#     try:currentWeek = request.args['week']
-#     except:currentWeek = alltime()['week']
-#     from getScripts import fetchFood
-#     return fetchFood(0,int(currentWeek))
-
-
 #Redirects (For dead links)
 @app.route("/schema/")
 @app.route("/schema")

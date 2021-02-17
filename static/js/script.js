@@ -13,25 +13,26 @@ Date.prototype.getWeek = function(){
 // show and update saved id:s
 function showSaved(){
 
-	savedIDs = readCookie("savedIDs");
-
 	$(".savedList").empty();
+	$(".savedList").append("<li class='savedItems'>Click the entries to delete them</li>");
+	savedItems = getAllCookieNamesThatStartWith("URL_");
 
-	if (savedIDs){
-
-		savedItems = savedIDs.split("|");
-
-		for (var i = savedItems.length - 1; i >= 0; i--) {
-			if (savedItems[i].length > 0){
-				$(".savedList").append("<li class='savedItems' onclick='savedItemClicked($(this))'>" + savedItems[i] + "</li>");				
-			};	
-		};
-
-	} else {
-
-		createCookie("savedIDs", "", 360);
-
+	for (var i = savedItems.length - 1; i >= 0; i--) {
+		if (savedItems[i].length > 0){
+			$(".savedList").append('<li class="savedItems" onclick="eraseCookie(' + "'" + savedItems[i] + "'" + ');showSaved();">' + savedItems[i].replace('URL_','') + "</li>");				
+		};	
 	};
+
+	console.log($(".savedList"));
+
+	if ($(".savedItems").length == 1){
+		$(".savedList").empty();
+		$(".savedList").append("<li class='savedItems'>You have no saved URL's</li>");
+	}
+	else{
+		$(".savedList").append('<button class="clearSavedItems mobileSaved control-container" onclick="deleteAllURLCookies();">Clear saved URLS</button>');
+	}
+	
 
 	$(".savedIDs").fadeIn("fast");
 
@@ -79,8 +80,6 @@ function hideControls(){
 
 //events on load & event triggers.
 $(window).on("load", function(){
-	
-	// ON LOAD EVENTS
 
 	//hide controls div before load
 	hideControls();
@@ -90,6 +89,7 @@ $(window).on("load", function(){
 
 	//hide saved ids div before load
 	$(".savedIDs").fadeOut(0);
+
 
 	//automatically enable day mode for mobile devices
 	if($( window ).width() <= 820){
@@ -212,14 +212,14 @@ $(window).on("load", function(){
 	//handles menu button clicking
 	$('.menuButton').on('click', function(){
 		$('.controls').slideToggle('fast', function() {
-		    if ($(this).is(':visible')){
-		        $(this).css('display','flex');
+			if ($(this).is(':visible')){
+				$(this).css('display','flex');
 				$('#schedule').addClass("menuBgBlur");
-		        $(".menuIcon").removeClass("fa-bars").addClass("fa-times");
-		    }else{
+				$(".menuIcon").removeClass("fa-bars").addClass("fa-times");
+			}else{
 				$('#schedule').removeClass("menuBgBlur");
-		        $(".menuIcon").removeClass("fa-times").addClass("fa-bars");
-		    };
+				$(".menuIcon").removeClass("fa-times").addClass("fa-bars");
+			};
 		});
 	});
 

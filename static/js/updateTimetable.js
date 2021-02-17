@@ -66,7 +66,7 @@ function updateTimetable(){
 		var url = requestURL + 'script/_getTime?id=' + idnumber + "&day=" + day + "&week=" + week + "&width=" + width + "&height=" + height
 
 		if (document.getElementById('schedule').classList.contains('menuBgBlur')){
-			url += '&classes=menuBgBlur'
+			url += '&classes=menuBgBlur';
 		}
 
 		/* This code asks the server to generate a new schedule for you */
@@ -87,7 +87,7 @@ function updateTimetable(){
 				trElement.removeChild(tdElement);
 				trElement.innerHTML = data['result']['html'] + trElement.innerHTML;
 				
-				eval($('#scheduleScript').attr('SCRIPT'))
+				eval($('#scheduleScript').attr('SCRIPT'));
 
 				$('.arrow').removeClass('arrow-loading');
 				$('#schedule').fadeIn(500);
