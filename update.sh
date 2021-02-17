@@ -2,4 +2,4 @@
 
 git pull
 
-systemctl --user restart gettime
+sudo systemctl restart gettime
