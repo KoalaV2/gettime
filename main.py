@@ -198,7 +198,7 @@ class GetTime:
                    toReturn.append(f"""<line id="{current['id']}" parentId="{current['parentId']}" x1="{current['p1x']}" y1="{current['p1y']}" x2="{current['p2x']}" y2="{current['p2y']}" stroke="{current['color']}"></line>""")
             timeTakenToHandleData = time.time() - timeTakenToHandleData
 
-            toReturn.append(f'<div id="scheduleScript" style="display: none;" SCRIPT="{"".join(scriptsToRun)}">' + "</div>")
+            toReturn.append(f'<rect id="scheduleScript" style="display: none;" SCRIPT="{"".join(scriptsToRun)}">' + "</rect>")
 
             toReturn.append("<!-- THIS SCHEDULE WAS MADE POSSIBLE BY https://github.com/KoalaV2 -->")
             toReturn.append(f"<!-- SETTINGS USED: id: {self._id}, week: {self._week}, day: {self._day}, resolution: {self._resolution}, class: {classes} -->")
