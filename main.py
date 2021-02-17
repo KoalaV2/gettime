@@ -16,7 +16,7 @@ import os
 import time
 import logging
 import datetime as dt
-logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s',level=logging.INFO,datefmt='%Y-%m-%d %H:%M:%S')
+logging.basicConfig(filename='logfile.log',format='%(asctime)s %(levelname)-8s %(message)s',level=logging.INFO,datefmt='%Y-%m-%d %H:%M:%S')
 
 
 #Functions:
@@ -129,6 +129,7 @@ class GetTime:
                 x['dayOfWeekNumber']
                 ) 
             try:
+                #Sometimes the classroomName is absent
                 currentLesson.classroomName = x['texts'][2]
             except:
                 currentLesson.classroomName = ""
@@ -163,11 +164,12 @@ class GetTime:
                     logging.info("THE NEW BOXLIST THING IS NOT WORKING")
 
             for current in j['textList']:
-                toReturn.append(f"""<text x="{current['x']}" y="{current['y']+12}" style="font-size:{int(current['fontsize'])}px;fill:{current['fColor']};">{current['text']}</text>""")
+                if current['text'] != "":
+                    toReturn.append(f"""<text x="{current['x']}" y="{current['y']+12}" style="font-size:{int(current['fontsize'])}px;fill:{current['fColor']};">{current['text']}</text>""")
 
             for current in j['lineList']:
                 try:
-                    x1,x2= current['p1x'],current['p2x'];dif=int(x1-x2 if x1>x2 else x2-x1)
+                    x1,x2=current['p1x'],current['p2x'];dif=int(x1-x2 if x1>x2 else x2-x1)
                     logging.info("THE NEW LINELIST THING IS WORKING")
                 except:
                     dif = 0
