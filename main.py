@@ -16,7 +16,15 @@ import os
 import time
 import logging
 import datetime as dt
-logging.basicConfig(filename="logfile.log",level=logging.DEBUG,format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s")
+#logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s',level=logging.INFO,datefmt='%Y-%m-%d %H:%M:%S')
+#logging.basicConfig(filename='logfile.log', level=logging.DEBUG)
+try:
+    logging.basicConfig(filename="/home/koala/gettime/logfile.log",level=logging.DEBUG,format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s")
+    logging.info("Logfile is saved in the new location")
+except:
+    logging.basicConfig(filename="logfile.log",level=logging.DEBUG,format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s")
+    logging.info("Logfile is NOT saved in the new location")
+
 
 #Functions:
 def alltime():
@@ -148,39 +156,18 @@ class GetTime:
             toReturn.append(f"""<svg id="schedule" class="{classes}" style="width:{self._resolution[0]}; height:{self._resolution[1]};" viewBox="0 0 {self._resolution[0]} {self._resolution[1]}" shape-rendering="crispEdges">""")
 
             for current in j['boxList']:
-                try:
-                    if current['type'].startswith("ClockFrame"):
-                        toReturn.append(f"""<rect x="{current['x']}" y="{current['y']}" width="{current['width']}" height="{current['height']}" style="fill:{current['bColor']};"></rect>""")
-                    else:
-                        toReturn.append(f"""<rect x="{current['x']}" y="{current['y']}" width="{current['width']}" height="{current['height']}" style="fill:{current['bColor']};stroke:rgb(0,0,0);stroke-width:1;"></rect>""")
-                    logging.info("THE NEW BOXLIST THING IS WORKING")
-                except:
-                    if current['type'] == "ClockFrameStart" or current['type'] == "ClockFrameEnd":
-                        _style = f'''style="fill:{current['bColor']};"'''
-                    else:
-                        _style = f'''style="fill:{current['bColor']};stroke:rgb(0,0,0);stroke-width:1;"'''
-                    toReturn.append(f"""<rect x="{current['x']}" y="{current['y']}" width="{current['width']}" height="{current['height']}" {_style}></rect>""")
-                    logging.info("THE NEW BOXLIST THING IS NOT WORKING")
+                if current['type'].startswith("ClockFrame"):
+                    toReturn.append(f"""<rect x="{current['x']}" y="{current['y']}" width="{current['width']}" height="{current['height']}" style="fill:{current['bColor']};"></rect>""")
+                else:
+                    toReturn.append(f"""<rect x="{current['x']}" y="{current['y']}" width="{current['width']}" height="{current['height']}" style="fill:{current['bColor']};stroke:rgb(0,0,0);stroke-width:1;"></rect>""")
 
             for current in j['textList']:
                 if current['text'] != "":
                     toReturn.append(f"""<text x="{current['x']}" y="{current['y']+12}" style="font-size:{int(current['fontsize'])}px;fill:{current['fColor']};">{current['text']}</text>""")
 
             for current in j['lineList']:
-                try:
-                    x1,x2=current['p1x'],current['p2x'];dif=int(x1-x2 if x1>x2 else x2-x1)
-                    logging.info("THE NEW LINELIST THING IS WORKING")
-                except:
-                    dif = 0
-                    x1 = current['p1x']
-                    x2 = current['p2x']
-                    if x1 > x2:
-                        dif += x1 - x2
-                    else:
-                        dif += x2 - x1
-                    logging.info("THE NEW LINELIST THING IS NOT WORKING")
-
-                if dif > 10:
+                x1,x2=current['p1x'],current['p2x']
+                if int(x1-x2 if x1>x2 else x2-x1) > 10:
                    toReturn.append(f"""<line x1="{current['p1x']}" y1="{current['p1y']}" x2="{current['p2x']}" y2="{current['p2y']}" stroke="{current['color']}"></line>""")
             timeTakenToHandleData = time.time() - timeTakenToHandleData
 
