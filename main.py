@@ -16,8 +16,7 @@ import os
 import time
 import logging
 import datetime as dt
-logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s',level=logging.INFO,datefmt='%Y-%m-%d %H:%M:%S')
-#logging.basicConfig(filename='logfile.log', level=logging.DEBUG)
+logging.basicConfig(filename="logfile.log",level=logging.DEBUG,format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s")
 
 #Functions:
 def alltime():
