@@ -234,6 +234,7 @@ def after_request(response):
 
 @app.route("/")
 def mainpage():
+    global mainLink, DEBUGMODE
     # You can send JS code to parseCode, and it will appear at the end of the website.
     # loadAutomaticly is used to help custom url's to work (should be "true" by default)
     requestURL = "http://127.0.0.1:5000/" if DEBUGMODE else mainLink
