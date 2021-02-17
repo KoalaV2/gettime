@@ -5,19 +5,20 @@
 		<!-- It is here, because I don't know where JS code should be -->
 		<script> 
 			var loadAutomaticly = {{loadAutomaticly}};
+			var requestURL = "{{requestURL}}";
 		</script>
 		
 		<!-- Set title -->
 		<title>GetTime - 2021</title>
 
 		<!-- JS Libraries -->
-		<script type="text/javascript" src="{{ url_for('static', filename='js/jquery-3.4.0.min.js') }}"></script>
-		<script type="text/javascript" src="{{ url_for('static', filename='js/jquery.touchSwipe.min.js') }}"></script>
-		<script type="text/javascript" src="{{ url_for('static', filename='js/cookies.js') }}"></script>
-		<script type="text/javascript" src="{{ url_for('static', filename='js/touchEvents.js') }}"></script>
-		<script type="text/javascript" src="{{ url_for('static', filename='js/script.js') }}"></script>
-		<script type="text/javascript" src="{{ url_for('static', filename='js/updateTimetable.js') }}"></script>
-		<!-- <script type="text/javascript" src="{{ url_for('static', filename='service-worker.js') }}"></script> -->
+		<script type="text/javascript" src="/static/js/jquery-3.4.0.min.js"></script>
+		<script type="text/javascript" src="/static/js/jquery.touchSwipe.min.js"></script>
+		<script type="text/javascript" src="/static/js/cookies.js"></script>
+		<script type="text/javascript" src="/static/js/touchEvents.js"></script>
+		<script type="text/javascript" src="/static/js/script.js"></script>
+		<script type="text/javascript" src="/static/js/updateTimetable.js"></script>
+		<script type="text/javascript" src="/static/js/saveurl.js"></script>
 		
 		<!-- Basic meta tags -->
 		<meta charset="utf-8">
@@ -149,6 +150,10 @@
 
 					<!-- Remove saved entries -->
 					<button class="clearSavedItems mobileSaved control-container" onclick="createCookie('savedIDs', '', 360);showSaved();">Clear saved</button>
+					
+					<!-- Remove saved URL's (temporary) -->
+					<button class="clearSavedItems mobileSaved control-container" onclick="deleteAllURLCookies();">Clear saved URLS</button>
+
 				</div>
 			</div>
 

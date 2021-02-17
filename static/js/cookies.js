@@ -1,13 +1,13 @@
 //cookie handling functions
 
-function createCookie(name,value,days){
+function createCookie(name,value,days,path=""){
 	if (days) {
 		var date = new Date();
 		date.setTime(date.getTime()+(days*24*60*60*1000));
 		var expires = "; expires="+date.toGMTString();
 	}
 	else var expires = "";
-	document.cookie = name+"="+value+expires+"; path=/";
+	document.cookie = name+"="+value+expires+"; path=/" + path;
 };
 
 function readCookie(name){
@@ -21,6 +21,6 @@ function readCookie(name){
 	return null;
 };
 
-function eraseCookie(name){
-	createCookie(name,"",-1);
+function eraseCookie(name,path=""){
+	createCookie(path + name,"",-1);
 };

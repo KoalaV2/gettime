@@ -1,3 +1,5 @@
+DEBUGMODE = False
+
 #NewGetTime Requirements:
 import json
 import requests
@@ -48,12 +50,23 @@ class Lesson:
         self.timeEnd = timeEnd
         self.dayOfWeekNumber = dayOfWeekNumber
 class GetTime:
+    """
+    GetTime Request object
+    """
     def __init__(self,_id,_week,_day,_resolution):
         self._id = _id
         self._week = _week
         self._day = _day
         self._resolution = _resolution
     def getData(self):
+        """
+            This function makes a request to Skola24's servers and returns the schedule data
+            \n
+            Takes:
+                None
+            Returns:
+                <JSON> object with the data inside
+        """
         headers1 = {
             "Connection": "keep-alive",
             "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:85.0) Gecko/20100101 Firefox/85.0",
@@ -66,11 +79,9 @@ class GetTime:
             "Accept-Language": "en-US;q=0.5",
             "Cookie": "ASP.NET_SessionId=5hgt3njwnabrqso3cujrrj2p"
         }
-        url1='https://web.skola24.se/api/encrypt/signature'
+        url1 = 'https://web.skola24.se/api/encrypt/signature'
         payload1 = {"signature":self._id}
-        response1 = requests.post(url1, data=json.dumps(payload1), headers=headers1)
-        response1 = response1.text
-        response1 = response1.split('"signature": "')[1].split('"')[0]
+        response1 = requests.post(url1, data=json.dumps(payload1), headers=headers1).text.split('"signature": "')[1].split('"')[0]
 
         headers2 = {
             "Host": "web.skola24.se",
@@ -91,12 +102,10 @@ class GetTime:
         }
         url2 = 'https://web.skola24.se/api/get/timetable/render/key'
         payload2 = "null"
-        response2 = requests.post(url2, data=payload2, headers=headers2)
-        response2 = response2.text
-        response2 = response2.split('"key": "')[1].split('"')[0]
+        response2 = requests.post(url2, data=payload2, headers=headers2).text.split('"key": "')[1].split('"')[0]
 
         headers3 = headers2
-        url3='https://web.skola24.se/api/render/timetable'
+        url3 = 'https://web.skola24.se/api/render/timetable'
         payload3 = {
             "renderKey":response2,
             "host":"it-gymnasiet.skola24.se",
@@ -117,11 +126,17 @@ class GetTime:
             "privateSelectionMode":"null",
             "customerKey":""
         }
-        response3 = requests.post(url3, data=json.dumps(payload3), headers=headers3)
-        response3 = response3.text
-        response3 = json.loads(response3)
+        response3 = json.loads(requests.post(url3, data=json.dumps(payload3), headers=headers3).text)
         return response3
     def fetch(self):
+        """
+            Fetches and formats data into <Lession> objects.
+            \n
+            Takes:
+                None
+            Returns:
+                List with <Lession> objects
+        """
         result = self.getData()
         toReturn = []
         for x in result['data']['lessonInfo']:
@@ -139,9 +154,18 @@ class GetTime:
             toReturn.append(currentLesson)
         return toReturn    
     def handleHTML(self,classes=""):
+        """
+            Fetches and converts the <JSON> data into a SVG (for sending to HTML)
+            \n
+            Takes:
+                classes (optional) (add custom classes to the SVG)
+            Returns:
+                {'html':(SVG HTML CODE),'timestamp':timeStamp}
+        """
         try:
             timeStamp = time.time()
             toReturn = []
+            scriptsToRun = []
             timeTakenToFetchData = time.time() #This value should contain when the request was recieved by the server
             j = self.getData()['data']
             timeTakenToFetchData = time.time()-timeTakenToFetchData
@@ -152,20 +176,29 @@ class GetTime:
             toReturn.append(f"""<svg id="schedule" class="{classes}" style="width:{self._resolution[0]}; height:{self._resolution[1]};" viewBox="0 0 {self._resolution[0]} {self._resolution[1]}" shape-rendering="crispEdges">""")
 
             for current in j['boxList']:
+                #toReturn.append(f"""<rect {("".join([f'{str(key)}="{str(current[key])}" ' for key in [key for key in current]]))}></rect>""")
                 if current['type'].startswith("ClockFrame"):
-                    toReturn.append(f"""<rect x="{current['x']}" y="{current['y']}" width="{current['width']}" height="{current['height']}" style="fill:{current['bColor']};"></rect>""")
+                    toReturn.append(f"""<rect id="{current['id']}" parentId="{current['parentId']}" x="{current['x']}" y="{current['y']}" width="{current['width']}" height="{current['height']}" style="fill:{current['bColor']};"></rect>""")
                 else:
-                    toReturn.append(f"""<rect x="{current['x']}" y="{current['y']}" width="{current['width']}" height="{current['height']}" style="fill:{current['bColor']};stroke:rgb(0,0,0);stroke-width:1;"></rect>""")
+                    toReturn.append(f"""<rect id="{current['id']}" parentId="{current['parentId']}" x="{current['x']}" y="{current['y']}" width="{current['width']}" height="{current['height']}" style="fill:{current['bColor']};stroke:rgb(0,0,0);stroke-width:1;"></rect>""")
 
+            lessonNamesSaved = [] #This saves the parentID when the first value has been read (value 1 is the lession name, value 2 is teacher name and value 3 is classroom name, we want value 1, but 2 and 3 overwrite 1)
             for current in j['textList']:
                 if current['text'] != "":
-                    toReturn.append(f"""<text x="{current['x']}" y="{current['y']+12}" style="font-size:{int(current['fontsize'])}px;fill:{current['fColor']};">{current['text']}</text>""")
+                    if current['type'] == "Lesson" and not current['parentId'] in lessonNamesSaved:
+                        lessonNamesSaved.append(current['parentId'])
+                        scriptsToRun.append(f"checkMyUrl('{current['parentId']}','{current['text']}');") # Saves the check script for later
+                        toReturn.append(f"""<text id="{current['id']}" parentId="{current['parentId']}" x="{current['x']}" y="{current['y']+12}" style="font-size:{int(current['fontsize'])}px;fill:{current['fColor']};">{current['text']}</text>""")
+                    else:
+                        toReturn.append(f"""<text id="{current['id']}" parentId="{current['parentId']}" x="{current['x']}" y="{current['y']+12}" style="font-size:{int(current['fontsize'])}px;fill:{current['fColor']};">{current['text']}</text>""")
 
             for current in j['lineList']:
                 x1,x2=current['p1x'],current['p2x']
                 if int(x1-x2 if x1>x2 else x2-x1) > 10:
-                   toReturn.append(f"""<line x1="{current['p1x']}" y1="{current['p1y']}" x2="{current['p2x']}" y2="{current['p2y']}" stroke="{current['color']}"></line>""")
+                   toReturn.append(f"""<line id="{current['id']}" parentId="{current['parentId']}" x1="{current['p1x']}" y1="{current['p1y']}" x2="{current['p2x']}" y2="{current['p2y']}" stroke="{current['color']}"></line>""")
             timeTakenToHandleData = time.time() - timeTakenToHandleData
+
+            toReturn.append(f'<div id="scheduleScript" style="display: none;" SCRIPT="{"".join(scriptsToRun)}">' + "</div>")
 
             toReturn.append("<!-- THIS SCHEDULE WAS MADE POSSIBLE BY https://github.com/KoalaV2 -->")
             toReturn.append(f"<!-- SETTINGS USED: id: {self._id}, week: {self._week}, day: {self._day}, resolution: {self._resolution}, class: {classes} -->")
@@ -183,7 +216,7 @@ class GetTime:
                 logging.info("User ID invalid!")
             else:
                 raise e
-            return """<svg id="schedule"></svg>"""
+            return {'html':'<svg id="schedule"></svg>','timestamp':0}
 
 
 #Flask Setup:
@@ -191,8 +224,6 @@ mainLink = "https://www.gettime.ga/"
 app = Flask(__name__)
 Mobility(app) #Mobile features
 CORS(app) #Behövs så att man kan skicka requests till serven (for some reason idk)
-#app.logger.disabled = True
-#logging.getLogger('werkzeug').disabled = True
 
 @app.after_request #Script to help prevent caching
 def after_request(response):
@@ -203,6 +234,9 @@ def after_request(response):
 
 @app.route("/")
 def mainpage():
+    # You can send JS code to parseCode, and it will appear at the end of the website.
+    # loadAutomaticly is used to help custom url's to work (should be "true" by default)
+    requestURL = "http://127.0.0.1:5000/" if DEBUGMODE else mainLink
     try:
         # This will error out if no ID was specified in the link, and then it fallsback on the normal page
         toPass = f"""idnumber = "{request.args['id']}";""" + '$(".input-idnumber").val("' + request.args['id'] + '");'
@@ -211,19 +245,13 @@ def mainpage():
         try:toPass += f"""week = "{request.args['week']}";""" + '$(".input-week").val("' + request.args['week'] + '");'
         except:pass
 
-        # try:
-        #     # I honestly dont know what this one does tbh
-        #     toPass += f"""document.getElementById("input-day").checked = {str(int(request.args['day'])==0).lower()};"""
-        #     toPass += 'var dateDay = date.getDay();'
-        # except:pass
-
         # Adds these to make sure it works (it just works better like this ok?)
         toPass += "console.log('Custom URL');"
         toPass += "updateTimetable();"
         
-        return render_template("sodschema.html",parseCode=Markup("<script>$(document).ready(function() {" + toPass + "});</script>"),loadAutomaticly="false")
+        return render_template("sodschema.html",parseCode=Markup("<script>$(document).ready(function() {" + toPass + "});</script>"),loadAutomaticly="false",requestURL=requestURL)
     except:
-        return render_template("sodschema.html",parseCode="",loadAutomaticly="true")
+        return render_template("sodschema.html",parseCode="",loadAutomaticly="true",requestURL=requestURL)
 
 @app.route("/script/_getTime")
 def _getTime():
@@ -260,10 +288,9 @@ def terminalSchedule():
         a = []
         for x in myRequest.getData()['data']['lessonInfo']:
             try:
-                temp = f"{x['timeStart']} SPLITHERE {x['texts'][0]}, börjar kl {x['timeStart']} och slutar kl {x['timeEnd']} i sal {x['texts'][2]}\n"
+                a.append(f"{x['timeStart']} SPLITHERE {x['texts'][0]}, börjar kl {x['timeStart']} och slutar kl {x['timeEnd']} i sal {x['texts'][2]}\n")
             except:
-                temp = f"{x['timeStart']} SPLITHERE {x['texts'][0]}, börjar kl {x['timeStart']} och slutar kl {x['timeEnd']}\n"
-            a.append(temp)
+                a.append(f"{x['timeStart']} SPLITHERE {x['texts'][0]}, börjar kl {x['timeStart']} och slutar kl {x['timeEnd']}\n")
         a.sort()
 
         return "".join([i.split(' SPLITHERE ')[1] for i in a])[:-2]
@@ -324,4 +351,7 @@ def routeToMainpage2(a):
 
 #Main:
 if __name__ == "__main__":
-    app.run(debug=False, host="0.0.0.0", port="7331")
+    if DEBUGMODE:
+        app.run(debug=False, host="127.0.0.1", port="5000")
+    else:
+        app.run(debug=False, host="0.0.0.0", port="7331")

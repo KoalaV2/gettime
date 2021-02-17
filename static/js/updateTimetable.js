@@ -63,7 +63,7 @@ function updateTimetable(){
 	
 	if (idnumber.length > 0){
 		
-		var url = 'https://www.gettime.ga/script/_getTime?id=' + idnumber + "&day=" + day + "&week=" + week + "&width=" + width + "&height=" + height
+		var url = requestURL + 'script/_getTime?id=' + idnumber + "&day=" + day + "&week=" + week + "&width=" + width + "&height=" + height
 
 		if (document.getElementById('schedule').classList.contains('menuBgBlur')){
 			url += '&classes=menuBgBlur'
@@ -71,10 +71,10 @@ function updateTimetable(){
 
 		/* This code asks the server to generate a new schedule for you */
 		console.log("Requesting schedule with this url : " + url)
-		jQuery.getJSON(url, function(data) {
+		$.getJSON(url, function(data) {
 
-			/* Saves the included timestamp (age) of the returned schedule */
-			/* This is because if you resize the window alot in a short period of time, it will send many requests to the server,
+			/* Saves the included timestamp (age) of the returned schedule
+			   This is because if you resize the window alot in a short period of time, it will send many requests to the server,
 			   and they will return at odd timings, so this TRIES to make sure that if you get a old schedule after a while,
 			   it wont update to that one. */
 			var newtimestamp = parseFloat(data['result']['timestamp']);
@@ -87,6 +87,8 @@ function updateTimetable(){
 				trElement.removeChild(tdElement);
 				trElement.innerHTML = data['result']['html'] + trElement.innerHTML;
 				
+				eval($('#scheduleScript').attr('SCRIPT'))
+
 				$('.arrow').removeClass('arrow-loading');
 				$('#schedule').fadeIn(500);
 				$("#schedule").css({"transform": "none", "opacity": 1});
