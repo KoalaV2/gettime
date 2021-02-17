@@ -6,11 +6,11 @@ var scheduleAge = 0
 
 //get week number function
 Date.prototype.getWeek = function(){
-					        var onejan = new Date(this.getFullYear(), 0, 1);
-					        return Math.ceil((((this - onejan) / 86400000) + onejan.getDay() + 1) / 7);
-					     } 
+	var onejan = new Date(this.getFullYear(), 0, 1);
+	return Math.ceil((((this - onejan) / 86400000) + onejan.getDay() + 1) / 7);
+} 
 
-// show and update saved id:s
+// show and update saved url's
 function showSaved(){
 
 	$(".savedList").empty();
@@ -35,7 +35,6 @@ function showSaved(){
 	
 
 	$(".savedIDs").fadeIn("fast");
-
 };
 
 //accept cookie policy

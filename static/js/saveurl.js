@@ -15,7 +15,6 @@ function checkMyUrl(theID,className) {
     if (cookieLoad != null){
         parentBlock.attr("savedURL", cookieLoad);
     }
-
 }
 
 function iWasClicked(theID,className){
@@ -37,7 +36,6 @@ function iWasClicked(theID,className){
     else{
         window.open(cookieLoad);
     }
-    
 }
 
 function getAllCookieNamesThatStartWith(shouldStartWith){
@@ -59,5 +57,4 @@ function getAllCookieNamesThatStartWith(shouldStartWith){
 function deleteAllURLCookies() {
     getAllCookieNamesThatStartWith("URL_").forEach(element => eraseCookie(element));
     showSaved();
-
 }
