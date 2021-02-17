@@ -16,14 +16,12 @@ import os
 import time
 import logging
 import datetime as dt
-#logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s',level=logging.INFO,datefmt='%Y-%m-%d %H:%M:%S')
-#logging.basicConfig(filename='logfile.log', level=logging.DEBUG)
 try:
+    # Main server logfile path:
     logging.basicConfig(filename="/home/koala/gettime/logfile.log",level=logging.DEBUG,format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s")
-    logging.info("Logfile is saved in the new location")
 except:
+    # For debugging and in case main path is invalid:
     logging.basicConfig(filename="logfile.log",level=logging.DEBUG,format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s")
-    logging.info("Logfile is NOT saved in the new location")
 
 
 #Functions:
@@ -134,12 +132,10 @@ class GetTime:
                 x['timeStart'],
                 x['timeEnd'],
                 x['dayOfWeekNumber']
-                ) 
-            try:
-                #Sometimes the classroomName is absent
-                currentLesson.classroomName = x['texts'][2]
-            except:
-                currentLesson.classroomName = ""
+            ) 
+            #Sometimes the classroomName is absent
+            try:currentLesson.classroomName = x['texts'][2]
+            except:currentLesson.classroomName = ""
             toReturn.append(currentLesson)
         return toReturn    
     def handleHTML(self,classes=""):
