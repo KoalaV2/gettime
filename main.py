@@ -7,7 +7,6 @@ from flask import Flask
 from flask import Markup
 from flask import jsonify
 from flask import request
-from flask import redirect
 from flask_cors import CORS
 from flask import render_template
 from flask_mobility import Mobility
@@ -91,6 +90,7 @@ class GetTime:
         response2 = response2.text
         response2 = response2.split('"key": "')[1].split('"')[0]
 
+        headers3 = headers2
         url3='https://web.skola24.se/api/render/timetable'
         payload3 = {
             "renderKey":response2,
@@ -112,8 +112,10 @@ class GetTime:
             "privateSelectionMode":"null",
             "customerKey":""
         }
-        response3 = requests.post(url3,data=json.dumps(payload3),headers=headers2)
-        return json.loads(response3.text)
+        response3 = requests.post(url3, data=json.dumps(payload3), headers=headers3)
+        response3 = response3.text
+        response3 = json.loads(response3)
+        return response3
     def fetch(self):
         result = self.getData()
         toReturn = []
@@ -134,40 +136,64 @@ class GetTime:
         return toReturn    
     def handleHTML(self,classes=""):
         try:
-            timestampStart = time.time()
-            j = self.getData()
-            toReturn = ""
+            timeStamp = time.time()
+            toReturn = []
+            timeTakenToFetchData = time.time() #This value should contain when the request was recieved by the server
+            j = self.getData()['data']
+            timeTakenToFetchData = time.time()-timeTakenToFetchData
             
-            toReturn += f"""<svg id="schedule" class="{classes}" style="width:{self._resolution[0]}; height:{self._resolution[1]};" viewBox="0 0 {self._resolution[0]} {self._resolution[1]}" shape-rendering="crispEdges">\n"""
+            timeTakenToHandleData = time.time() 
 
-            for current in j['data']['boxList']:
-                if current['type'] == "ClockFrameStart" or current['type'] == "ClockFrameEnd":
-                    _style = f'''style="fill:{current['bColor']};"'''
-                else:
-                    _style = f'''style="fill:{current['bColor']};stroke:rgb(0,0,0);stroke-width:1;"'''
-                
-                toReturn += f"""<rect x="{current['x']}" y="{current['y']}" width="{current['width']}" height="{current['height']}" {_style}></rect>\n"""
+            #Start of the SVG
+            toReturn.append(f"""<svg id="schedule" class="{classes}" style="width:{self._resolution[0]}; height:{self._resolution[1]};" viewBox="0 0 {self._resolution[0]} {self._resolution[1]}" shape-rendering="crispEdges">""")
 
-            for current in j['data']['textList']:
-                toReturn += f"""<text x="{current['x']}" y="{current['y']+12}" style="font-size:{int(current['fontsize'])}px;fill:{current['fColor']};">{current['text']}</text>\n"""
+            for current in j['boxList']:
+                try:
+                    if current['type'].startswith("ClockFrame"):
+                        toReturn.append(f"""<rect x="{current['x']}" y="{current['y']}" width="{current['width']}" height="{current['height']}" style="fill:{current['bColor']};"></rect>""")
+                    else:
+                        toReturn.append(f"""<rect x="{current['x']}" y="{current['y']}" width="{current['width']}" height="{current['height']}" style="fill:{current['bColor']};stroke:rgb(0,0,0);stroke-width:1;"></rect>""")
+                    logging.info("THE NEW BOXLIST THING IS WORKING")
+                except:
+                    if current['type'] == "ClockFrameStart" or current['type'] == "ClockFrameEnd":
+                        _style = f'''style="fill:{current['bColor']};"'''
+                    else:
+                        _style = f'''style="fill:{current['bColor']};stroke:rgb(0,0,0);stroke-width:1;"'''
+                    toReturn.append(f"""<rect x="{current['x']}" y="{current['y']}" width="{current['width']}" height="{current['height']}" {_style}></rect>""")
+                    logging.info("THE NEW BOXLIST THING IS NOT WORKING")
 
-            for current in j['data']['lineList']:
-                dif = 0
-                x1 = current['p1x']
-                x2 = current['p2x']
-                if x1 > x2:
-                    dif += x1 - x2
-                else:
-                    dif += x2 - x1
+            for current in j['textList']:
+                toReturn.append(f"""<text x="{current['x']}" y="{current['y']+12}" style="font-size:{int(current['fontsize'])}px;fill:{current['fColor']};">{current['text']}</text>""")
+
+            for current in j['lineList']:
+                try:
+                    x1,x2= current['p1x'],current['p2x'];dif=int(x1-x2 if x1>x2 else x2-x1)
+                    logging.info("THE NEW LINELIST THING IS WORKING")
+                except:
+                    dif = 0
+                    x1 = current['p1x']
+                    x2 = current['p2x']
+                    if x1 > x2:
+                        dif += x1 - x2
+                    else:
+                        dif += x2 - x1
+                    logging.info("THE NEW LINELIST THING IS NOT WORKING")
+
                 if dif > 10:
-                    toReturn += f"""<line x1="{current['p1x']}" y1="{current['p1y']}" x2="{current['p2x']}" y2="{current['p2y']}" stroke="{current['color']}"></line>\n"""
+                   toReturn.append(f"""<line x1="{current['p1x']}" y1="{current['p1y']}" x2="{current['p2x']}" y2="{current['p2y']}" stroke="{current['color']}"></line>""")
+            timeTakenToHandleData = time.time() - timeTakenToHandleData
+
+            toReturn.append("<!-- THIS SCHEDULE WAS MADE POSSIBLE BY https://github.com/KoalaV2 -->")
+            toReturn.append(f"<!-- SETTINGS USED: id: {self._id}, week: {self._week}, day: {self._day}, resolution: {self._resolution}, class: {classes} -->")
+            toReturn.append(f"<!-- Time taken (Requesting data): {timeTakenToFetchData} secounds -->")
+            toReturn.append(f"<!-- Time taken (Schedule generation): {timeTakenToHandleData} secounds -->")
+            toReturn.append(f"<!-- Time taken (TOTAL): {(timeTakenToFetchData + timeTakenToHandleData)} secounds -->")
             
-            toReturn += "<!-- THIS SCHEDULE WAS GENERATED WITH GETTIME2.0! -->\n"
-            toReturn += f"<!-- SETTINGS USED: id:{self._id}, week:{self._week}, day:{self._day}, resolution:{self._resolution} -->\n"
-            toReturn += f"<!-- Time taken to generate schedule (server side) : {(time.time()-timestampStart)} -->\n"
-            toReturn += "</svg>\n"
+            #End of the SVG
+            toReturn.append("</svg>")
             
-            return {'html':toReturn,'timestamp':timestampStart} #toReturn
+            toReturn = "\n".join(toReturn)
+            return {'html':toReturn,'timestamp':timeStamp} #toReturn
         except Exception as e:
             if str(e) == "'NoneType' object is not iterable":
                 logging.info("User ID invalid!")
@@ -191,26 +217,23 @@ def after_request(response):
     response.headers["Pragma"] = "no-cache"
     return response
 
-@app.route("/shared")
 @app.route("/")
 def mainpage():
     try:
-        request.args['id'] #Checks if arguments have been passed (aka custom url mode)
-        toPass = ""
-        try:toPass += f"""idnumber = "{request.args['id']}";""" + '$(".input-idnumber").val("' + request.args['id'] + '");'
-        except:pass
+        # This will error out if no ID was specified in the link, and then it fallsback on the normal page
+        toPass = f"""idnumber = "{request.args['id']}";""" + '$(".input-idnumber").val("' + request.args['id'] + '");'
+
+        # Since the week argument is optional, it can be skipped if not included
         try:toPass += f"""week = "{request.args['week']}";""" + '$(".input-week").val("' + request.args['week'] + '");'
         except:pass
 
         # try:
-        #     if int(request.args['day']) == 0:
-        #         toPass += 'document.getElementById("input-day").checked = true;'
-        #     else:
-        #         toPass += 'document.getElementById("input-day").checked = false;'
-
+        #     # I honestly dont know what this one does tbh
+        #     toPass += f"""document.getElementById("input-day").checked = {str(int(request.args['day'])==0).lower()};"""
         #     toPass += 'var dateDay = date.getDay();'
         # except:pass
 
+        # Adds these to make sure it works (it just works better like this ok?)
         toPass += "console.log('Custom URL');"
         toPass += "updateTimetable();"
         
@@ -220,6 +243,7 @@ def mainpage():
 
 @app.route("/script/_getTime")
 def _getTime():
+    # Get the finished HTML code for the schedule (Used by the website to generate the image you see)
     myRequest = GetTime(
         _id = request.args['id'],
         _week = int(request.args['week']),
@@ -234,6 +258,7 @@ def _getTime():
 
 @app.route('/terminal/schedule')
 def terminalSchedule():
+    # Text based request (Returns a text based schedule)
     try:
         myRequest = GetTime(
             _id = None,
@@ -261,8 +286,12 @@ def terminalSchedule():
     except Exception as e:
         return str(e)
 
+@app.route("/API")
 @app.route('/terminal/getall')
 def getAll():
+    # Custom API (gets the whole JSON file for the user to mess with)
+    # This is what the Skola24 website seems to get.
+    # It contains all the info you need to rebuild the schedule image.
     myRequest = GetTime(
         _id = None,
         _week = None,
@@ -278,30 +307,29 @@ def getAll():
     
     return jsonify(myRequest.getData())
 
-@app.route("/getfood")
-@app.route("/food")
-@app.route("/mat")
-def getFoodReRoute():
-    return redirect(f"{mainLink}mat/{alltime()['week']}")
+# CODE FROM OLD GETTIME THAT HAS TO BE FIXED
+# @app.route("/getfood")
+# @app.route("/food")
+# @app.route("/mat")
+# def getFoodReRoute():
+#     return redirect(f"{mainLink}mat/{alltime()['week']}")
+# @app.route("/mat/<selectedWeek>")
+# def getFoodSite(selectedWeek):
+#     from getScripts import fetchFood
+#     weekFood = fetchFood(0,int(selectedWeek))
+#     if weekFood == "Error":
+#         return render_template('food.html',foodSend=[None,None,None,None],dagar=["Mån","Tis","Ons","Tor","Fre"],selectedWeek=selectedWeek,isError=True)
+#     else:
+#         return render_template('food.html',foodSend=[weekFood[x] for x in range(0,len(weekFood)-1,2)],dagar=["Mån","Tis","Ons","Tor","Fre"],selectedWeek=selectedWeek,isError=False)
+# @app.route('/terminal/food')
+# def teminalFood():
+#     try:currentWeek = request.args['week']
+#     except:currentWeek = alltime()['week']
+#     from getScripts import fetchFood
+#     return fetchFood(0,int(currentWeek))
 
-@app.route("/mat/<selectedWeek>")
-def getFoodSite(selectedWeek):
-    from getScripts import fetchFood
-    weekFood = fetchFood(0,int(selectedWeek))
-    if weekFood == "Error":
-        return render_template('food.html',foodSend=[None,None,None,None],dagar=["Mån","Tis","Ons","Tor","Fre"],selectedWeek=selectedWeek,isError=True)
-    else:
-        return render_template('food.html',foodSend=[weekFood[x] for x in range(0,len(weekFood)-1,2)],dagar=["Mån","Tis","Ons","Tor","Fre"],selectedWeek=selectedWeek,isError=False)
 
-@app.route('/terminal/food')
-def teminalFood():
-    try:currentWeek = request.args['week']
-    except:currentWeek = alltime()['week']
-    from getScripts import fetchFood
-    return fetchFood(0,int(currentWeek))
-
-
-#Redirects:
+#Redirects (For dead links)
 @app.route("/schema/")
 @app.route("/schema")
 def routeToMainpage():
@@ -312,7 +340,4 @@ def routeToMainpage2(a):
 
 #Main:
 if __name__ == "__main__":
-    try:
-        app.run(debug=False, host="0.0.0.0", port="3000")
-    except Exception as e:
-        logging.info(e);input()
+    app.run(debug=False, host="0.0.0.0", port="3000")
