@@ -16,6 +16,7 @@ from flask_mobility import Mobility
 #Other Requirements:
 import os
 import time
+import hashlib
 import logging
 import datetime as dt
 try:
@@ -38,6 +39,29 @@ def alltime():
         return 0
     b = [int(x) for x in time.strftime(f"%S/%M/%H/%d/%m/%Y/{dt.date.today().isocalendar()[1]}/{getToday()}",time.localtime()).split("/")]
     return{'secounds':b[0], 'minutes':b[1], 'hours':b[2], 'day':b[3], 'month':b[4], 'year':b[5], 'week':b[6], 'daynum':b[7]}
+
+def GetHashofDirs(directory,blacklist=[],verbose=0):
+    # Code from https://stackoverflow.com/a/24937710
+    try:
+        SHAhash = hashlib.md5()
+        if not os.path.exists(directory):
+            return -1
+        for root, dirs, files in os.walk(directory):
+            for names in files:
+                if not names in blacklist:
+                    if verbose == 1:
+                        print('Hashing', names)
+                    filepath = os.path.join(root,names)
+                    try:
+                        # Code from https://tinyurl.com/2rpvtjw9
+                        with open(filepath,"rb") as f:
+                            for byte_block in iter(lambda: f.read(4096),b""):
+                                SHAhash.update(byte_block)
+                    except:
+                        continue
+        return SHAhash.hexdigest()
+    except:
+        return 0
 
 
 #NewGetTime Setup:
@@ -220,6 +244,8 @@ class GetTime:
 
 
 #Flask Setup:
+blacklist = ["logfile.log"]
+currentHash = GetHashofDirs("./",blacklist=blacklist)
 mainLink = "https://www.gettime.ga/"
 app = Flask(__name__)
 Mobility(app) #Mobile features
@@ -234,7 +260,7 @@ def after_request(response):
 
 @app.route("/")
 def mainpage():
-    global mainLink, DEBUGMODE
+    global mainLink, DEBUGMODE, currentHash
     # You can send JS code to parseCode, and it will appear at the end of the website.
     # loadAutomaticly is used to help custom url's to work (should be "true" by default)
     requestURL = "http://127.0.0.1:5000/" if DEBUGMODE else mainLink
@@ -250,9 +276,9 @@ def mainpage():
         toPass += "console.log('Custom URL');"
         toPass += "updateTimetable();"
         
-        return render_template("sodschema.html",parseCode=Markup("<script>$(document).ready(function() {" + toPass + "});</script>"),loadAutomaticly="false",requestURL=requestURL)
+        return render_template("sodschema.html",parseCode=Markup("<script>$(document).ready(function() {" + toPass + "});</script>"),loadAutomaticly="false",requestURL=requestURL,currentHash=currentHash)
     except:
-        return render_template("sodschema.html",parseCode="",loadAutomaticly="true",requestURL=requestURL)
+        return render_template("sodschema.html",parseCode="",loadAutomaticly="true",requestURL=requestURL,currentHash=currentHash)
 
 @app.route("/script/_getTime")
 def _getTime():
@@ -319,6 +345,10 @@ def getAll():
     
     return jsonify(myRequest.getData())
 
+@app.route("/API/checkhash")
+def checkhash():
+    return GetHashofDirs("./",blacklist=blacklist)
+
 #Redirects (For dead links)
 @app.route("/schema/")
 @app.route("/schema")
@@ -330,6 +360,7 @@ def routeToMainpage2(a):
 
 #Main:
 if __name__ == "__main__":
+    logging.info(f"Serverhash is {currentHash}")
     if DEBUGMODE:
         app.run(debug=False, host="127.0.0.1", port="5000")
     else:
