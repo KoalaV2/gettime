@@ -396,9 +396,9 @@ def getAll():
     
     return jsonify(myRequest.getData())
 
-@app.route("/API/checkhash")
-def checkhash():
-    return GetHashofDirs("./",blacklist=blacklist)
+# @app.route("/API/checkhash")
+# def checkhash():
+#     return GetHashofDirs("./",blacklist=blacklist)
 
 #Redirects (For dead links)
 @app.route("/schema/")
