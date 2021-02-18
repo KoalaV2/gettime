@@ -1,4 +1,4 @@
-DEBUGMODE = True
+DEBUGMODE = False
 
 #NewGetTime Requirements:
 import json
