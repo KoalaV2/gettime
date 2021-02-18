@@ -1,5 +1,6 @@
 #NewGetTime Requirements:
 import json
+from re import escape
 import requests
 
 #Flask Requirements:
@@ -20,9 +21,9 @@ from datetime import datetime as dt
 
 
 #Functions:
-def loadConfigfile():
+def loadConfigfile(configFileName):
     cfg = {}
-    with open('settings.cfg','r') as f:
+    with open(configFileName,'r') as f:
         for x in f.readlines():
             a,b = x.strip('\n').split(" = ")
             
@@ -59,29 +60,34 @@ def alltime():
     b = [int(x) for x in time.strftime(f"%S/%M/%H/%d/%m/%Y/{dt.date.today().isocalendar()[1]}/{getToday()}",time.localtime()).split("/")]
     return{'secounds':b[0], 'minutes':b[1], 'hours':b[2], 'day':b[3], 'month':b[4], 'year':b[5], 'week':b[6], 'daynum':b[7]}
 
-def GetHashofDirs(directory,blacklist=[],verbose=0):
-    # Code from https://stackoverflow.com/a/24937710
-    try:
-        SHAhash = hashlib.md5()
-        if not os.path.exists(directory):
-            return -1
-        for root, dirs, files in os.walk(directory):
-            for names in files:
-                for x in blacklist:
-                    if names == x or names.startswith(x) or names.endswith(x):
-                        if verbose == 1:
-                            print('Hashing', names)
-                        filepath = os.path.join(root,names)
-                        try:
-                            # Code from https://tinyurl.com/2rpvtjw9
-                            with open(filepath,"rb") as f:
-                                for byte_block in iter(lambda: f.read(4096),b""):
-                                    SHAhash.update(byte_block)
-                        except:
-                            continue
-        return SHAhash.hexdigest()
-    except:
-        return 0
+# def GetHashofDirs(directory,blacklist=[],verbose=0):
+#     # Code from https://stackoverflow.com/a/24937710
+#     try:
+#         SHAhash = hashlib.md5()
+#         if not os.path.exists(directory):
+#             return -1
+#         for root, dirs, files in os.walk(directory):
+            
+#             for names in files:
+
+                
+#                 filepath= os.path.join(root,names)
+#                 print(root)
+#                 if names in blacklist or root in blacklist or filepath.endswith(".log"):
+#                     continue
+
+#                 if verbose == 1:
+#                     print('Hashing', names)
+#                 try:
+#                     # Code from https://tinyurl.com/2rpvtjw9
+#                     with open(filepath,"rb") as f:
+#                         for byte_block in iter(lambda: f.read(4096),b""):
+#                             SHAhash.update(byte_block)
+#                 except:
+#                     continue
+#         return SHAhash.hexdigest()
+#     except:
+#         return 0
 
 
 #NewGetTime Setup:
@@ -265,7 +271,10 @@ class GetTime:
 
 #Main Setup:
 #ConfigFile
-configfile = loadConfigfile()
+try:
+    configfile = loadConfigfile("settings.cfg")
+except:
+    configfile = loadConfigfile("/home/koala/gettime/settings.cfg")
 
 #Debugmode
 DEBUGMODE = configfile['DEBUGMODE']
@@ -282,8 +291,8 @@ except:
     logging.basicConfig(filename=logFileLocation+logFileName,level=logging.DEBUG,format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s")
 
 #Hash
-blacklist = [".log"]
-currentHash = GetHashofDirs("./",blacklist=blacklist)
+#blacklist = ["./gettimeenv","./logs"]
+currentHash = "0" #GetHashofDirs("./",blacklist=blacklist)
 
 #Flask
 mainLink = "https://www.gettime.ga/"
