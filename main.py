@@ -19,12 +19,13 @@ import time
 import hashlib
 import logging
 import datetime as dt
+logFileName = f"logfile_{dt.today().strftime('%Y-%m-%d-%H:%M:%S')}.log"
 try:
     # Main server logfile path:
-    logging.basicConfig(filename="/home/koala/gettime/logfile.log",level=logging.DEBUG,format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s")
+    logging.basicConfig(filename=f"/home/koala/gettime/{logFileName}",level=logging.DEBUG,format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s")
 except:
     # For debugging and in case main path is invalid:
-    logging.basicConfig(filename="logfile.log",level=logging.DEBUG,format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s")
+    logging.basicConfig(filename=logFileName,level=logging.DEBUG,format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s")
 
 
 #Functions:
@@ -48,17 +49,18 @@ def GetHashofDirs(directory,blacklist=[],verbose=0):
             return -1
         for root, dirs, files in os.walk(directory):
             for names in files:
-                if not names in blacklist:
-                    if verbose == 1:
-                        print('Hashing', names)
-                    filepath = os.path.join(root,names)
-                    try:
-                        # Code from https://tinyurl.com/2rpvtjw9
-                        with open(filepath,"rb") as f:
-                            for byte_block in iter(lambda: f.read(4096),b""):
-                                SHAhash.update(byte_block)
-                    except:
-                        continue
+                for x in blacklist:
+                    if names == x or names.startswith(x) or names.endswith(x):
+                        if verbose == 1:
+                            print('Hashing', names)
+                        filepath = os.path.join(root,names)
+                        try:
+                            # Code from https://tinyurl.com/2rpvtjw9
+                            with open(filepath,"rb") as f:
+                                for byte_block in iter(lambda: f.read(4096),b""):
+                                    SHAhash.update(byte_block)
+                        except:
+                            continue
         return SHAhash.hexdigest()
     except:
         return 0
@@ -244,7 +246,7 @@ class GetTime:
 
 
 #Flask Setup:
-blacklist = ["logfile.log"]
+blacklist = [".log"]
 currentHash = GetHashofDirs("./",blacklist=blacklist)
 mainLink = "https://www.gettime.ga/"
 app = Flask(__name__)
