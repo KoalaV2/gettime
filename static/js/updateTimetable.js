@@ -88,7 +88,9 @@ function updateTimetable(){
 				trElement.removeChild(tdElement);
 				trElement.innerHTML = data['result']['html'] + trElement.innerHTML;
 				
-				eval($('#scheduleScript').attr('SCRIPT'));
+				console.log("Before running the script")
+				eval($('#scheduleScript').attr('script'));
+				console.log("After!")
 
 				$('.arrow').removeClass('arrow-loading');
 				$('#schedule').fadeIn(500);
