@@ -33,7 +33,6 @@ function showSaved(){
 		$(".savedList").append('<button class="clearSavedItems mobileSaved control-container" onclick="deleteAllURLCookies();">Clear saved URLS</button>');
 	}
 	
-
 	$(".savedIDs").fadeIn("fast");
 };
 
@@ -79,6 +78,22 @@ function hideControls(){
 
 //events on load & event triggers.
 $(window).on("load", function(){
+
+	// debounce
+	function debounce(func, wait, immediate) {
+		var timeout;
+		return function() {
+			var context = this, args = arguments;
+			var later = function() {
+				timeout = null;
+				if (!immediate) func.apply(context, args);
+			};
+			var callNow = immediate && !timeout;
+			clearTimeout(timeout);
+			timeout = setTimeout(later, wait);
+			if (callNow) func.apply(context, args);
+		};
+	};
 
 	//hide controls div before load
 	hideControls();
@@ -137,15 +152,14 @@ $(window).on("load", function(){
 	$(".loader-main").slideToggle();
 
 
-
-
 	// TRIGGERS
 
 	// update timetable to fit new window size
-	$( window ).resize(function() {
+	var myEfficientFn = debounce(function() {
 		console.log("update timetable to fit new window size");
 		updateTimetable();
-	});
+	}, 250);
+	window.addEventListener('resize', myEfficientFn);
 
 	//blink arrow and go move week on timetable
 	$(".arrow-left").on("click", function(){
@@ -155,6 +169,8 @@ $(window).on("load", function(){
 			updateTimetable();
 		});
 	});
+
+
 
 	//blink arrow and go move week on timetable
 	$(".arrow-center").on("click", function(){

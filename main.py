@@ -1,4 +1,4 @@
-DEBUGMODE = False
+DEBUGMODE = True
 
 #NewGetTime Requirements:
 import json
@@ -18,14 +18,17 @@ import os
 import time
 import hashlib
 import logging
-import datetime as dt
-logFileName = f"logfile_{dt.today().strftime('%Y-%m-%d-%H:%M:%S')}.log"
+from datetime import datetime as dt
+#import datetime as dt
+logFileName = f"logfile_{dt.today().strftime('%Y-%m-%d-%H-%M-%S')}.log"
 try:
     # Main server logfile path:
-    logging.basicConfig(filename=f"/home/koala/gettime/{logFileName}",level=logging.DEBUG,format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s")
+    logFileLocation = "/home/koala/gettime/"
+    logging.basicConfig(filename=logFileLocation+logFileName,level=logging.DEBUG,format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s")
 except:
     # For debugging and in case main path is invalid:
-    logging.basicConfig(filename=logFileName,level=logging.DEBUG,format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s")
+    logFileLocation = "logs/"
+    logging.basicConfig(filename=logFileLocation+logFileName,level=logging.DEBUG,format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s")
 
 
 #Functions:

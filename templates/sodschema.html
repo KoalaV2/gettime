@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<!-- GetTime v0.9.2 ({{currentHash}}) -->
+		<!-- GetTime ({{currentHash}}) -->
 
 		<!-- This is where some constants and settings are stored -->
 		<!-- It is here, because I don't know where JS code should be -->
@@ -11,7 +11,7 @@
 		</script>
 		
 		<!-- Set title -->
-		<title>GetTime - 2021</title>
+		<title>GetTime</title>
 
 		<!-- JS Libraries -->
 		<script type="text/javascript" src="/static/js/jquery-3.4.0.min.js"></script>
@@ -117,8 +117,8 @@
 							Rounded&nbsp;&nbsp;	
 						</span>
 						<label class="switch ">
-						<input id="roundedMode" name="roundedMode" type="checkbox">
-						<span class="slider round control control-right"></span>
+							<input id="roundedMode" name="roundedMode" type="checkbox">
+							<span class="slider round control control-right"></span>
 						</label>
 					</label>
 
@@ -128,8 +128,8 @@
 							Day&nbsp;&nbsp;	
 						</span>
 						<label class="switch ">
-						<input type="checkbox" name="input-day" id="input-day"/>
-						<span class="slider round control control-right"></span>
+							<input type="checkbox" name="input-day" id="input-day"/>
+							<span class="slider round control control-right"></span>
 						</label>
 					</label>
 
@@ -150,6 +150,7 @@
 
 			<!-- Main timetable object -->
 			<div id="scheduleBox" style="position: fixed; text-shadow: none;">
+				
 				<svg id="schedule"></svg>
 			</div>
 
@@ -160,7 +161,7 @@
 
 				<p>Last updated: November 14, 2018</p>
 
-				<p>GetTime ("us", "we", or "our") uses cookies on the http://gettime.ga/ website (the "Service"). By using the Service, you consent to the use of cookies.</p>
+				<p>GetTime ("us", "we", or "our") uses cookies on the https://gettime.ga/ website (the "Service"). By using the Service, you consent to the use of cookies.</p>
 
 				<p>Our Cookies Policy explains what cookies are, how we use cookies, how third-parties we may partner with may use cookies on the Service, your choices regarding cookies and further information about cookies.</p>
 
@@ -177,13 +178,13 @@
 				<p>We use cookies for the following purposes:</p>
 
 				<ul>
-				<li>
-					<p>To enable certain functions of the Service</p>
-					
-					<p>We use both session and persistent cookies on the Service and we use different types of cookies to run the Service:</p>
+					<li>
+						<p>To enable certain functions of the Service</p>
+						
+						<p>We use both session and persistent cookies on the Service and we use different types of cookies to run the Service:</p>
 
-					<p>Essential cookies. We use cookies to remember your information to make your experience seamless.</p>
-				</li>
+						<p>Essential cookies. We use cookies to remember your information to make your experience seamless.</p>
+					</li>
 				</ul>
 
 				<h2>What are your choices regarding cookies</h2>
@@ -193,21 +194,21 @@
 				<p>Please note, however, that if you delete cookies or refuse to accept them, you might not be able to use all of the features we offer, you may not be able to store your preferences, and some of our pages might not display properly.</p>
 
 				<ul>
-				<li>
-					<p>For the Chrome web browser, please visit this page from Google: <a href="https://support.google.com/accounts/answer/32050">https://support.google.com/accounts/answer/32050</a></p>
-				</li>
-				<li>
-					<p>For the Internet Explorer web browser, please visit this page from Microsoft: <a href="http://support.microsoft.com/kb/278835">http://support.microsoft.com/kb/278835</a></p>
-				</li>
-				<li>
-					<p>For the Firefox web browser, please visit this page from Mozilla: <a href="https://support.mozilla.org/en-US/kb/delete-cookies-remove-info-websites-stored">https://support.mozilla.org/en-US/kb/delete-cookies-remove-info-websites-stored</a></p>
-				</li>
-				<li>
-					<p>For the Safari web browser, please visit this page from Apple: <a href="https://support.apple.com/kb/PH21411?locale=en_US">https://support.apple.com/kb/PH21411?locale=en_US</a></p>
-				</li>
-				<li>
-					<p>For any other web browser, please visit your web browser's official web pages.</p>
-				</li>
+					<li>
+						<p>For the Chrome web browser, please visit this page from Google: <a href="https://support.google.com/accounts/answer/32050">https://support.google.com/accounts/answer/32050</a></p>
+					</li>
+					<li>
+						<p>For the Internet Explorer web browser, please visit this page from Microsoft: <a href="http://support.microsoft.com/kb/278835">http://support.microsoft.com/kb/278835</a></p>
+					</li>
+					<li>
+						<p>For the Firefox web browser, please visit this page from Mozilla: <a href="https://support.mozilla.org/en-US/kb/delete-cookies-remove-info-websites-stored">https://support.mozilla.org/en-US/kb/delete-cookies-remove-info-websites-stored</a></p>
+					</li>
+					<li>
+						<p>For the Safari web browser, please visit this page from Apple: <a href="https://support.apple.com/kb/PH21411?locale=en_US">https://support.apple.com/kb/PH21411?locale=en_US</a></p>
+					</li>
+					<li>
+						<p>For any other web browser, please visit your web browser's official web pages.</p>
+					</li>
 				</ul>
 
 				<h2>Where can you find more information about cookies</h2>
@@ -215,12 +216,12 @@
 				<p>You can learn more about cookies and the following third-party websites:</p>
 
 				<ul>
-				<li>
-					<p>AllAboutCookies: <a href="http://www.allaboutcookies.org/">http://www.allaboutcookies.org/</a></p>
-				</li>
-				<li>
-					<p>Network Advertising Initiative: <a href="http://www.networkadvertising.org/">http://www.networkadvertising.org/</a></p>
-				</li>
+					<li>
+						<p>AllAboutCookies: <a href="http://www.allaboutcookies.org/">http://www.allaboutcookies.org/</a></p>
+					</li>
+					<li>
+						<p>Network Advertising Initiative: <a href="http://www.networkadvertising.org/">http://www.networkadvertising.org/</a></p>
+					</li>
 				</ul>
 
 				<!-- Accept policy button -->
