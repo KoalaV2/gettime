@@ -1,5 +1,3 @@
-DEBUGMODE = False
-
 #NewGetTime Requirements:
 import json
 import requests
@@ -19,19 +17,36 @@ import time
 import hashlib
 import logging
 from datetime import datetime as dt
-#import datetime as dt
-logFileName = f"logfile_{dt.today().strftime('%Y-%m-%d-%H-%M-%S')}.log"
-try:
-    # Main server logfile path:
-    logFileLocation = "/home/koala/gettime/"
-    logging.basicConfig(filename=logFileLocation+logFileName,level=logging.DEBUG,format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s")
-except:
-    # For debugging and in case main path is invalid:
-    logFileLocation = "logs/"
-    logging.basicConfig(filename=logFileLocation+logFileName,level=logging.DEBUG,format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s")
 
 
 #Functions:
+def loadConfigfile():
+    cfg = {}
+    with open('settings.cfg','r') as f:
+        for x in f.readlines():
+            a,b = x.strip('\n').split(" = ")
+            
+            # Checks if value is true or false
+            if b.lower() == "true":
+                cfg[a] = True
+                continue
+            if b.lower() == "false":
+                cfg[a] = False
+                continue
+            # Checks if value is specified as string
+            if (b.startswith('"') and b.endswith('"')) or (b.startswith("'") and b.endswith("'")):
+                cfg[a] = b[1:-1]
+                continue
+            # Checks if value is INT
+            try:
+                cfg[a] = int(b)
+                continue
+            # If not, saves it as string
+            except:
+                cfg[a] = b
+                continue
+    return cfg
+
 def alltime():
     """
     Returns a dictionary with (secound, minute, hour, day, week, month, year, daynum)
@@ -248,14 +263,36 @@ class GetTime:
             return {'html':'<svg id="schedule"></svg>','timestamp':0}
 
 
-#Flask Setup:
+#Main Setup:
+#ConfigFile
+configfile = loadConfigfile()
+
+#Debugmode
+DEBUGMODE = configfile['DEBUGMODE']
+
+#Logging
+logFileName = f"logfile_{dt.today().strftime('%Y-%m-%d-%H-%M-%S')}.log"
+try:
+    # Main server logfile path:
+    logFileLocation = "/home/koala/gettime/"
+    logging.basicConfig(filename=logFileLocation+logFileName,level=logging.DEBUG,format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s")
+except:
+    # For debugging and in case main path is invalid:
+    logFileLocation = "logs/"
+    logging.basicConfig(filename=logFileLocation+logFileName,level=logging.DEBUG,format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s")
+
+#Hash
 blacklist = [".log"]
 currentHash = GetHashofDirs("./",blacklist=blacklist)
+
+#Flask
 mainLink = "https://www.gettime.ga/"
 app = Flask(__name__)
 Mobility(app) #Mobile features
 CORS(app) #Behövs så att man kan skicka requests till serven (for some reason idk)
 
+
+#Flask routes:
 @app.after_request #Script to help prevent caching
 def after_request(response):
     response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, public, max-age=0"
@@ -366,7 +403,6 @@ def routeToMainpage2(a):
 #Main:
 if __name__ == "__main__":
     logging.info(f"Serverhash is {currentHash}")
-    if DEBUGMODE:
-        app.run(debug=False, host="127.0.0.1", port="5000")
-    else:
-        app.run(debug=False, host="0.0.0.0", port="7331")
+    if DEBUGMODE: 
+        logging.info("Debugmode is on!")
+    app.run(debug=DEBUGMODE, host=configfile['ip'], port=configfile['port'])

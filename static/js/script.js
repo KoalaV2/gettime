@@ -155,11 +155,11 @@ $(window).on("load", function(){
 	// TRIGGERS
 
 	// update timetable to fit new window size
-	var myEfficientFn = debounce(function() {
+	var update_timetable_to_fit_new_window_size = debounce(function() {
 		console.log("update timetable to fit new window size");
 		updateTimetable();
 	}, 250);
-	window.addEventListener('resize', myEfficientFn);
+	window.addEventListener('resize', update_timetable_to_fit_new_window_size);
 
 	//blink arrow and go move week on timetable
 	$(".arrow-left").on("click", function(){
@@ -169,8 +169,6 @@ $(window).on("load", function(){
 			updateTimetable();
 		});
 	});
-
-
 
 	//blink arrow and go move week on timetable
 	$(".arrow-center").on("click", function(){
@@ -191,10 +189,11 @@ $(window).on("load", function(){
 	});
 
 	//update timetable on related input
-	$('.input-idnumber').on('input', function() {
-		console.log('update timetable on related input');
+	var update_timetable_on_related_input = debounce(function() {
+		console.log('update timetable on related input (AFTER DEBOUNCE)');
 		updateTimetable();
-	});
+	}, 350);
+	$('.input-idnumber').on('input', update_timetable_on_related_input)
 
 	//unreliable fix, need more investigation on why input week arrows dont work.
 	$(".input-week-container").on("click", function(){
