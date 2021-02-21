@@ -9,7 +9,8 @@ function updateTimetable(){
 	if ($("#roundedMode").is(':checked')){
 		height -= 25;
 		createCookie("roundedMode", "rounded", 360);
-	}else{
+	}
+	else{
 		createCookie("roundedMode", "straight", 360);
 	}
 
@@ -31,10 +32,11 @@ function updateTimetable(){
 	savePosition = $(".savebutton").offset();
 
 	if(width > 820){
-	$(".savedIDs").css("right", 0);
-	$(".savedIDs").css("top", 50);
-	$(".savedIDs").css("transform", "none");
-	}else{
+		$(".savedIDs").css("right", 0);
+		$(".savedIDs").css("top", 50);
+		$(".savedIDs").css("transform", "none");
+	}
+	else{
 		$(".savedIDs").css("left", "auto");
 		$(".savedIDs").css("top", "auto");
 		$(".savedIDs").css("transform", "none");
@@ -42,19 +44,14 @@ function updateTimetable(){
 
 	currentDay = dateDay + dateModifier;
 
-    if(dayOnly) {
-
+    if(dayOnly){
     	$("#input-day-label").text("Show week");
-
+		day = 1;
 		if (currentDay >= 1 && currentDay <= 5){
 			day = currentDay;
 		}
-		else{
-			day = 0;
-		}
-
-	} else {
-
+	}
+	else{
     	$("#input-day-label").text("Show day");
 	    day = 0;
 	}
@@ -82,16 +79,17 @@ function updateTimetable(){
 			
 			if ( newtimestamp > scheduleAge){
 				scheduleAge = newtimestamp
-
+				
+				// Replaces the SVG with the new SVG data
 				var tdElement = document.getElementById('schedule');
 				var trElement = tdElement.parentNode;
 				trElement.removeChild(tdElement);
 				trElement.innerHTML = data['result']['html'] + trElement.innerHTML;
 				
-				console.log("Before running the script")
+				// Run the URL scripts
 				eval($('#scheduleScript').attr('script'));
-				console.log("After!")
-
+				
+				// Fade in the Schedule
 				$('.arrow').removeClass('arrow-loading');
 				$('#schedule').fadeIn(500);
 				$("#schedule").css({"transform": "none", "opacity": 1});
