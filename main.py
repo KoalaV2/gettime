@@ -1,9 +1,8 @@
-#NewGetTime Requirements:
+# NewGetTime Requirements:
 import json
-from re import escape
 import requests
 
-#Flask Requirements:
+# Flask Requirements:
 from flask import Flask
 from flask import Markup
 from flask import jsonify
@@ -12,15 +11,14 @@ from flask_cors import CORS
 from flask import render_template
 from flask_mobility import Mobility
 
-#Other Requirements:
+# Other Requirements:
 import os
 import time
-import hashlib
 import logging
 import datetime
 
 
-#Functions:
+# Functions:
 def loadConfigfile(configFileName):
     cfg = {}
     with open(configFileName,'r') as f:
@@ -69,7 +67,7 @@ def currentTime():
     }
 
 
-#NewGetTime Setup:
+# NewGetTime Setup:
 class Lesson:
     def __init__(self,lessionName,teacherName,classroomName,timeStart,timeEnd,dayOfWeekNumber):
         self.lessionName = lessionName
@@ -82,10 +80,11 @@ class GetTime:
     """
     GetTime Request object
     """
-    def __init__(self,_id,_week,_day,_resolution):
+    def __init__(self,_id=None,_week=currentTime()['week'],_day=0,_year=currentTime()['year'],_resolution=(1280,720)):
         self._id = _id
         self._week = _week
         self._day = _day
+        self._year = _year
         self._resolution = _resolution
     def getData(self):
         """
@@ -96,6 +95,9 @@ class GetTime:
             Returns:
                 <JSON> object with the data inside
         """
+        if self._id == None:
+            return None
+        #Request 1
         headers1 = {
             "Connection": "keep-alive",
             "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:85.0) Gecko/20100101 Firefox/85.0",
@@ -112,6 +114,7 @@ class GetTime:
         payload1 = {"signature":self._id}
         response1 = requests.post(url1, data=json.dumps(payload1), headers=headers1).text.split('"signature": "')[1].split('"')[0]
 
+        #Request 2
         headers2 = {
             "Host": "web.skola24.se",
             "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:85.0) Gecko/20100101 Firefox/85.0",
@@ -133,6 +136,7 @@ class GetTime:
         payload2 = "null"
         response2 = requests.post(url2, data=payload2, headers=headers2).text.split('"key": "')[1].split('"')[0]
 
+        #Request 3
         headers3 = headers2
         url3 = 'https://web.skola24.se/api/render/timetable'
         payload3 = {
@@ -141,16 +145,16 @@ class GetTime:
             "unitGuid":"ZTEyNTdlZjItZDc3OC1mZWJkLThiYmEtOGYyZDA4NGU1YjI2",
             "startDate":"null",
             "endDate":"null",
-            "scheduleDay":self._day,
+            "scheduleDay":int(self._day),
             "blackAndWhite":"false",
-            "width":self._resolution[0],
-            "height":self._resolution[1],
+            "width":int(self._resolution[0]),
+            "height":int(self._resolution[1]),
             "selectionType":4,
             "selection":response1,
             "showHeader":"false",
             "periodText":"",
-            "week":self._week,
-            "year":2021,
+            "week":int(self._week),
+            "year":int(self._year),
             "privateFreeTextMode":"false",
             "privateSelectionMode":"null",
             "customerKey":""
@@ -248,7 +252,7 @@ class GetTime:
             return {'html':'<svg id="schedule"></svg>','timestamp':0}
 
 
-#Main Setup:
+# Main Setup:
 #ConfigFile
 try:
     configfile = loadConfigfile("settings.cfg")
@@ -259,23 +263,22 @@ except:
 DEBUGMODE = configfile['DEBUGMODE']
 
 #Logging
-logFileName = f"logfile_{dt.today().strftime('%Y-%m-%d-%H-%M-%S')}.log"
+logFileName = f"logfile_{datetime.datetime.today().strftime('%Y-%m-%d-%H-%M-%S')}.log"
 logFileLocation = configfile['logFileLocation']
 try:
-    # Main server logfile path:
-    logging.basicConfig(filename=logFileLocation+logFileName,level=logging.DEBUG,format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s")
+    logging.basicConfig(filename=logFileLocation+logFileName, level=logging.DEBUG, format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s")
 except:
-    # For debugging and in case main path is invalid:
-    logging.basicConfig(filename=logFileName,level=logging.DEBUG,format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s")
+    # In case main path is invalid:
+    logging.basicConfig(filename=logFileName, level=logging.DEBUG, format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s")
 
-#Flask
-mainLink = "https://www.gettime.ga/"
+# Flask
+mainLink = configfile['mainLink']
 app = Flask(__name__)
 Mobility(app) #Mobile features
 CORS(app) #Behövs så att man kan skicka requests till serven (for some reason idk)
 
 
-#Flask routes:
+# Flask routes:
 @app.after_request #Script to help prevent caching
 def after_request(response):
     response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, public, max-age=0"
@@ -285,10 +288,8 @@ def after_request(response):
 
 @app.route("/")
 def mainpage():
-    global mainLink, DEBUGMODE, currentHash
     # You can send JS code to parseCode, and it will appear at the end of the website.
     # loadAutomaticly is used to help custom url's to work (should be "true" by default)
-    requestURL = "http://127.0.0.1:5000/" if DEBUGMODE else mainLink
     try:
         # This will error out if no ID was specified in the link, and then it fallsback on the normal page
         toPass = f"""idnumber = "{request.args['id']}";""" + '$(".input-idnumber").val("' + request.args['id'] + '");'
@@ -303,7 +304,7 @@ def mainpage():
         
         return render_template("sodschema.html",parseCode=Markup("<script>$(document).ready(function() {" + toPass + "});</script>"),loadAutomaticly="false",requestURL=requestURL)
     except:
-        return render_template("sodschema.html",parseCode="",loadAutomaticly="true",requestURL=requestURL)
+        return render_template("sodschema.html",parseCode="",loadAutomaticly="true",requestURL=mainLink)
 
 @app.route("/script/_getTime")
 def _getTime():
@@ -318,22 +319,18 @@ def _getTime():
         result = myRequest.handleHTML(classes=request.args['classes'])
     except:
         result = myRequest.handleHTML()
-    return jsonify(result=result) 
+    
+    return jsonify(result=result)#.headers.add('Access-Control-Allow-Origin', '*')
 
 @app.route('/terminal/schedule')
 def terminalSchedule():
     # Text based request (Returns a text based schedule)
     try:
-        myRequest = GetTime(
-            _id = None,
-            _week = None,
-            _day = None,
-            _resolution = (1280,720)
-        )
+        myRequest = GetTime()
         try:myRequest._id = request.args['id']
         except:return "YOU NEED TO PASS ID ARGUMENT"
         try:myRequest._week = request.args['week']
-        except:myRequest._week = currentTime()['week']
+        except:pass
         try:myRequest._day = request.args['day']
         except:myRequest._day = currentTime()['weekday']
 
@@ -349,40 +346,38 @@ def terminalSchedule():
     except Exception as e:
         return str(e)
 
-@app.route("/API")
+@app.route("/api/json")
+@app.route("/API/JSON")
 @app.route('/terminal/getall')
 def getAll():
     # Custom API (gets the whole JSON file for the user to mess with)
     # This is what the Skola24 website seems to get.
     # It contains all the info you need to rebuild the schedule image.
-    myRequest = GetTime(
-        _id = None,
-        _week = None,
-        _day = None,
-        _resolution = None
-    )
+    myRequest = GetTime()
     try:myRequest._id = request.args['id']
     except:return "YOU NEED TO PASS ID ARGUMENT"
     try:myRequest._week = request.args['week']
-    except:myRequest._week = currentTime()['week']
+    except:pass
     try:myRequest._day = request.args['day']
-    except:myRequest._day = currentTime()['weekday']
+    except:pass
     try:myRequest._resolution = request.args['res'].split(",")
-    except:myRequest._resolution = (1280,720)
+    except:pass
     
     return jsonify(myRequest.getData())
 
+@app.route("/logfile")
+def logfile():
+    with open(logFileLocation+logFileName,"r") as f:
+        return f"<p>{logFileLocation+logFileName}</p><p>{'<br>'.join(f.readlines())}</p>"
 
-#Redirects (For dead links)
+# Redirects (For dead links)
+@app.route("/schema/<a>")
 @app.route("/schema/")
 @app.route("/schema")
-def routeToMainpage():
-    return mainpage()
-@app.route("/schema/<a>")
-def routeToMainpage2(a):
+def routeToMainpage(**a):
     return mainpage()
 
-#Main:
+# Main:
 if __name__ == "__main__":
     if DEBUGMODE: 
         logging.info("Debugmode is on!")

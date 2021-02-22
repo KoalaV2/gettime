@@ -2,6 +2,7 @@
 
 // KNOWN ISSUES:
 // Can not click the text itself (fixable)
+// Only based on the Lession name (Studietider is affected by this)
 
 // This is run as the new schedule is passed in.
 function checkMyUrl(theID,className) {
