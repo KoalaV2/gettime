@@ -302,7 +302,7 @@ def mainpage():
         toPass += "console.log('Custom URL');"
         toPass += "updateTimetable();"
         
-        return render_template("sodschema.html",parseCode=Markup("<script>$(document).ready(function() {" + toPass + "});</script>"),loadAutomaticly="false",requestURL=requestURL)
+        return render_template("sodschema.html",parseCode=Markup("<script>$(document).ready(function() {" + toPass + "});</script>"),loadAutomaticly="false",requestURL=mainLink)
     except:
         return render_template("sodschema.html",parseCode="",loadAutomaticly="true",requestURL=mainLink)
 
@@ -367,8 +367,9 @@ def getAll():
 
 @app.route("/logfile")
 def logfile():
-    with open(logFileLocation+logFileName,"r") as f:
-        return f"<p>{logFileLocation+logFileName}</p><p>{'<br>'.join(f.readlines())}</p>"
+    if request.args['key'] == configfile['key']:
+        with open(logFileLocation+logFileName,"r") as f:
+            return f"<p>{logFileLocation+logFileName}</p><p>{'<br>'.join(f.readlines())}</p>"
 
 # Redirects (For dead links)
 @app.route("/schema/<a>")
