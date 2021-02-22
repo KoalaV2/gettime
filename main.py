@@ -17,7 +17,7 @@ import os
 import time
 import hashlib
 import logging
-from datetime import datetime as dt
+import datetime
 
 
 #Functions:
@@ -34,60 +34,39 @@ def loadConfigfile(configFileName):
             if b.lower() == "false":
                 cfg[a] = False
                 continue
+
             # Checks if value is specified as string
             if (b.startswith('"') and b.endswith('"')) or (b.startswith("'") and b.endswith("'")):
                 cfg[a] = b[1:-1]
                 continue
+
             # Checks if value is INT
             try:
                 cfg[a] = int(b)
                 continue
+
             # If not, saves it as string
             except:
                 cfg[a] = b
                 continue
     return cfg
 
-def alltime():
+def currentTime():
     """
-    Returns a dictionary with (secound, minute, hour, day, week, month, year, daynum)
+        Returns a dictionary:\n
+        (secound, minute, hour, day, week, month, year, weekday)
     """
-    def getToday():
-        """Returns int of current day (mon-fri = 1-5, sat-sun = 0 (full week))"""
-        a=dt.datetime.today().isoweekday()
-        if a>=1 and a<=5:return a
-        return 0
-    b = [int(x) for x in time.strftime(f"%S/%M/%H/%d/%m/%Y/{dt.date.today().isocalendar()[1]}/{getToday()}",time.localtime()).split("/")]
-    return{'secounds':b[0], 'minutes':b[1], 'hours':b[2], 'day':b[3], 'month':b[4], 'year':b[5], 'week':b[6], 'daynum':b[7]}
-
-# def GetHashofDirs(directory,blacklist=[],verbose=0):
-#     # Code from https://stackoverflow.com/a/24937710
-#     try:
-#         SHAhash = hashlib.md5()
-#         if not os.path.exists(directory):
-#             return -1
-#         for root, dirs, files in os.walk(directory):
-            
-#             for names in files:
-
-                
-#                 filepath= os.path.join(root,names)
-#                 print(root)
-#                 if names in blacklist or root in blacklist or filepath.endswith(".log"):
-#                     continue
-
-#                 if verbose == 1:
-#                     print('Hashing', names)
-#                 try:
-#                     # Code from https://tinyurl.com/2rpvtjw9
-#                     with open(filepath,"rb") as f:
-#                         for byte_block in iter(lambda: f.read(4096),b""):
-#                             SHAhash.update(byte_block)
-#                 except:
-#                     continue
-#         return SHAhash.hexdigest()
-#     except:
-#         return 0
+    now = datetime.datetime.now()
+    return {
+        'secound':now.second,
+        'minute':now.minute,
+        'hour':now.hour,
+        'day':now.day,
+        'month':now.month,
+        'year':now.year,
+        'week':datetime.date.today().isocalendar()[1],
+        'weekday':now.weekday()
+    }
 
 
 #NewGetTime Setup:
@@ -281,18 +260,13 @@ DEBUGMODE = configfile['DEBUGMODE']
 
 #Logging
 logFileName = f"logfile_{dt.today().strftime('%Y-%m-%d-%H-%M-%S')}.log"
+logFileLocation = configfile['logFileLocation']
 try:
     # Main server logfile path:
-    logFileLocation = "/home/koala/gettime/"
     logging.basicConfig(filename=logFileLocation+logFileName,level=logging.DEBUG,format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s")
 except:
     # For debugging and in case main path is invalid:
-    logFileLocation = "logs/"
-    logging.basicConfig(filename=logFileLocation+logFileName,level=logging.DEBUG,format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s")
-
-#Hash
-#blacklist = ["./gettimeenv","./logs"]
-currentHash = "0" #GetHashofDirs("./",blacklist=blacklist)
+    logging.basicConfig(filename=logFileName,level=logging.DEBUG,format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s")
 
 #Flask
 mainLink = "https://www.gettime.ga/"
@@ -327,9 +301,9 @@ def mainpage():
         toPass += "console.log('Custom URL');"
         toPass += "updateTimetable();"
         
-        return render_template("sodschema.html",parseCode=Markup("<script>$(document).ready(function() {" + toPass + "});</script>"),loadAutomaticly="false",requestURL=requestURL,currentHash=currentHash)
+        return render_template("sodschema.html",parseCode=Markup("<script>$(document).ready(function() {" + toPass + "});</script>"),loadAutomaticly="false",requestURL=requestURL)
     except:
-        return render_template("sodschema.html",parseCode="",loadAutomaticly="true",requestURL=requestURL,currentHash=currentHash)
+        return render_template("sodschema.html",parseCode="",loadAutomaticly="true",requestURL=requestURL)
 
 @app.route("/script/_getTime")
 def _getTime():
@@ -359,9 +333,9 @@ def terminalSchedule():
         try:myRequest._id = request.args['id']
         except:return "YOU NEED TO PASS ID ARGUMENT"
         try:myRequest._week = request.args['week']
-        except:myRequest._week = alltime()['week']
+        except:myRequest._week = currentTime()['week']
         try:myRequest._day = request.args['day']
-        except:myRequest._day = alltime()['daynum']
+        except:myRequest._day = currentTime()['weekday']
 
         a = []
         for x in myRequest.getData()['data']['lessonInfo']:
@@ -385,20 +359,19 @@ def getAll():
         _id = None,
         _week = None,
         _day = None,
-        _resolution = (1280,720)
+        _resolution = None
     )
     try:myRequest._id = request.args['id']
     except:return "YOU NEED TO PASS ID ARGUMENT"
     try:myRequest._week = request.args['week']
-    except:myRequest._week = alltime()['week']
+    except:myRequest._week = currentTime()['week']
     try:myRequest._day = request.args['day']
-    except:myRequest._day = alltime()['daynum']
+    except:myRequest._day = currentTime()['weekday']
+    try:myRequest._resolution = request.args['res'].split(",")
+    except:myRequest._resolution = (1280,720)
     
     return jsonify(myRequest.getData())
 
-# @app.route("/API/checkhash")
-# def checkhash():
-#     return GetHashofDirs("./",blacklist=blacklist)
 
 #Redirects (For dead links)
 @app.route("/schema/")
@@ -411,7 +384,6 @@ def routeToMainpage2(a):
 
 #Main:
 if __name__ == "__main__":
-    logging.info(f"Serverhash is {currentHash}")
     if DEBUGMODE: 
         logging.info("Debugmode is on!")
     app.run(debug=DEBUGMODE, host=configfile['ip'], port=configfile['port'])
