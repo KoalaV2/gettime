@@ -19,7 +19,7 @@ import os ; os.chdir(os.path.dirname(os.path.realpath(__file__))) # Set working 
 import time
 import traceback
 import datetime
-import logging ; logging.basicConfig(level=logging.DEBUG, format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s") #Default settings
+import logging ; logging.basicConfig(level=logging.DEBUG, format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s") #Default settings (before cfg file has been loaded in)
 def setLogging(path="",filename="log.log",format='%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s'):
     """
         Changes logging settings.
@@ -320,25 +320,13 @@ class GetTime:
 #region SETUP
 
 # Load config file
-try:
-    configfile = loadConfigfile("settings.cfg")
-    logging.info("Normal logfile loaded")
-except:
-    configfile = loadConfigfile("/home/koala/gettime/settings.cfg")
-    logging.info("Secound logfile loaded")
-
-# Set debugmode True or False
-DEBUGMODE = configfile['DEBUGMODE']
+configfile = loadConfigfile("settings.cfg")
 
 # Change logging to go to file
 logFileName = f"logfile_{currentTime()['datestamp']}.log"
 logFileLocation = configfile['logFileLocation']
-logging.info(f"Logging will from now on go to {logFileLocation+logFileName}")
-try:
-    setLogging(path=logFileLocation,filename=logFileName)
-except:
-    # In case main path is invalid
-    setLogging()
+logging.info(f"From now on, logs will be found at '{logFileLocation+logFileName}'")
+setLogging(path=logFileLocation,filename=logFileName)
 
 # Save mainLink
 mainLink = configfile['mainLink']
@@ -476,7 +464,6 @@ def logfile():
         with open(logFileLocation+logFileName,"r") as f:
             return f"<pre>{logFileLocation+logFileName}</pre><pre>{''.join(f.readlines())}</pre>"
 
-
 # Redirects (For dead links)
 @app.route("/schema/<a>")
 @app.route("/schema/")
@@ -488,6 +475,4 @@ def routeToIndex(**a):
 
 # Main:
 if __name__ == "__main__":
-    if DEBUGMODE: 
-        logging.info("Debugmode is on!")
-    app.run(debug=DEBUGMODE, host=configfile['ip'], port=configfile['port'])
+    app.run(debug=configfile['DEBUGMODE'], host=configfile['ip'], port=configfile['port'])
