@@ -377,7 +377,7 @@ def handle_bad_request(e):
         logging.exception(f"This is the error : {e}")
         errorMessage = []
         try:
-            errorMessage.append(f"URL : {request.url}")
+            #errorMessage.append(f"URL : {request.url}")
             errorMessage.append(f"TIME OF ERROR : {currentTime()['datestamp']}")
             errorMessage.append("") #End of special parameters, next is traceback
         except:errorMessage.append("SOMETHING ELSE FAILED TOO")
