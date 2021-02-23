@@ -15,7 +15,7 @@ from flask_mobility import Mobility
 from werkzeug.routing import Rule
 
 # Other Requirements:
-import os
+import os ; os.chdir(os.path.dirname(os.path.realpath(__file__))) # Set working dir to path of main.py
 import time
 import traceback
 import datetime
