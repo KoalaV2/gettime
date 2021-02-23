@@ -9,14 +9,15 @@ from flask import Markup
 from flask import jsonify
 from flask import request
 from flask import redirect
+import werkzeug.exceptions
 from flask_cors import CORS
+from flask_minify import minify
+from werkzeug.routing import Rule
 from flask import render_template
 from flask_mobility import Mobility
-from werkzeug.routing import Rule
-from flask_minify import minify
 
 # Other Requirements:
-import os ; os.chdir(os.path.dirname(os.path.realpath(__file__))) # Set working dir to path of main.py
+import os
 import time
 import traceback
 import datetime
@@ -327,6 +328,9 @@ class GetTime:
 
 #region SETUP
 
+# Set working dir to path of main.py
+os.chdir(os.path.dirname(os.path.realpath(__file__)))
+
 # Load config file
 configfile = loadConfigfile("settings.cfg")
 
@@ -355,13 +359,17 @@ Mobility(app) #Mobile features
 CORS(app) #Behövs så att man kan skicka requests till serven (for some reason idk)
 #endregion
 
-#region Flask routes
+#region FLASK ROUTES
 @app.after_request #Script to help prevent caching
 def after_request(response):
     response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, public, max-age=0"
     response.headers["Expires"] = 0
     response.headers["Pragma"] = "no-cache"
     return response
+
+@app.errorhandler(werkzeug.exceptions.NotFound)
+def handle_bad_request404(e):
+    return e,404
 
 @app.errorhandler(Exception)
 def handle_bad_request(e):
