@@ -70,10 +70,10 @@ function updateTimetable(){
 		console.log("Requesting schedule with this url : " + url)
 		$.getJSON(url, function(data) {
 			/* 
-			Saves the included timestamp (age) of the returned schedule
-			This is because if you resize the window alot in a short period of time, it will send many requests to the server,
-			and they will return at odd timings, so this TRIES to make sure that if you get a old schedule after a while,
-			it wont update to that one.
+				Saves the included timestamp (age) of the returned schedule
+				This is because if you resize the window alot in a short period of time, it will send many requests to the server,
+				and they will return at odd timings, so this TRIES to make sure that if you get a old schedule after a while,
+				it wont update to that one.
 			*/
 			var newtimestamp = parseFloat(data['result']['timestamp']);
 			

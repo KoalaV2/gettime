@@ -1,3 +1,4 @@
+#region IMPORT
 # NewGetTime Requirements:
 import json
 import requests
@@ -7,18 +8,31 @@ from flask import Flask
 from flask import Markup
 from flask import jsonify
 from flask import request
+from flask import redirect
 from flask_cors import CORS
 from flask import render_template
 from flask_mobility import Mobility
+from werkzeug.routing import Rule
 
 # Other Requirements:
 import os
 import time
-import logging ; logging.basicConfig(level=logging.DEBUG, format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s")
+import traceback
 import datetime
+import logging ; logging.basicConfig(level=logging.DEBUG, format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s") #Default settings
+def setLogging(path="",filename="log.log",format='%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s'):
+    """
+        Changes logging settings.
+    """
+    log = logging.getLogger()  # root logger
+    for hdlr in log.handlers[:]:  # remove all old handlers
+        log.removeHandler(hdlr)    
+    a = logging.FileHandler(path+filename, 'a')
+    a.setFormatter(logging.Formatter(format))
+    log.addHandler(a)
+#endregion
 
-
-# Functions:
+#region FUNCTIONS
 def loadConfigfile(configFileName):
     """
         Loads the config.cfg file into a dict.\n
@@ -31,59 +45,62 @@ def loadConfigfile(configFileName):
 
         Returns:
             dict: all the config settings
-    """    
+    """
+    logger = functionLogger(functionName='loadConfigfile')
     cfg = {}
-    logging.info(f"loadConfigfile : Loading configfile... ({configFileName})")
-    with open(configFileName,'r') as f:
-        for x in f.readlines():
-            a,b = x.strip('\n').split(" = ")
-            
-             # Checks if value is specified as string
-            if (b.startswith('"') and b.endswith('"')) or (b.startswith("'") and b.endswith("'")):
-                cfg[a] = b[1:-1]
-                logging.info(f"loadConfigfile : Converted '{b}' into a string and saved to '{a}'")
-                continue
-
-            # Checks if value is true or false
-            if b.lower() == "true":
-                cfg[a] = True
-                logging.info(f"loadConfigfile : Converted '{b}' into a bool and saved to '{a}'")
-                continue
-            if b.lower() == "false":
-                cfg[a] = False
-                logging.info(f"loadConfigfile : Converted '{b}' into a bool and saved to '{a}'")
-                continue
-            
-            # Checks if value is float
-            try:
-                if "," in b or "." in b:
-                    cfg[a] = float(b)
-                    logging.info(f"loadConfigfile : Converted '{b}' into a float and saved to '{a}'")
+    try:
+        logger.info(f"Loading configfile... ({configFileName})")
+        with open(configFileName,'r') as f:
+            for x in f.readlines():
+                a,b = x.strip('\n').split(" = ")
+                
+                # Checks if value is specified as string
+                if (b.startswith('"') and b.endswith('"')) or (b.startswith("'") and b.endswith("'")):
+                    cfg[a] = b[1:-1]
+                    logger.info(f"Converted '{b}' into a string and saved to '{a}'")
                     continue
-            except:
-                logging.info(f"loadConfigfile : Tried to convert '{b}' into a float, but failed.")
-                pass
-            
-            # Checks if value is INT
-            try:
-                cfg[a] = int(b)
-                logging.info(f"loadConfigfile : Converted '{b}' into a int and saved to '{a}'")
-                continue
 
-            # If not, saves it as string
-            except:
-                cfg[a] = b
-                logging.info(f"loadConfigfile : Nothing else worked, so converted '{b}' into a string and saved to '{a}'")
-                continue
+                # Checks if value is true or false
+                if b.lower() == "true":
+                    cfg[a] = True
+                    logger.info(f"Converted '{b}' into a bool and saved to '{a}'")
+                    continue
+                if b.lower() == "false":
+                    cfg[a] = False
+                    logger.info(f"Converted '{b}' into a bool and saved to '{a}'")
+                    continue
+                
+                # Checks if value is float
+                try:
+                    if "," in b or "." in b:
+                        cfg[a] = float(b)
+                        logger.info(f"Converted '{b}' into a float and saved to '{a}'")
+                        continue
+                except:
+                    logger.info(f"Tried to convert '{b}' into a float, but failed.")
+                    pass
+                
+                # Checks if value is INT
+                try:
+                    cfg[a] = int(b)
+                    logger.info(f"Converted '{b}' into a int and saved to '{a}'")
+                    continue
+
+                # If not, saves it as string
+                except:
+                    cfg[a] = b
+                    logger.info(f"Nothing else worked, so converted '{b}' into a string and saved to '{a}'")
+                    continue
+    except Exception as e:logger.exception(e);pass
     return cfg
-
 def currentTime():
     """
-        Returns a dictionary with the current time in many different formats
+        Returns a dictionary with the current time in many different formats.
 
         Returns:
             dict: (secound, minute, hour, day, week, month, year, weekday)
-    """    
+    """
+    logger = functionLogger(functionName='currentTime')
     now = datetime.datetime.now() 
     return {
         'secound':now.second,
@@ -93,11 +110,21 @@ def currentTime():
         'month':now.month,
         'year':now.year,
         'week':datetime.date.today().isocalendar()[1],
-        'weekday':now.weekday()
+        'weekday':now.weekday(),
+        'datestamp':datetime.datetime.today().strftime('%Y-%m-%d-%H-%M-%S')
     }
+#endregion
 
-
-# NewGetTime Setup:
+#region CLASSES
+class functionLogger:
+    def __init__(self,functionName):
+        self.functionName = functionName
+    def info(self,*message):
+        message = [str(x) for x in message]
+        logging.info(f"{self.functionName}() : {str(' '.join(message))}")
+    def exception(self,*message):
+        message = [str(x) for x in message]
+        logging.exception(f"{self.functionName}() : {str(' '.join(message))}")
 class Lesson:
     def __init__(self,lessionName,teacherName,classroomName,timeStart,timeEnd,dayOfWeekNumber):
         self.lessionName = lessionName
@@ -108,7 +135,7 @@ class Lesson:
         self.dayOfWeekNumber = dayOfWeekNumber
 class GetTime:
     """
-    GetTime Request object
+        GetTime Request object
     """
     def __init__(self,_id=None,_week=currentTime()['week'],_day=0,_year=currentTime()['year'],_resolution=(1280,720)):
         self._id = _id
@@ -125,72 +152,75 @@ class GetTime:
             Returns:
                 <JSON> object with the data inside
         """
-        if self._id == None:
-            return None
-        #Request 1
-        headers1 = {
-            "Connection": "keep-alive",
-            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:85.0) Gecko/20100101 Firefox/85.0",
-            "X-Scope": "8a22163c-8662-4535-9050-bc5e1923df48",
-            "X-Requested-With": "XMLHttpRequest",
-            "Content-Type": "application/json",
-            "Accept": "application/json, text/javascript, */*; q=0.01",
-            "Referer": "https://web.skola24.se/timetable/timetable-viewer/it-gymnasiet.skola24.se/IT-Gymnasiet%20S%C3%B6dert%C3%B6rn/",
-            "Accept-Encoding": "gzip,deflate",
-            "Accept-Language": "en-US;q=0.5",
-            "Cookie": "ASP.NET_SessionId=5hgt3njwnabrqso3cujrrj2p"
-        }
-        url1 = 'https://web.skola24.se/api/encrypt/signature'
-        payload1 = {"signature":self._id}
-        response1 = requests.post(url1, data=json.dumps(payload1), headers=headers1).text.split('"signature": "')[1].split('"')[0]
+        logger = functionLogger(functionName='GetTime.getData')
+        try:
+            if self._id == None:
+                return None #If ID is not set then it returns 0 by default
+            #Request 1
+            headers1 = {
+                "Connection": "keep-alive",
+                "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:85.0) Gecko/20100101 Firefox/85.0",
+                "X-Scope": "8a22163c-8662-4535-9050-bc5e1923df48",
+                "X-Requested-With": "XMLHttpRequest",
+                "Content-Type": "application/json",
+                "Accept": "application/json, text/javascript, */*; q=0.01",
+                "Referer": "https://web.skola24.se/timetable/timetable-viewer/it-gymnasiet.skola24.se/IT-Gymnasiet%20S%C3%B6dert%C3%B6rn/",
+                "Accept-Encoding": "gzip,deflate",
+                "Accept-Language": "en-US;q=0.5",
+                "Cookie": "ASP.NET_SessionId=5hgt3njwnabrqso3cujrrj2p"
+            }
+            url1 = 'https://web.skola24.se/api/encrypt/signature'
+            payload1 = {"signature":self._id}
+            response1 = requests.post(url1, data=json.dumps(payload1), headers=headers1).text.split('"signature": "')[1].split('"')[0]
 
-        #Request 2
-        headers2 = {
-            "Host": "web.skola24.se",
-            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:85.0) Gecko/20100101 Firefox/85.0",
-            "Accept": "application/json, text/javascript, */*; q=0.01",
-            "Accept-Language": "en-US,en;q=0.5",
-            "Accept-Encoding": "gzip, deflate",
-            "Content-Type": "application/json",
-            "X-Scope": "8a22163c-8662-4535-9050-bc5e1923df48",
-            "X-Requested-With": "XMLHttpRequest",
-            "Content-Length": "4",
-            "Origin": "https://web.skola24.se",
-            "Connection": "close",
-            "Referer": "https://web.skola24.se/timetable/timetable-viewer/it-gymnasiet.skola24.se/IT-Gymnasiet%20S%C3%B6dert%C3%B6rn/",
-            "Cookie": "ASP.NET_SessionId=5hgt3njwnabrqso3cujrrj2p",
-            "Sec-GPC": "1",
-            "DNT":"1"
-        }
-        url2 = 'https://web.skola24.se/api/get/timetable/render/key'
-        payload2 = "null"
-        response2 = requests.post(url2, data=payload2, headers=headers2).text.split('"key": "')[1].split('"')[0]
+            #Request 2
+            headers2 = {
+                "Host": "web.skola24.se",
+                "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:85.0) Gecko/20100101 Firefox/85.0",
+                "Accept": "application/json, text/javascript, */*; q=0.01",
+                "Accept-Language": "en-US,en;q=0.5",
+                "Accept-Encoding": "gzip, deflate",
+                "Content-Type": "application/json",
+                "X-Scope": "8a22163c-8662-4535-9050-bc5e1923df48",
+                "X-Requested-With": "XMLHttpRequest",
+                "Content-Length": "4",
+                "Origin": "https://web.skola24.se",
+                "Connection": "close",
+                "Referer": "https://web.skola24.se/timetable/timetable-viewer/it-gymnasiet.skola24.se/IT-Gymnasiet%20S%C3%B6dert%C3%B6rn/",
+                "Cookie": "ASP.NET_SessionId=5hgt3njwnabrqso3cujrrj2p",
+                "Sec-GPC": "1",
+                "DNT":"1"
+            }
+            url2 = 'https://web.skola24.se/api/get/timetable/render/key'
+            payload2 = "null"
+            response2 = requests.post(url2, data=payload2, headers=headers2).text.split('"key": "')[1].split('"')[0]
 
-        #Request 3
-        headers3 = headers2
-        url3 = 'https://web.skola24.se/api/render/timetable'
-        payload3 = {
-            "renderKey":response2,
-            "host":"it-gymnasiet.skola24.se",
-            "unitGuid":"ZTEyNTdlZjItZDc3OC1mZWJkLThiYmEtOGYyZDA4NGU1YjI2",
-            "startDate":"null",
-            "endDate":"null",
-            "scheduleDay":int(self._day),
-            "blackAndWhite":"false",
-            "width":int(self._resolution[0]),
-            "height":int(self._resolution[1]),
-            "selectionType":4,
-            "selection":response1,
-            "showHeader":"false",
-            "periodText":"",
-            "week":int(self._week),
-            "year":int(self._year),
-            "privateFreeTextMode":"false",
-            "privateSelectionMode":"null",
-            "customerKey":""
-        }
-        response3 = json.loads(requests.post(url3, data=json.dumps(payload3), headers=headers3).text)
-        return response3
+            #Request 3
+            headers3 = headers2
+            url3 = 'https://web.skola24.se/api/render/timetable'
+            payload3 = {
+                "renderKey":response2,
+                "host":"it-gymnasiet.skola24.se",
+                "unitGuid":"ZTEyNTdlZjItZDc3OC1mZWJkLThiYmEtOGYyZDA4NGU1YjI2",
+                "startDate":"null",
+                "endDate":"null",
+                "scheduleDay":int(self._day),
+                "blackAndWhite":"false",
+                "width":int(self._resolution[0]),
+                "height":int(self._resolution[1]),
+                "selectionType":4,
+                "selection":response1,
+                "showHeader":"false",
+                "periodText":"",
+                "week":int(self._week),
+                "year":int(self._year),
+                "privateFreeTextMode":"false",
+                "privateSelectionMode":"null",
+                "customerKey":""
+            }
+            response3 = json.loads(requests.post(url3, data=json.dumps(payload3), headers=headers3).text)
+            return response3
+        except Exception as e:logger.exception(e);pass
     def fetch(self):
         """
             Fetches and formats data into <Lession> objects.
@@ -200,22 +230,25 @@ class GetTime:
             Returns:
                 List with <Lession> objects
         """
-        result = self.getData()
-        toReturn = []
-        for x in result['data']['lessonInfo']:
-            currentLesson = Lesson(
-                x['texts'][0],
-                x['texts'][1],
-                None,
-                x['timeStart'],
-                x['timeEnd'],
-                x['dayOfWeekNumber']
-            ) 
-            #Sometimes the classroomName is absent
-            try:currentLesson.classroomName = x['texts'][2]
-            except:currentLesson.classroomName = ""
-            toReturn.append(currentLesson)
-        return toReturn    
+        logger = functionLogger(functionName='GetTime.fetch')
+        try:
+            result = self.getData()
+            toReturn = []
+            for x in result['data']['lessonInfo']:
+                currentLesson = Lesson(
+                    x['texts'][0],
+                    x['texts'][1],
+                    None,
+                    x['timeStart'],
+                    x['timeEnd'],
+                    x['dayOfWeekNumber']
+                ) 
+                #Sometimes the classroomName is absent
+                try:currentLesson.classroomName = x['texts'][2]
+                except:currentLesson.classroomName = ""
+                toReturn.append(currentLesson)
+            return toReturn
+        except Exception as e:logger.exception(e);pass
     def handleHTML(self,classes=""):
         """
             Fetches and converts the <JSON> data into a SVG (for sending to HTML)
@@ -225,6 +258,7 @@ class GetTime:
             Returns:
                 {'html':(SVG HTML CODE),'timestamp':timeStamp}
         """
+        logger = functionLogger(functionName='GetTime.handleHTML')
         try:
             timeStamp = time.time()
             toReturn = []
@@ -274,41 +308,57 @@ class GetTime:
             
             toReturn = "\n".join(toReturn)
             return {'html':toReturn,'timestamp':timeStamp} #toReturn
-        except Exception as e:
-            if str(e) == "'NoneType' object is not iterable":
-                logging.info("User ID invalid!")
-            else:
-                raise e
-            return {'html':'<svg id="schedule"></svg>','timestamp':0}
+        except Exception as e:logger.exception(e);pass
+        # except Exception as e: 
+            # if str(e) == "'NoneType' object is not iterable":
+            #     logging.info("User ID invalid!")
+            # else:
+            #     raise e
+            # return {'html':'<svg id="schedule"></svg>','timestamp':0}
+#endregion
 
+#region SETUP
 
-# Main Setup:
-#ConfigFile
+# Load config file
 try:
     configfile = loadConfigfile("settings.cfg")
+    logging.info("Normal logfile loaded")
 except:
     configfile = loadConfigfile("/home/koala/gettime/settings.cfg")
+    logging.info("Secound logfile loaded")
 
-#Debugmode
+# Set debugmode True or False
 DEBUGMODE = configfile['DEBUGMODE']
 
-#Logging
-logFileName = f"logfile_{datetime.datetime.today().strftime('%Y-%m-%d-%H-%M-%S')}.log"
+# Change logging to go to file
+logFileName = f"logfile_{currentTime()['datestamp']}.log"
 logFileLocation = configfile['logFileLocation']
+logging.info(f"Logging will from now on go to {logFileLocation+logFileName}")
 try:
-    logging.basicConfig(filename=logFileLocation+logFileName, level=logging.DEBUG, format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s")
+    setLogging(path=logFileLocation,filename=logFileName)
 except:
-    # In case main path is invalid:
-    logging.basicConfig(filename=logFileName, level=logging.DEBUG, format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s")
+    # In case main path is invalid
+    setLogging()
 
-# Flask
+# Save mainLink
 mainLink = configfile['mainLink']
+
+# Setup Flask
 app = Flask(__name__)
+rules=(
+    Rule('/', endpoint='index'),
+    Rule('/script/_getTime', endpoint='internal_script'),
+    Rule('/terminal/schedule', endpoint='TERMINAL_SCHEDULE'),
+    Rule('/terminal/getall', endpoint='API_JSON'),
+    Rule('/api/json', endpoint='API_JSON'),
+    Rule('/API/JSON', endpoint='API_JSON'),
+    Rule('/logfile', endpoint='logfile')
+);[app.url_map.add(x) for x in rules]
 Mobility(app) #Mobile features
 CORS(app) #Behövs så att man kan skicka requests till serven (for some reason idk)
+#endregion
 
-
-# Flask routes:
+#region Flask routes
 @app.after_request #Script to help prevent caching
 def after_request(response):
     response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, public, max-age=0"
@@ -316,28 +366,54 @@ def after_request(response):
     response.headers["Pragma"] = "no-cache"
     return response
 
-@app.route("/")
-def mainpage():
+@app.errorhandler(Exception)
+def handle_bad_request(e):
+    if configfile['enableErrorHandler']:
+        logging.exception(e)
+        errorMessage = []
+        try:
+            errorMessage.append(f"URL : {request.url}")
+            errorMessage.append(f"TIME OF ERROR : {currentTime()['datestamp']}")
+            errorMessage.append("") #End of special parameters, next is traceback
+        except:errorMessage.append("SOMETHING ELSE FAILED TOO")
+        errorMessage.append(traceback.format_exc())
+        return render_template('error.html',message="\n".join(errorMessage))
+    else:
+        raise e
+
+@app.endpoint('index')
+def index():
+    logger = functionLogger(functionName='index')
+
     # You can send JS code to parseCode, and it will appear at the end of the website.
     # loadAutomaticly is used to help custom url's to work (should be "true" by default)
     try:
-        # This will error out if no ID was specified in the link, and then it fallsback on the normal page
-        toPass = f"""idnumber = "{request.args['id']}";""" + '$(".input-idnumber").val("' + request.args['id'] + '");'
-
-        # Since the week argument is optional, it can be skipped if not included
-        try:toPass += f"""week = "{request.args['week']}";""" + '$(".input-week").val("' + request.args['week'] + '");'
-        except:pass
-
-        # Adds these to make sure it works (it just works better like this ok?)
-        toPass += "console.log('Custom URL');"
-        toPass += "updateTimetable();"
-        
-        return render_template("sodschema.html",parseCode=Markup("<script>$(document).ready(function() {" + toPass + "});</script>"),loadAutomaticly="false",requestURL=mainLink)
+        request.args['id'] #Check if custom id argument was passed in
+        logger.info(f"Custom ID argument found ({request.args['id']})")
     except:
+        logger.info("No custom ID argument was passed in (Ignoring)")
         return render_template("sodschema.html",parseCode="",loadAutomaticly="true",requestURL=mainLink)
+    
 
-@app.route("/script/_getTime")
+    # This will error out if no ID was specified in the link, and then it fallsback on the normal page
+    toPass = f"""idnumber = "{request.args['id']}";""" + '$(".input-idnumber").val("' + request.args['id'] + '");'
+
+    # Since the week argument is optional, it can be skipped if not included
+    try:
+        toPass += f"""week = "{request.args['week']}";""" + '$(".input-week").val("' + request.args['week'] + '");'
+    except:
+        logger.info("No custom week argument was passed in (Ignoring)")
+        pass
+
+    # Adds these to make sure it works (it just works better like this ok?)
+    toPass += "console.log('Custom URL');"
+    toPass += "updateTimetable();"
+    
+    return render_template("sodschema.html",parseCode=Markup("<script>$(document).ready(function() {" + toPass + "});</script>"), loadAutomaticly="false", requestURL=mainLink)
+
+@app.endpoint('internal_script')
 def _getTime():
+    logger = functionLogger(functionName='_getTime')
     # Get the finished HTML code for the schedule (Used by the website to generate the image you see)
     myRequest = GetTime(
         _id = request.args['id'],
@@ -349,64 +425,66 @@ def _getTime():
         result = myRequest.handleHTML(classes=request.args['classes'])
     except:
         result = myRequest.handleHTML()
-    
-    return jsonify(result=result)#.headers.add('Access-Control-Allow-Origin', '*')
+    return jsonify(result=result)#.headers.add('Access-Control-Allow-Origin', '*')  
 
-@app.route('/terminal/schedule')
+@app.endpoint('TERMINAL_SCHEDULE')
 def terminalSchedule():
+    logger = functionLogger(functionName='terminalSchedule')
+
     # Text based request (Returns a text based schedule)
-    try:
-        myRequest = GetTime()
-        try:myRequest._id = request.args['id']
-        except:return "YOU NEED TO PASS ID ARGUMENT"
-        try:myRequest._week = request.args['week']
-        except:pass
-        try:myRequest._day = request.args['day']
-        except:myRequest._day = currentTime()['weekday']
-
-        a = []
-        for x in myRequest.getData()['data']['lessonInfo']:
-            try:
-                a.append(f"{x['timeStart']} SPLITHERE {x['texts'][0]}, börjar kl {x['timeStart']} och slutar kl {x['timeEnd']} i sal {x['texts'][2]}\n")
-            except:
-                a.append(f"{x['timeStart']} SPLITHERE {x['texts'][0]}, börjar kl {x['timeStart']} och slutar kl {x['timeEnd']}\n")
-        a.sort()
-
-        return "".join([i.split(' SPLITHERE ')[1] for i in a])[:-2]
-    except Exception as e:
-        return str(e)
-
-@app.route("/api/json")
-@app.route("/API/JSON")
-@app.route('/terminal/getall')
-def getAll():
-    # Custom API (gets the whole JSON file for the user to mess with)
-    # This is what the Skola24 website seems to get.
-    # It contains all the info you need to rebuild the schedule image.
     myRequest = GetTime()
     try:myRequest._id = request.args['id']
     except:return "YOU NEED TO PASS ID ARGUMENT"
     try:myRequest._week = request.args['week']
     except:pass
     try:myRequest._day = request.args['day']
+    except:myRequest._day = currentTime()['weekday']
+
+    a = []
+    for x in myRequest.getData()['data']['lessonInfo']:
+        try:
+            a.append(f"{x['timeStart']} SPLITHERE {x['texts'][0]}, börjar kl {x['timeStart']} och slutar kl {x['timeEnd']} i sal {x['texts'][2]}\n")
+        except:
+            a.append(f"{x['timeStart']} SPLITHERE {x['texts'][0]}, börjar kl {x['timeStart']} och slutar kl {x['timeEnd']}\n")
+    a.sort()
+
+    return "".join([i.split(' SPLITHERE ')[1] for i in a])[:-2]
+
+@app.endpoint('API_JSON')
+def getAll():
+    logger = functionLogger(functionName='getAll')
+
+    # Custom API (gets the whole JSON file for the user to mess with)
+    # This is what the Skola24 website seems to get.
+    # It contains all the info you need to rebuild the schedule image.
+
+    myRequest = GetTime()
+    try:myRequest._id = request.args['id']
+    except:raise
+    try:myRequest._week = request.args['week']
+    except:pass
+    try:myRequest._day = request.args['day']
     except:pass
     try:myRequest._resolution = request.args['res'].split(",")
     except:pass
-    
     return jsonify(myRequest.getData())
 
-@app.route("/logfile")
+@app.endpoint('logfile')
 def logfile():
+    logger = functionLogger(functionName='logfile')
     if request.args['key'] == configfile['key']:
         with open(logFileLocation+logFileName,"r") as f:
-            return f"<p>{logFileLocation+logFileName}</p><p>{'<br>'.join(f.readlines())}</p>"
+            return f"<pre>{logFileLocation+logFileName}</pre><pre>{''.join(f.readlines())}</pre>"
+
 
 # Redirects (For dead links)
 @app.route("/schema/<a>")
 @app.route("/schema/")
 @app.route("/schema")
-def routeToMainpage(**a):
-    return mainpage()
+def routeToIndex(**a):
+    logging.info(f"routeToIndex : Request landed in the redirects, sending to mainLink ({mainLink})")
+    return redirect(mainLink)
+#endregion
 
 # Main:
 if __name__ == "__main__":
