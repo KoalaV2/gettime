@@ -13,6 +13,7 @@ from flask_cors import CORS
 from flask import render_template
 from flask_mobility import Mobility
 from werkzeug.routing import Rule
+from flask_minify import minify
 
 # Other Requirements:
 import os ; os.chdir(os.path.dirname(os.path.realpath(__file__))) # Set working dir to path of main.py
@@ -156,6 +157,8 @@ class GetTime:
         try:
             if self._id == None:
                 return None #If ID is not set then it returns 0 by default
+            
+            logger.info("Request 1 started")
             #Request 1
             headers1 = {
                 "Connection": "keep-alive",
@@ -172,7 +175,9 @@ class GetTime:
             url1 = 'https://web.skola24.se/api/encrypt/signature'
             payload1 = {"signature":self._id}
             response1 = requests.post(url1, data=json.dumps(payload1), headers=headers1).text.split('"signature": "')[1].split('"')[0]
+            logger.info("Request 1 finished")
 
+            logger.info("Request 2 started")
             #Request 2
             headers2 = {
                 "Host": "web.skola24.se",
@@ -194,7 +199,9 @@ class GetTime:
             url2 = 'https://web.skola24.se/api/get/timetable/render/key'
             payload2 = "null"
             response2 = requests.post(url2, data=payload2, headers=headers2).text.split('"key": "')[1].split('"')[0]
+            logger.info("Request 2 finished")
 
+            logger.info("Request 3 started")
             #Request 3
             headers3 = headers2
             url3 = 'https://web.skola24.se/api/render/timetable'
@@ -219,6 +226,7 @@ class GetTime:
                 "customerKey":""
             }
             response3 = json.loads(requests.post(url3, data=json.dumps(payload3), headers=headers3).text)
+            logger.info("Request 3 finished")
             return response3
         except Exception as e:logger.exception(e);pass
     def fetch(self):
@@ -275,9 +283,9 @@ class GetTime:
             for current in j['boxList']:
                 #toReturn.append(f"""<rect {("".join([f'{str(key)}="{str(current[key])}" ' for key in [key for key in current]]))}></rect>""")
                 if current['type'].startswith("ClockFrame"):
-                    toReturn.append(f"""<rect id="{current['id']}" parentId="{current['parentId']}" x="{current['x']}" y="{current['y']}" width="{current['width']}" height="{current['height']}" style="fill:{current['bColor']};"></rect>""")
+                    toReturn.append(f"""<rect x="{current['x']}" y="{current['y']}" width="{current['width']}" height="{current['height']}" style="fill:{current['bColor']};"></rect>""")
                 else:
-                    toReturn.append(f"""<rect id="{current['id']}" parentId="{current['parentId']}" x="{current['x']}" y="{current['y']}" width="{current['width']}" height="{current['height']}" style="fill:{current['bColor']};stroke:rgb(0,0,0);stroke-width:1;"></rect>""")
+                    toReturn.append(f"""<rect id="{current['id']}" x="{current['x']}" y="{current['y']}" width="{current['width']}" height="{current['height']}" style="fill:{current['bColor']};stroke:black;stroke-width:1;"></rect>""")
 
             lessonNamesSaved = [] #This saves the parentID when the first value has been read (value 1 is the lession name, value 2 is teacher name and value 3 is classroom name, we want value 1, but 2 and 3 overwrite 1)
             for current in j['textList']:
@@ -285,14 +293,14 @@ class GetTime:
                     if current['type'] == "Lesson" and not current['parentId'] in lessonNamesSaved:
                         lessonNamesSaved.append(current['parentId'])
                         scriptsToRun.append(f"checkMyUrl('{current['parentId']}','{current['text']}');") # Saves the check script for later
-                        toReturn.append(f"""<text id="{current['id']}" parentId="{current['parentId']}" x="{current['x']}" y="{current['y']+12}" style="font-size:{int(current['fontsize'])}px;fill:{current['fColor']};">{current['text']}</text>""")
+                        toReturn.append(f"""<text x="{current['x']}" y="{current['y']+12}" style="font-size:{int(current['fontsize'])}px;fill:{current['fColor']};">{current['text']}</text>""")
                     else:
-                        toReturn.append(f"""<text id="{current['id']}" parentId="{current['parentId']}" x="{current['x']}" y="{current['y']+12}" style="font-size:{int(current['fontsize'])}px;fill:{current['fColor']};">{current['text']}</text>""")
+                        toReturn.append(f"""<text x="{current['x']}" y="{current['y']+12}" style="font-size:{int(current['fontsize'])}px;fill:{current['fColor']};">{current['text']}</text>""")
 
             for current in j['lineList']:
                 x1,x2=current['p1x'],current['p2x']
                 if int(x1-x2 if x1>x2 else x2-x1) > 10:
-                   toReturn.append(f"""<line id="{current['id']}" parentId="{current['parentId']}" x1="{current['p1x']}" y1="{current['p1y']}" x2="{current['p2x']}" y2="{current['p2y']}" stroke="{current['color']}"></line>""")
+                   toReturn.append(f"""<line x1="{current['p1x']}" y1="{current['p1y']}" x2="{current['p2x']}" y2="{current['p2y']}" stroke="{current['color']}"></line>""")
             timeTakenToHandleData = time.time() - timeTakenToHandleData
 
             toReturn.append(f'<rect id="scheduleScript" style="display: none;" script="{"".join(scriptsToRun)}">' + "</rect>")
@@ -333,6 +341,7 @@ mainLink = configfile['mainLink']
 
 # Setup Flask
 app = Flask(__name__)
+minify(app=app, html=True, js=False, cssless=True)
 rules=(
     Rule('/', endpoint='index'),
     Rule('/script/_getTime', endpoint='internal_script'),
@@ -357,7 +366,7 @@ def after_request(response):
 @app.errorhandler(Exception)
 def handle_bad_request(e):
     if configfile['enableErrorHandler']:
-        logging.exception(e)
+        logging.exception(f"This is the error : {e}")
         errorMessage = []
         try:
             errorMessage.append(f"URL : {request.url}")
