@@ -14,47 +14,77 @@ from flask_mobility import Mobility
 # Other Requirements:
 import os
 import time
-import logging
+import logging ; logging.basicConfig(level=logging.DEBUG, format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s")
 import datetime
 
 
 # Functions:
 def loadConfigfile(configFileName):
+    """
+        Loads the config.cfg file into a dict.\n
+        Anything in quotes will always be converted into a string.\n
+        true/True and false/False will be converted into a bool.\n
+        Any number with , or . will be converted into a float.\n
+
+        Args:
+            configFileName (string): Path and name of configfile
+
+        Returns:
+            dict: all the config settings
+    """    
     cfg = {}
+    logging.info(f"loadConfigfile : Loading configfile... ({configFileName})")
     with open(configFileName,'r') as f:
         for x in f.readlines():
             a,b = x.strip('\n').split(" = ")
             
+             # Checks if value is specified as string
+            if (b.startswith('"') and b.endswith('"')) or (b.startswith("'") and b.endswith("'")):
+                cfg[a] = b[1:-1]
+                logging.info(f"loadConfigfile : Converted '{b}' into a string and saved to '{a}'")
+                continue
+
             # Checks if value is true or false
             if b.lower() == "true":
                 cfg[a] = True
+                logging.info(f"loadConfigfile : Converted '{b}' into a bool and saved to '{a}'")
                 continue
             if b.lower() == "false":
                 cfg[a] = False
+                logging.info(f"loadConfigfile : Converted '{b}' into a bool and saved to '{a}'")
                 continue
-
-            # Checks if value is specified as string
-            if (b.startswith('"') and b.endswith('"')) or (b.startswith("'") and b.endswith("'")):
-                cfg[a] = b[1:-1]
-                continue
-
+            
+            # Checks if value is float
+            try:
+                if "," in b or "." in b:
+                    cfg[a] = float(b)
+                    logging.info(f"loadConfigfile : Converted '{b}' into a float and saved to '{a}'")
+                    continue
+            except:
+                logging.info(f"loadConfigfile : Tried to convert '{b}' into a float, but failed.")
+                pass
+            
             # Checks if value is INT
             try:
                 cfg[a] = int(b)
+                logging.info(f"loadConfigfile : Converted '{b}' into a int and saved to '{a}'")
                 continue
 
             # If not, saves it as string
             except:
                 cfg[a] = b
+                logging.info(f"loadConfigfile : Nothing else worked, so converted '{b}' into a string and saved to '{a}'")
                 continue
     return cfg
 
 def currentTime():
     """
-        Returns a dictionary:\n
-        (secound, minute, hour, day, week, month, year, weekday)
-    """
-    now = datetime.datetime.now()
+        Returns a dictionary with the current time in many different formats
+
+        Returns:
+            dict: (secound, minute, hour, day, week, month, year, weekday)
+    """    
+    now = datetime.datetime.now() 
     return {
         'secound':now.second,
         'minute':now.minute,
