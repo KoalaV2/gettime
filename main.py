@@ -478,9 +478,9 @@ def terminalSchedule():
     a = []
     for x in myRequest.getData()['data']['lessonInfo']:
         try:
-            a.append(f"{x['timeStart']} SPLITHERE {x['texts'][0]}, börjar kl {x['timeStart']} och slutar kl {x['timeEnd']} i sal {x['texts'][2]}\n")
+            a.append(f"{x['timeStart']} SPLITHERE {x['texts'][0]}, börjar kl {x['timeStart']} och slutar kl {x['timeEnd']} i sal {x['texts'][2]}")
         except:
-            a.append(f"{x['timeStart']} SPLITHERE {x['texts'][0]}, börjar kl {x['timeStart']} och slutar kl {x['timeEnd']}\n")
+            a.append(f"{x['timeStart']} SPLITHERE {x['texts'][0]}, börjar kl {x['timeStart']} och slutar kl {x['timeEnd']}")
     a.sort()
 
     return "\n".join([i.split(' SPLITHERE ')[1] for i in a])[:-2]
