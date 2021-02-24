@@ -483,7 +483,7 @@ def terminalSchedule():
             a.append(f"{x['timeStart']} SPLITHERE {x['texts'][0]}, börjar kl {x['timeStart']} och slutar kl {x['timeEnd']}\n")
     a.sort()
 
-    return "".join([i.split(' SPLITHERE ')[1] for i in a])[:-2]
+    return "\n".join([i.split(' SPLITHERE ')[1] for i in a])[:-2]
 
 @app.endpoint('API_JSON')
 def getAll():
