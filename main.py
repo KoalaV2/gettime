@@ -246,6 +246,11 @@ class GetTime:
         }
         response3 = json.loads(requests.post(url3, data=json.dumps(payload3), headers=headers3).text)
         logger.info("Request 3 finished")
+
+        logger.info(f"Response 1: {response1}")
+        logger.info(f"Response 2: {response2}")
+        logger.info(f"Response 3: {response3}")
+        
         #endregion
         return response3
     def fetch(self):
