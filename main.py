@@ -1,3 +1,22 @@
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#               _   _   _                    __            _          _                             #
+#              | | | | (_)                  / /           | |        | |                            #
+#     __ _  ___| |_| |_ _ _ __ ___   ___   / /__  ___   __| |___  ___| |__   ___ _ __ ___   __ _    #
+#    / _` |/ _ \ __| __| | '_ ` _ \ / _ \ / / __|/ _ \ / _` / __|/ __| '_ \ / _ \ '_ ` _ \ / _` |   #
+#   | (_| |  __/ |_| |_| | | | | | |  __// /\__ \ (_) | (_| \__ \ (__| | | |  __/ | | | | | (_| |   #
+#    \__, |\___|\__|\__|_|_| |_| |_|\___/_/ |___/\___/ \__,_|___/\___|_| |_|\___|_| |_| |_|\__,_|   #
+#     __/ |                                                                                         #
+#   |___/                                                                                           #
+#                                                                                                   #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#
+#   Original Idea by PierreLeFevre (https://github.com/PierreLeFevre)
+#   Sodschema Sourcecode by PierreLeFevre (https://github.com/PierreLeFevre/sodschema)
+#   GetTime Classic was made by TayIsAsleep (https://github.com/TayIsAsleep)
+#   Sodschema reboot made possible by Koala (https://github.com/KoalaV2)
+#
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
 #region IMPORT
 # NewGetTime Requirements:
 import json
@@ -155,81 +174,80 @@ class GetTime:
                 <JSON> object with the data inside
         """
         logger = functionLogger(functionName='GetTime.getData')
-        try:
-            if self._id == None:
-                return None #If ID is not set then it returns 0 by default
-            
-            logger.info("Request 1 started")
-            #Request 1
-            headers1 = {
-                "Connection": "keep-alive",
-                "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:85.0) Gecko/20100101 Firefox/85.0",
-                "X-Scope": "8a22163c-8662-4535-9050-bc5e1923df48",
-                "X-Requested-With": "XMLHttpRequest",
-                "Content-Type": "application/json",
-                "Accept": "application/json, text/javascript, */*; q=0.01",
-                "Referer": "https://web.skola24.se/timetable/timetable-viewer/it-gymnasiet.skola24.se/IT-Gymnasiet%20S%C3%B6dert%C3%B6rn/",
-                "Accept-Encoding": "gzip,deflate",
-                "Accept-Language": "en-US;q=0.5",
-                "Cookie": "ASP.NET_SessionId=5hgt3njwnabrqso3cujrrj2p"
-            }
-            url1 = 'https://web.skola24.se/api/encrypt/signature'
-            payload1 = {"signature":self._id}
-            response1 = requests.post(url1, data=json.dumps(payload1), headers=headers1).text.split('"signature": "')[1].split('"')[0]
-            logger.info("Request 1 finished")
-
-            logger.info("Request 2 started")
-            #Request 2
-            headers2 = {
-                "Host": "web.skola24.se",
-                "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:85.0) Gecko/20100101 Firefox/85.0",
-                "Accept": "application/json, text/javascript, */*; q=0.01",
-                "Accept-Language": "en-US,en;q=0.5",
-                "Accept-Encoding": "gzip, deflate",
-                "Content-Type": "application/json",
-                "X-Scope": "8a22163c-8662-4535-9050-bc5e1923df48",
-                "X-Requested-With": "XMLHttpRequest",
-                "Content-Length": "4",
-                "Origin": "https://web.skola24.se",
-                "Connection": "close",
-                "Referer": "https://web.skola24.se/timetable/timetable-viewer/it-gymnasiet.skola24.se/IT-Gymnasiet%20S%C3%B6dert%C3%B6rn/",
-                "Cookie": "ASP.NET_SessionId=5hgt3njwnabrqso3cujrrj2p",
-                "Sec-GPC": "1",
-                "DNT":"1"
-            }
-            url2 = 'https://web.skola24.se/api/get/timetable/render/key'
-            payload2 = "null"
-            response2 = requests.post(url2, data=payload2, headers=headers2).text.split('"key": "')[1].split('"')[0]
-            logger.info("Request 2 finished")
-
-            logger.info("Request 3 started")
-            #Request 3
-            headers3 = headers2
-            url3 = 'https://web.skola24.se/api/render/timetable'
-            payload3 = {
-                "renderKey":response2,
-                "host":"it-gymnasiet.skola24.se",
-                "unitGuid":"ZTEyNTdlZjItZDc3OC1mZWJkLThiYmEtOGYyZDA4NGU1YjI2",
-                "startDate":"null",
-                "endDate":"null",
-                "scheduleDay":int(self._day),
-                "blackAndWhite":"false",
-                "width":int(self._resolution[0]),
-                "height":int(self._resolution[1]),
-                "selectionType":4,
-                "selection":response1,
-                "showHeader":"false",
-                "periodText":"",
-                "week":int(self._week),
-                "year":int(self._year),
-                "privateFreeTextMode":"false",
-                "privateSelectionMode":"null",
-                "customerKey":""
-            }
-            response3 = json.loads(requests.post(url3, data=json.dumps(payload3), headers=headers3).text)
-            logger.info("Request 3 finished")
-            return response3
-        except Exception as e:logger.exception(e);pass
+        if self._id == None:
+            return None #If ID is not set then it returns 0 by default
+        
+        #region Request 1
+        logger.info("Request 1 started")
+        headers1 = {
+            "Connection": "keep-alive",
+            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:85.0) Gecko/20100101 Firefox/85.0",
+            "X-Scope": "8a22163c-8662-4535-9050-bc5e1923df48",
+            "X-Requested-With": "XMLHttpRequest",
+            "Content-Type": "application/json",
+            "Accept": "application/json, text/javascript, */*; q=0.01",
+            "Referer": "https://web.skola24.se/timetable/timetable-viewer/it-gymnasiet.skola24.se/IT-Gymnasiet%20S%C3%B6dert%C3%B6rn/",
+            "Accept-Encoding": "gzip,deflate",
+            "Accept-Language": "en-US;q=0.5",
+            "Cookie": "ASP.NET_SessionId=5hgt3njwnabrqso3cujrrj2p"
+        }
+        url1 = 'https://web.skola24.se/api/encrypt/signature'
+        payload1 = {"signature":self._id}
+        response1 = requests.post(url1, data=json.dumps(payload1), headers=headers1).text.split('"signature": "')[1].split('"')[0]
+        logger.info("Request 1 finished")
+        #endregion
+        #region Request 2
+        logger.info("Request 2 started")
+        headers2 = {
+            "Host": "web.skola24.se",
+            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:85.0) Gecko/20100101 Firefox/85.0",
+            "Accept": "application/json, text/javascript, */*; q=0.01",
+            "Accept-Language": "en-US,en;q=0.5",
+            "Accept-Encoding": "gzip, deflate",
+            "Content-Type": "application/json",
+            "X-Scope": "8a22163c-8662-4535-9050-bc5e1923df48",
+            "X-Requested-With": "XMLHttpRequest",
+            "Content-Length": "4",
+            "Origin": "https://web.skola24.se",
+            "Connection": "close",
+            "Referer": "https://web.skola24.se/timetable/timetable-viewer/it-gymnasiet.skola24.se/IT-Gymnasiet%20S%C3%B6dert%C3%B6rn/",
+            "Cookie": "ASP.NET_SessionId=5hgt3njwnabrqso3cujrrj2p",
+            "Sec-GPC": "1",
+            "DNT":"1"
+        }
+        url2 = 'https://web.skola24.se/api/get/timetable/render/key'
+        payload2 = "null"
+        response2 = requests.post(url2, data=payload2, headers=headers2).text.split('"key": "')[1].split('"')[0]
+        logger.info("Request 2 finished")
+        #endregion
+        #region Request 1
+        logger.info("Request 3 started")
+        headers3 = headers2
+        url3 = 'https://web.skola24.se/api/render/timetable'
+        payload3 = {
+            "renderKey":response2,
+            "host":"it-gymnasiet.skola24.se",
+            "unitGuid":"ZTEyNTdlZjItZDc3OC1mZWJkLThiYmEtOGYyZDA4NGU1YjI2",
+            "startDate":"null",
+            "endDate":"null",
+            "scheduleDay":int(self._day),
+            "blackAndWhite":"false",
+            "width":int(self._resolution[0]),
+            "height":int(self._resolution[1]),
+            "selectionType":4,
+            "selection":response1,
+            "showHeader":"false",
+            "periodText":"",
+            "week":int(self._week),
+            "year":int(self._year),
+            "privateFreeTextMode":"false",
+            "privateSelectionMode":"null",
+            "customerKey":""
+        }
+        response3 = json.loads(requests.post(url3, data=json.dumps(payload3), headers=headers3).text)
+        logger.info("Request 3 finished")
+        #endregion
+        return response3
     def fetch(self):
         """
             Fetches and formats data into <Lession> objects.
@@ -240,24 +258,22 @@ class GetTime:
                 List with <Lession> objects
         """
         logger = functionLogger(functionName='GetTime.fetch')
-        try:
-            result = self.getData()
-            toReturn = []
-            for x in result['data']['lessonInfo']:
-                currentLesson = Lesson(
-                    x['texts'][0],
-                    x['texts'][1],
-                    None,
-                    x['timeStart'],
-                    x['timeEnd'],
-                    x['dayOfWeekNumber']
-                ) 
-                #Sometimes the classroomName is absent
-                try:currentLesson.classroomName = x['texts'][2]
-                except:currentLesson.classroomName = ""
-                toReturn.append(currentLesson)
-            return toReturn
-        except Exception as e:logger.exception(e);pass
+        result = self.getData()
+        toReturn = []
+        for x in result['data']['lessonInfo']:
+            currentLesson = Lesson(
+                x['texts'][0],
+                x['texts'][1],
+                None,
+                x['timeStart'],
+                x['timeEnd'],
+                x['dayOfWeekNumber']
+            ) 
+            #Sometimes the classroomName is absent
+            try:currentLesson.classroomName = x['texts'][2]
+            except:currentLesson.classroomName = ""
+            toReturn.append(currentLesson)
+        return toReturn
     def handleHTML(self,classes=""):
         """
             Fetches and converts the <JSON> data into a SVG (for sending to HTML)
@@ -268,56 +284,63 @@ class GetTime:
                 {'html':(SVG HTML CODE),'timestamp':timeStamp}
         """
         logger = functionLogger(functionName='GetTime.handleHTML')
-        try:
-            timeStamp = time.time()
-            toReturn = []
-            scriptsToRun = []
-            timeTakenToFetchData = time.time() #This value should contain when the request was recieved by the server
-            j = self.getData()['data']
-            timeTakenToFetchData = time.time()-timeTakenToFetchData
-            
-            timeTakenToHandleData = time.time() 
+        timeStamp = time.time()
+        toReturn = []
+        scriptsToRun = []
+        timeTakenToFetchData = time.time() #This value should contain when the request was recieved by the server
+        j = self.getData()['data']
+        timeTakenToFetchData = time.time()-timeTakenToFetchData
+        
+        timeTakenToHandleData = time.time() 
 
-            #Start of the SVG
-            toReturn.append(f"""<svg id="schedule" class="{classes}" style="width:{self._resolution[0]}; height:{self._resolution[1]};" viewBox="0 0 {self._resolution[0]} {self._resolution[1]}" shape-rendering="crispEdges">""")
+        #Start of the SVG
+        toReturn.append(f"""<svg id="schedule" class="{classes}" style="width:{self._resolution[0]}; height:{self._resolution[1]};" viewBox="0 0 {self._resolution[0]} {self._resolution[1]}" shape-rendering="crispEdges">""")
 
-            for current in j['boxList']:
-                #toReturn.append(f"""<rect {("".join([f'{str(key)}="{str(current[key])}" ' for key in [key for key in current]]))}></rect>""")
-                if current['type'].startswith("ClockFrame"):
-                    toReturn.append(f"""<rect x="{current['x']}" y="{current['y']}" width="{current['width']}" height="{current['height']}" style="fill:{current['bColor']};"></rect>""")
+        logger.info("Looping through boxList...")
+        for current in j['boxList']:
+            #toReturn.append(f"""<rect {("".join([f'{str(key)}="{str(current[key])}" ' for key in [key for key in current]]))}></rect>""")
+            if current['type'].startswith("ClockFrame"):
+                toReturn.append(f"""<rect x="{current['x']}" y="{current['y']}" width="{current['width']}" height="{current['height']}" style="fill:{current['bColor']};"></rect>""")
+            else:
+                toReturn.append(f"""<rect id="{current['id']}" x="{current['x']}" y="{current['y']}" width="{current['width']}" height="{current['height']}" style="fill:{current['bColor']};stroke:black;stroke-width:1;"></rect>""")
+
+        scriptBuilder = {}
+
+        #parentIdsSaved = [] #This saves the parentID when the first value has been read (value 1 is the lession name, value 2 is teacher name and value 3 is classroom name, we want value 1, but 2 and 3 overwrite 1)
+        logger.info("Looping through textList...")
+        for current in j['textList']:
+            if current['text'] != "":
+                if current['type'] == "Lesson": #and not current['parentId'] in parentIdsSaved:
+                    scriptBuilder[current['parentId']] += current['text'] + "_"
+                    
+                    toReturn.append(f"""<text x="{current['x']}" y="{current['y']+12}" style="font-size:{int(current['fontsize'])}px;fill:{current['fColor']};">{current['text']}</text>""")
                 else:
-                    toReturn.append(f"""<rect id="{current['id']}" x="{current['x']}" y="{current['y']}" width="{current['width']}" height="{current['height']}" style="fill:{current['bColor']};stroke:black;stroke-width:1;"></rect>""")
+                    toReturn.append(f"""<text x="{current['x']}" y="{current['y']+12}" style="font-size:{int(current['fontsize'])}px;fill:{current['fColor']};">{current['text']}</text>""")
 
-            lessonNamesSaved = [] #This saves the parentID when the first value has been read (value 1 is the lession name, value 2 is teacher name and value 3 is classroom name, we want value 1, but 2 and 3 overwrite 1)
-            for current in j['textList']:
-                if current['text'] != "":
-                    if current['type'] == "Lesson" and not current['parentId'] in lessonNamesSaved:
-                        lessonNamesSaved.append(current['parentId'])
-                        scriptsToRun.append(f"checkMyUrl('{current['parentId']}','{current['text']}');") # Saves the check script for later
-                        toReturn.append(f"""<text x="{current['x']}" y="{current['y']+12}" style="font-size:{int(current['fontsize'])}px;fill:{current['fColor']};">{current['text']}</text>""")
-                    else:
-                        toReturn.append(f"""<text x="{current['x']}" y="{current['y']+12}" style="font-size:{int(current['fontsize'])}px;fill:{current['fColor']};">{current['text']}</text>""")
+        for x in scriptBuilder:
+            scriptsToRun.append(f"checkMyUrl('{x}','{scriptBuilder[x]}');") # Saves the check script for later
 
-            for current in j['lineList']:
-                x1,x2=current['p1x'],current['p2x']
-                if int(x1-x2 if x1>x2 else x2-x1) > 10:
-                   toReturn.append(f"""<line x1="{current['p1x']}" y1="{current['p1y']}" x2="{current['p2x']}" y2="{current['p2y']}" stroke="{current['color']}"></line>""")
-            timeTakenToHandleData = time.time() - timeTakenToHandleData
 
-            toReturn.append(f'<rect id="scheduleScript" style="display: none;" script="{"".join(scriptsToRun)}">' + "</rect>")
+        logger.info("Looping through lineList...")
+        for current in j['lineList']:
+            x1,x2=current['p1x'],current['p2x']
+            if int(x1-x2 if x1>x2 else x2-x1) > 10:
+                toReturn.append(f"""<line x1="{current['p1x']}" y1="{current['p1y']}" x2="{current['p2x']}" y2="{current['p2y']}" stroke="{current['color']}"></line>""")
+        timeTakenToHandleData = time.time() - timeTakenToHandleData
 
-            toReturn.append("<!-- THIS SCHEDULE WAS MADE POSSIBLE BY https://github.com/KoalaV2 -->")
-            toReturn.append(f"<!-- SETTINGS USED: id: {self._id}, week: {self._week}, day: {self._day}, resolution: {self._resolution}, class: {classes} -->")
-            toReturn.append(f"<!-- Time taken (Requesting data): {timeTakenToFetchData} secounds -->")
-            toReturn.append(f"<!-- Time taken (Schedule generation): {timeTakenToHandleData} secounds -->")
-            toReturn.append(f"<!-- Time taken (TOTAL): {(timeTakenToFetchData + timeTakenToHandleData)} secounds -->")
-            
-            #End of the SVG
-            toReturn.append("</svg>")
-            
-            toReturn = "\n".join(toReturn)
-            return {'html':toReturn,'timestamp':timeStamp} #toReturn
-        except Exception as e:logger.exception(e);pass
+        # Add the scripts to a rect so that they can be ran after the schedule has loaded
+        toReturn.append(f'<rect id="scheduleScript" style="display: none;" script="{"".join(scriptsToRun)}"></rect>')
+        toReturn.append("<!-- THIS SCHEDULE WAS MADE POSSIBLE BY https://github.com/KoalaV2 -->")
+        toReturn.append(f"<!-- SETTINGS USED: id: {self._id}, week: {self._week}, day: {self._day}, resolution: {self._resolution}, class: {classes} -->")
+        toReturn.append(f"<!-- Time taken (Requesting data): {timeTakenToFetchData} secounds -->")
+        toReturn.append(f"<!-- Time taken (Schedule generation): {timeTakenToHandleData} secounds -->")
+        toReturn.append(f"<!-- Time taken (TOTAL): {(timeTakenToFetchData + timeTakenToHandleData)} secounds -->")
+        
+        #End of the SVG
+        toReturn.append("</svg>")
+        
+        toReturn = "\n".join(toReturn)
+        return {'html':toReturn,'timestamp':timeStamp} #toReturn
         # except Exception as e: 
             # if str(e) == "'NoneType' object is not iterable":
             #     logging.info("User ID invalid!")
