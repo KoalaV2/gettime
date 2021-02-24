@@ -310,20 +310,27 @@ class GetTime:
         logger.info("Looping through textList...")
         for current in j['textList']:
             if current['text'] != "":
-                if current['type'] == "Lesson": #and not current['parentId'] in parentIdsSaved:
-                    scriptBuilder[current['parentId']] += current['text'] + "_"
-                    
-                    toReturn.append(f"""<text x="{current['x']}" y="{current['y']+12}" style="font-size:{int(current['fontsize'])}px;fill:{current['fColor']};">{current['text']}</text>""")
-                else:
-                    toReturn.append(f"""<text x="{current['x']}" y="{current['y']+12}" style="font-size:{int(current['fontsize'])}px;fill:{current['fColor']};">{current['text']}</text>""")
+                if current['type'] == "Lesson":
 
+                    # If the key does not exist yet, it creates an empty list for it
+                    if not current['parentId'] in scriptBuilder:
+                        scriptBuilder[current['parentId']] = []
+                    
+                    # Only takes the first 2 arguments (skips the 3rd, aka classroom name)
+                    if len(scriptBuilder[current['parentId']]) <= 1:
+                        scriptBuilder[current['parentId']].append(str(current['text'])) 
+                    
+                toReturn.append(f"""<text x="{current['x']}" y="{current['y']+12}" style="font-size:{int(current['fontsize'])}px;fill:{current['fColor']};">{current['text']}</text>""")
+
+        # Loops through the ids, and creates scripts for them
         for x in scriptBuilder:
-            scriptsToRun.append(f"checkMyUrl('{x}','{scriptBuilder[x]}');") # Saves the check script for later
+            scriptsToRun.append(f"""checkMyUrl('{x}','{"_".join(scriptBuilder[x])}');""") # Saves the check script for later
 
 
         logger.info("Looping through lineList...")
         for current in j['lineList']:
             x1,x2=current['p1x'],current['p2x']
+            #Checks delta lenght and skips those smalled then 10px
             if int(x1-x2 if x1>x2 else x2-x1) > 10:
                 toReturn.append(f"""<line x1="{current['p1x']}" y1="{current['p1y']}" x2="{current['p2x']}" y2="{current['p2y']}" stroke="{current['color']}"></line>""")
         timeTakenToHandleData = time.time() - timeTakenToHandleData
@@ -476,7 +483,7 @@ def terminalSchedule():
             a.append(f"{x['timeStart']} SPLITHERE {x['texts'][0]}, börjar kl {x['timeStart']} och slutar kl {x['timeEnd']}\n")
     a.sort()
 
-    return "".join([i.split(' SPLITHERE ')[1] for i in a])[:-2]
+    return "\n".join([i.split(' SPLITHERE ')[1] for i in a])[:-2]
 
 @app.endpoint('API_JSON')
 def getAll():
