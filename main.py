@@ -1,3 +1,4 @@
+#region ASCII ART
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #               _   _   _                    __            _          _                             #
 #              | | | | (_)                  / /           | |        | |                            #
@@ -9,13 +10,14 @@
 #   |___/                                                                                           #
 #                                                                                                   #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-#
-#   Original Idea by PierreLeFevre (https://github.com/PierreLeFevre)
-#   Sodschema Sourcecode by PierreLeFevre (https://github.com/PierreLeFevre/sodschema)
-#   GetTime Classic was made by TayIsAsleep (https://github.com/TayIsAsleep)
-#   Sodschema reboot made possible by Koala (https://github.com/KoalaV2)
-#
+#                                                                                                   #
+#   Original Idea by PierreLeFevre (https://github.com/PierreLeFevre)                               #
+#   Sodschema Sourcecode by PierreLeFevre (https://github.com/PierreLeFevre/sodschema)              #
+#   GetTime Classic was made by TayIsAsleep (https://github.com/TayIsAsleep)                        #
+#   Sodschema reboot made possible by Koala (https://github.com/KoalaV2)                            #
+#                                                                                                   #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#endregion
 
 #region IMPORT
 # NewGetTime Requirements:
@@ -40,15 +42,20 @@ import os
 import time
 import traceback
 import datetime
-import logging ; logging.basicConfig(level=logging.DEBUG, format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s") #Default settings (before cfg file has been loaded in)
+import logging
+#Default settings (before cfg file has been loaded in)
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG, format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s") 
 def setLogging(path="",filename="log.log",format='%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s'):
     """
         Changes logging settings.
     """
+    #Clear Logfile
+    open(path+filename, 'w').close()
     log = logging.getLogger()  # root logger
     for hdlr in log.handlers[:]:  # remove all old handlers
         log.removeHandler(hdlr)    
-    a = logging.FileHandler(path+filename, 'a')
+    a = logging.FileHandler(path+filename, 'r+')
     a.setFormatter(logging.Formatter(format))
     log.addHandler(a)
 #endregion
@@ -246,6 +253,11 @@ class GetTime:
         }
         response3 = json.loads(requests.post(url3, data=json.dumps(payload3), headers=headers3).text)
         logger.info("Request 3 finished")
+
+        #logger.info(f"Response 1: {response1}")
+        #logger.info(f"Response 2: {response2}")
+        #logger.info(f"Response 3: {response3}")
+        
         #endregion
         return response3
     def fetch(self):
@@ -356,170 +368,176 @@ class GetTime:
             # return {'html':'<svg id="schedule"></svg>','timestamp':0}
 #endregion
 
-#region SETUP
-
-# Set working dir to path of main.py
-os.chdir(os.path.dirname(os.path.realpath(__file__)))
-
-# Load config file
-configfile = loadConfigfile("settings.cfg")
-
-# Change logging to go to file
-logFileName = f"logfile_{currentTime()['datestamp']}.log"
-logFileLocation = configfile['logFileLocation']
-logging.info(f"From now on, logs will be found at '{logFileLocation+logFileName}'")
-setLogging(path=logFileLocation,filename=logFileName)
-
-# Save mainLink
-mainLink = configfile['mainLink']
-
-# Setup Flask
-app = Flask(__name__)
-minify(app=app, html=True, js=False, cssless=True)
-rules=(
-    Rule('/', endpoint='index'),
-    Rule('/script/_getTime', endpoint='internal_script'),
-    Rule('/terminal/schedule', endpoint='TERMINAL_SCHEDULE'),
-    Rule('/terminal/getall', endpoint='API_JSON'),
-    Rule('/api/json', endpoint='API_JSON'),
-    Rule('/API/JSON', endpoint='API_JSON'),
-    Rule('/logfile', endpoint='logfile')
-);[app.url_map.add(x) for x in rules]
-Mobility(app) #Mobile features
-CORS(app) #Behövs så att man kan skicka requests till serven (for some reason idk)
-#endregion
-
-#region FLASK ROUTES
-@app.after_request #Script to help prevent caching
-def after_request(response):
-    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, public, max-age=0"
-    response.headers["Expires"] = 0
-    response.headers["Pragma"] = "no-cache"
-    return response
-
-@app.errorhandler(werkzeug.exceptions.NotFound)
-def handle_bad_request404(e):
-    return e,404
-
-@app.errorhandler(Exception)
-def handle_bad_request(e):
-    if configfile['enableErrorHandler']:
-        logging.exception(f"This is the error : {e}")
-        errorMessage = []
-        try:
-            #errorMessage.append(f"URL : {request.url}")
-            errorMessage.append(f"TIME OF ERROR : {currentTime()['datestamp']}")
-            errorMessage.append("") #End of special parameters, next is traceback
-        except:errorMessage.append("SOMETHING ELSE FAILED TOO")
-        errorMessage.append(traceback.format_exc())
-        return render_template('error.html',message="\n".join(errorMessage))
-    else:
-        raise e
-
-@app.endpoint('index')
-def index():
-    logger = functionLogger(functionName='index')
-
-    # You can send JS code to parseCode, and it will appear at the end of the website.
-    # loadAutomaticly is used to help custom url's to work (should be "true" by default)
-    try:
-        request.args['id'] #Check if custom id argument was passed in
-        logger.info(f"Custom ID argument found ({request.args['id']})")
-    except:
-        logger.info("No custom ID argument was passed in (Ignoring)")
-        return render_template("sodschema.html",parseCode="",loadAutomaticly="true",requestURL=mainLink)
-    
-
-    # This will error out if no ID was specified in the link, and then it fallsback on the normal page
-    toPass = f"""idnumber = "{request.args['id']}";""" + '$(".input-idnumber").val("' + request.args['id'] + '");'
-
-    # Since the week argument is optional, it can be skipped if not included
-    try:
-        toPass += f"""week = "{request.args['week']}";""" + '$(".input-week").val("' + request.args['week'] + '");'
-    except:
-        logger.info("No custom week argument was passed in (Ignoring)")
-        pass
-
-    # Adds these to make sure it works (it just works better like this ok?)
-    toPass += "console.log('Custom URL');"
-    toPass += "updateTimetable();"
-    
-    return render_template("sodschema.html",parseCode=Markup("<script>$(document).ready(function() {" + toPass + "});</script>"), loadAutomaticly="false", requestURL=mainLink)
-
-@app.endpoint('internal_script')
-def _getTime():
-    logger = functionLogger(functionName='_getTime')
-    # Get the finished HTML code for the schedule (Used by the website to generate the image you see)
-    myRequest = GetTime(
-        _id = request.args['id'],
-        _week = int(request.args['week']),
-        _day = int(request.args['day']),
-        _resolution = (int(request.args['width']),int(request.args['height']))
-    )
-    try:
-        result = myRequest.handleHTML(classes=request.args['classes'])
-    except:
-        result = myRequest.handleHTML()
-    return jsonify(result=result)#.headers.add('Access-Control-Allow-Origin', '*')  
-
-@app.endpoint('TERMINAL_SCHEDULE')
-def terminalSchedule():
-    logger = functionLogger(functionName='terminalSchedule')
-
-    # Text based request (Returns a text based schedule)
-    myRequest = GetTime()
-    try:myRequest._id = request.args['id']
-    except:return "YOU NEED TO PASS ID ARGUMENT"
-    try:myRequest._week = request.args['week']
-    except:pass
-    try:myRequest._day = request.args['day']
-    except:myRequest._day = currentTime()['weekday']
-
-    a = []
-    for x in myRequest.getData()['data']['lessonInfo']:
-        try:
-            a.append(f"{x['timeStart']} SPLITHERE {x['texts'][0]}, börjar kl {x['timeStart']} och slutar kl {x['timeEnd']} i sal {x['texts'][2]}\n")
-        except:
-            a.append(f"{x['timeStart']} SPLITHERE {x['texts'][0]}, börjar kl {x['timeStart']} och slutar kl {x['timeEnd']}\n")
-    a.sort()
-
-    return "\n".join([i.split(' SPLITHERE ')[1] for i in a])[:-2]
-
-@app.endpoint('API_JSON')
-def getAll():
-    logger = functionLogger(functionName='getAll')
-
-    # Custom API (gets the whole JSON file for the user to mess with)
-    # This is what the Skola24 website seems to get.
-    # It contains all the info you need to rebuild the schedule image.
-
-    myRequest = GetTime()
-    try:myRequest._id = request.args['id']
-    except:raise
-    try:myRequest._week = request.args['week']
-    except:pass
-    try:myRequest._day = request.args['day']
-    except:pass
-    try:myRequest._resolution = request.args['res'].split(",")
-    except:pass
-    return jsonify(myRequest.getData())
-
-@app.endpoint('logfile')
-def logfile():
-    logger = functionLogger(functionName='logfile')
-    if request.args['key'] == configfile['key']:
-        with open(logFileLocation+logFileName,"r") as f:
-            return f"<pre>{logFileLocation+logFileName}</pre><pre>{''.join(f.readlines())}</pre>"
-
-# Redirects (For dead links)
-@app.route("/schema/<a>")
-@app.route("/schema/")
-@app.route("/schema")
-def routeToIndex(**a):
-    logging.info(f"routeToIndex : Request landed in the redirects, sending to mainLink ({mainLink})")
-    return redirect(mainLink)
-#endregion
-
-# Main:
 if __name__ == "__main__":
+    #region SETUP
+    # Set working dir to path of main.py
+    os.chdir(os.path.dirname(os.path.realpath(__file__)))
+
+    # Load config file
+    configfile = loadConfigfile("settings.cfg")
+
+    # Change logging to go to file
+    if configfile['logToFile']:
+        if configfile['logToSameFile']:
+            logFileName = "logfile.log"
+        else:
+            logFileName = f"logfile_{currentTime()['datestamp']}.log"
+        logFileLocation = configfile['logFileLocation']
+        logging.info(f"From now on, logs will be found at '{logFileLocation+logFileName}'")
+        setLogging(path=logFileLocation,filename=logFileName)
+    else:
+        logging.info("From now on, logging will continue in the console.")
+
+    # Save mainLink
+    mainLink = configfile['mainLink']
+
+    # Setup Flask
+    app = Flask(__name__)
+    minify(app=app, html=True, js=False, cssless=True)
+    rules=(
+        Rule('/', endpoint='index'),
+        Rule('/script/_getTime', endpoint='internal_script'),
+        Rule('/terminal/schedule', endpoint='TERMINAL_SCHEDULE'),
+        Rule('/terminal/getall', endpoint='API_JSON'),
+        Rule('/api/json', endpoint='API_JSON'),
+        Rule('/API/JSON', endpoint='API_JSON'),
+        Rule('/logfile', endpoint='logfile')
+    );[app.url_map.add(x) for x in rules]
+    Mobility(app) #Mobile features
+    CORS(app) #Behövs så att man kan skicka requests till serven (for some reason idk)
+    #endregion
+    #region FLASK ROUTES
+    @app.after_request #Script to help prevent caching
+    def after_request(response):
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, public, max-age=0"
+        response.headers["Expires"] = 0
+        response.headers["Pragma"] = "no-cache"
+        return response
+
+    @app.errorhandler(werkzeug.exceptions.NotFound)
+    def handle_bad_request404(e):
+        return e,404
+
+    @app.errorhandler(Exception)
+    def handle_bad_request(e):
+        if configfile['enableErrorHandler']:
+            logging.exception(f"This is the error : {e}")
+            errorMessage = []
+            try:
+                #errorMessage.append(f"URL : {request.url}")
+                errorMessage.append(f"TIME OF ERROR : {currentTime()['datestamp']}")
+                errorMessage.append("") #End of special parameters, next is traceback
+            except:errorMessage.append("SOMETHING ELSE FAILED TOO")
+            errorMessage.append(traceback.format_exc())
+            return render_template('error.html',message="\n".join(errorMessage))
+        else:
+            raise e
+
+    @app.endpoint('index')
+    def index():
+        logger = functionLogger(functionName='index')
+
+        # You can send JS code to parseCode, and it will appear at the end of the website.
+        # loadAutomaticly is used to help custom url's to work (should be "true" by default)
+        try:
+            request.args['id'] #Check if custom id argument was passed in
+            logger.info(f"Custom ID argument found ({request.args['id']})")
+        except:
+            logger.info("No custom ID argument was passed in (Ignoring)")
+            return render_template("sodschema.html",parseCode="",loadAutomaticly="true",requestURL=mainLink)
+        
+
+        # This will error out if no ID was specified in the link, and then it fallsback on the normal page
+        toPass = f"""idnumber = "{request.args['id']}";""" + '$(".input-idnumber").val("' + request.args['id'] + '");'
+
+        # Since the week argument is optional, it can be skipped if not included
+        try:
+            toPass += f"""week = "{request.args['week']}";""" + '$(".input-week").val("' + request.args['week'] + '");'
+        except:
+            logger.info("No custom week argument was passed in (Ignoring)")
+            pass
+
+        # Adds these to make sure it works (it just works better like this ok?)
+        toPass += "console.log('Custom URL');"
+        toPass += "updateTimetable();"
+        
+        return render_template("sodschema.html",parseCode=Markup("<script>$(document).ready(function() {" + toPass + "});</script>"), loadAutomaticly="false", requestURL=mainLink)
+
+    @app.endpoint('internal_script')
+    def _getTime():
+        logger = functionLogger(functionName='_getTime')
+        # Get the finished HTML code for the schedule (Used by the website to generate the image you see)
+        myRequest = GetTime(
+            _id = request.args['id'],
+            _week = int(request.args['week']),
+            _day = int(request.args['day']),
+            _resolution = (int(request.args['width']),int(request.args['height']))
+        )
+        try:
+            result = myRequest.handleHTML(classes=request.args['classes'])
+        except:
+            result = myRequest.handleHTML()
+        return jsonify(result=result)#.headers.add('Access-Control-Allow-Origin', '*')  
+
+    @app.endpoint('TERMINAL_SCHEDULE')
+    def terminalSchedule():
+        logger = functionLogger(functionName='terminalSchedule')
+
+        # Text based request (Returns a text based schedule)
+        myRequest = GetTime()
+        try:myRequest._id = request.args['id']
+        except:return "YOU NEED TO PASS ID ARGUMENT"
+        try:myRequest._week = request.args['week']
+        except:pass
+        try:myRequest._day = request.args['day']
+        except:myRequest._day = currentTime()['weekday']
+
+        a = []
+        for x in myRequest.getData()['data']['lessonInfo']:
+            try:
+                a.append(f"{x['timeStart']} SPLITHERE {x['texts'][0]}, börjar kl {x['timeStart']} och slutar kl {x['timeEnd']} i sal {x['texts'][2]}")
+            except:
+                a.append(f"{x['timeStart']} SPLITHERE {x['texts'][0]}, börjar kl {x['timeStart']} och slutar kl {x['timeEnd']}")
+        a.sort()
+
+        return "\n".join([i.split(' SPLITHERE ')[1] for i in a])[:-2]
+
+    @app.endpoint('API_JSON')
+    def getAll():
+        logger = functionLogger(functionName='getAll')
+
+        # Custom API (gets the whole JSON file for the user to mess with)
+        # This is what the Skola24 website seems to get.
+        # It contains all the info you need to rebuild the schedule image.
+
+        myRequest = GetTime()
+        try:myRequest._id = request.args['id']
+        except:raise
+        try:myRequest._week = request.args['week']
+        except:pass
+        try:myRequest._day = request.args['day']
+        except:pass
+        try:myRequest._resolution = request.args['res'].split(",")
+        except:pass
+        return jsonify(myRequest.getData())
+
+    @app.endpoint('logfile')
+    def logfile():
+        logger = functionLogger(functionName='logfile')
+        if request.args['key'] == configfile['key']:
+            with open(logFileLocation+logFileName,"r") as f:
+                return f"<pre>{logFileLocation+logFileName}</pre><pre>{''.join(f.readlines())}</pre>"
+
+    # Redirects (For dead links)
+    @app.route("/schema/<a>")
+    @app.route("/schema/")
+    @app.route("/schema")
+    def routeToIndex(**a):
+        logging.info(f"routeToIndex : Request landed in the redirects, sending to mainLink ({mainLink})")
+        return redirect(mainLink)
+    #endregion
+
+    # Run website
     app.run(debug=configfile['DEBUGMODE'], host=configfile['ip'], port=configfile['port'])
+else:
+    logging.info("main.py was not ran as main")
