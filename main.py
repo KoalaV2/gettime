@@ -374,6 +374,9 @@ if __name__ == "__main__":
     os.chdir(os.path.dirname(os.path.realpath(__file__)))
 
     # Load config file
+    # with open("users.json") as f:
+    #     try:configfile = json.load(f)
+    #     except:configfile = []
     configfile = loadConfigfile("settings.cfg")
 
     # Change logging to go to file
@@ -540,4 +543,4 @@ if __name__ == "__main__":
     # Run website
     app.run(debug=configfile['DEBUGMODE'], host=configfile['ip'], port=configfile['port'])
 else:
-    logging.info("main.py was not ran as main")
+    logging.info("main.py was imported")

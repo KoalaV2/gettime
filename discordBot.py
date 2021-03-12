@@ -1,5 +1,6 @@
 from main import GetTime
 from main import currentTime
+from main import loadConfigfile
 import json
 import time
 import discord,asyncio
@@ -9,8 +10,10 @@ from discord.ext import tasks, commands
 #Set path
 os.chdir(os.path.dirname(os.path.realpath(__file__)))
 
-# Gets discord bot token from TOKEN.txt
-with open("private.txt","r+") as f:TOKEN = f.readlines()[0].strip("\n") 
+configfile = loadConfigfile("settings.cfg")
+
+# Gets discord bot token from configfile
+TOKEN = configfile['discordKey']
 
 #Creates JSON file if it doesnt exist
 if not os.path.isfile("users.json"):
@@ -99,8 +102,8 @@ async def lessionStart():
             minutesBeforeStart = timeScoreTemp-timeScore
 
             if minutesBeforeStart == currentID['minutes']:
-                a = await client.fetch_user(user_id=int(currentID['discordID']))
-                await a.send(f"'{x.lessionName}' starts in {minutesBeforeStart} {'minute' if minutesBeforeStart == 1 else 'minutes'}!")
+                userDM = await client.fetch_user(user_id=int(currentID['discordID']))
+                await userDM.send(f"'{x.lessionName}' starts in {minutesBeforeStart} {'minute' if minutesBeforeStart == 1 else 'minutes'}{' in ' + x.classroomName if x.classroomName != '' else ''}!")
 
     print('Waiting for minute to change...')
 
