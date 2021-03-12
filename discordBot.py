@@ -1,5 +1,6 @@
 from main import GetTime
 from main import currentTime
+from main import setLogging
 from main import loadConfigfile
 import json
 import time
@@ -11,6 +12,18 @@ from discord.ext import tasks, commands
 os.chdir(os.path.dirname(os.path.realpath(__file__)))
 
 configfile = loadConfigfile("settings.cfg")
+
+import logging
+#Default settings (before cfg file has been loaded in)
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG, format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s") 
+
+logFileName = "discord_logfile.log"
+
+logFileLocation = configfile['logFileLocation']
+logging.info(f"From now on, logs will be found at '{logFileLocation+logFileName}'")
+setLogging(path=logFileLocation,filename=logFileName)
+
 
 # Gets discord bot token from configfile
 TOKEN = configfile['discordKey']
