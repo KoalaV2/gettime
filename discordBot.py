@@ -102,8 +102,8 @@ async def lessionStart():
             minutesBeforeStart = timeScoreTemp-timeScore
 
             if minutesBeforeStart == currentID['minutes']:
-                a = await client.fetch_user(user_id=int(currentID['discordID']))
-                await a.send(f"'{x.lessionName}' starts in {minutesBeforeStart} {'minute' if minutesBeforeStart == 1 else 'minutes'}!")
+                userDM = await client.fetch_user(user_id=int(currentID['discordID']))
+                await userDM.send(f"'{x.lessionName}' starts in {minutesBeforeStart} {'minute' if minutesBeforeStart == 1 else 'minutes'}{' in ' + x.classroomName if x.classroomName != '' else ''}!")
 
     print('Waiting for minute to change...')
 
