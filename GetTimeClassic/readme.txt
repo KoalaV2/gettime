@@ -1,1 +1,0 @@
-This is the old GetTime code, no longer used
