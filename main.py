@@ -77,6 +77,7 @@ def CurrentTime():
     }
     isSundayOrSaturday = False if a['weekday'] in (1,2,3,4,5) else True
     a['weekday2'] = 0 if isSundayOrSaturday else a['weekday']
+    a['weekday3'] = 1 if isSundayOrSaturday else a['weekday']
     a['week2'] = a['week'] + 1 if isSundayOrSaturday else 0
     return a
 #endregion
@@ -427,10 +428,10 @@ if __name__ == "__main__":
         myRequest = GetTime()
         try:myRequest._id = request.args['id']
         except:return "YOU NEED TO PASS ID ARGUMENT"
-        try:myRequest._week = request.args['week']
+        try:myRequest._week = request.args['week2']
         except:pass
         try:myRequest._day = request.args['day']
-        except:myRequest._day = CurrentTime()['weekday2']
+        except:myRequest._day = CurrentTime()['weekday3']
 
         return myRequest.GenerateTextSummary()
 
