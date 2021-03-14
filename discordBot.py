@@ -28,10 +28,6 @@ logFileLocation = configfile['logFileLocation']
 # logging.error(f"From now on, logs will be found at '{logFileLocation+logFileName}'")
 SetLogging(path=logFileLocation,filename=logFileName)
 
-
-# Gets discord bot token from configfile
-TOKEN = configfile['discordKey']
-
 #Creates JSON file if it doesnt exist
 if not os.path.isfile("users.json"):
     open("users.json",'w').close()
@@ -87,20 +83,18 @@ async def on_ready():
     global timeNow
     logging.error(f'Logged in as\n{client.user.name}\n{client.user.id}\n------')
 
-    timeNow = CurrentTime()
     timeNow = {'minute':69.420} # Defaults to a impossible value so that it will run the check at startup every time
     lessionStart.start()
     logging.error("Tasks started")
 
-# Needs alot of optimazation!
-# Needs to cache user lession data, so that it doesnt have to make new request every minute
-# Timescore is just ticking up, could just be a normal number that increases.
-
+# Still needs alot of optimazation!
 cacheAgeMax = 5*60 #Secounds
 cachedResponses = {}
 @tasks.loop(seconds=6)
 async def lessionStart():
     try:
+        # timeNow is a variable that 
+
         global timeNow, cachedResponses, timeScore
         currentTimeTemp = CurrentTime()
 
@@ -111,9 +105,9 @@ async def lessionStart():
             if currentTimeTemp['minute'] == timeNow['minute']:
                 logging.error('Minute had not changed yet')
                 return
+            
             timeNow = currentTimeTemp
             timeScore = (currentTimeTemp['hour'] * 60) + currentTimeTemp['minute']
-            logging.error("TimeScore: " + str(timeScore))
             
             # Iterates through all the ID's
             for currentID in idsToCheck:
@@ -138,19 +132,24 @@ async def lessionStart():
                     cachedResponses[str(currentID['discordID'])] = {'data':a,'age':time.time()}
 
                 for x in a:
-                    timeNowTemp = x.timeStart.split(':')
-                    timeScoreTemp = (int(timeNowTemp[0]) * 60) + int(timeNowTemp[1])
-                    minutesBeforeStart = timeScoreTemp-timeScore
+                    temp = x.timeStart.split(':')
+                    lessionTimeScore = (int(temp[0]) * 60) + int(temp[1])
+                    minutesBeforeStart = lessionTimeScore-timeScore
+
+                    logging.error(f"'{x.lessionName}' starts in {minutesBeforeStart}")
 
                     if minutesBeforeStart == currentID['minutes']:
                         userDM = await client.fetch_user(user_id=int(currentID['discordID']))
                         await userDM.send(f"'{x.lessionName}' starts in {minutesBeforeStart} {'minute' if minutesBeforeStart == 1 else 'minutes'}{' in ' + x.classroomName if x.classroomName != '' else ''}!")
+                        logging.error('Notified user')
+                    else:
+                        logging.error('Did not notify user')
 
             logging.error('Waiting for minute to change...')
         else:
             logging.error("Skipping (Not monday-friday)")
     except:
-        logging.error(traceback.format_exc())
+        logging.error(traceback.format_exc()) # Catches any error and puts it in the log file (need to fix proper logging)
 if __name__ == "__main__":
     logging.error("Starting Discord Bot...")
-    client.run(TOKEN)
+    client.run(configfile['discordKey'])
