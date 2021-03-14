@@ -109,6 +109,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+gettimeenv/
 
 # Spyder project settings
 .spyderproject
@@ -131,3 +132,5 @@ settings.cfg
 private.txt
 users.json
 settings.json
+
+!logs/
