@@ -9,40 +9,36 @@ from main import GetTime
 from main import SetLogging
 from main import CurrentTime
 from discord.ext import tasks
-#from main import loadConfigfile
 #endregion
 
-#Set path
-os.chdir(os.path.dirname(os.path.realpath(__file__)))
+#region INIT
+os.chdir(os.path.dirname(os.path.realpath(__file__))) # Set working dir to path of main.py
 
 with open("settings.json") as f:
     try:configfile = json.load(f)
     except:configfile = {}
 
-#Default settings (before cfg file has been loaded in)
-# if __name__ == "__main__":
-#     logging.basicConfig(level=logging.DEBUG, format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s") 
-
 logFileName = "discord_logfile.log"
 logFileLocation = configfile['logFileLocation']
-# logging.error(f"From now on, logs will be found at '{logFileLocation+logFileName}'")
 SetLogging(path=logFileLocation,filename=logFileName)
 
-#Creates JSON file if it doesnt exist
+# Creates JSON file if it doesnt exist
 if not os.path.isfile("users.json"):
     open("users.json",'w').close()
 
-#Loads subscribed users into dict (from json file)
+# Loads subscribed users into dict (from json file)
 with open("users.json") as f:
     try:idsToCheck = json.load(f)
-    except:idsToCheck = []
+    except:idsToCheck = {}
+
+client = discord.Client()
+#endregion
+
 
 def updateUserFile():
     global idsToCheck
     with open("users.json", "w") as outfile: 
         json.dump(idsToCheck, outfile) 
-
-client = discord.Client()
 
 @client.event
 async def on_message(message):   
@@ -52,31 +48,57 @@ async def on_message(message):
         
         if userMessage[1].lower() in ('reg','notify'):
             try:idToCheck = userMessage[2]
-            except:await message.channel.send(f"> Incorrect usage of `!gt {userMessage[1].lower()}` (No ID was passed in)")
+            except:await message.channel.send(f"> Fel användning av `!gt {userMessage[1].lower()}` (Inget ID)")
 
             try:remindThisManyMinutes = int(userMessage[3])
             except:remindThisManyMinutes = 5 # Default value is 5 minutes
             
-            for x in range(len(idsToCheck)):
-                #If this is true, that means that discord ID has allready been registred, so it will instead update that entry
-                if idsToCheck[x]['discordID'] == message.author.id:
-                    idsToCheck[x]['id'] = idToCheck
-                    idsToCheck[x]['minutes'] = remindThisManyMinutes
+            #Tries to fetch the ID to see if its valid
+            checkIDisValid = GetTime(_id=idToCheck).getData()['validation']
+            if len(checkIDisValid) != 0:
+                try:
+                    await message.channel.send(f"> Något gick fel! ({checkIDisValid[0]['message']})")
+                except:
+                    await message.channel.send("> Något gick fel!")
+            else:
+                if str(message.author.id) in idsToCheck:
+                    idsToCheck[str(message.author.id)] = {
+                        'id':idToCheck,
+                        'discordID':message.author.id,
+                        'minutes':remindThisManyMinutes
+                    }
                     updateUserFile()
-                    await message.channel.send("> Updated your notification!")
-                    return
+                    await message.channel.send("> Inställningar sparade!")
+                else:
+                    idsToCheck[str(message.author.id)] = {"id":idToCheck,"discordID":message.author.id,"minutes":remindThisManyMinutes}
+                    updateUserFile()
+                    await message.channel.send(f"> Du kommer nu bli notifierad {remindThisManyMinutes} {'minut' if remindThisManyMinutes == 1 else 'minuter'} innan varje lektion!")
+           
 
-            idsToCheck.append({"id":idToCheck,"discordID":message.author.id,"minutes":remindThisManyMinutes})
-            await message.channel.send(f"> You will now be notified {remindThisManyMinutes} {'minute' if remindThisManyMinutes == 1 else 'minutes'} before every lession!")
-            updateUserFile()
         
         if userMessage[1].lower() in ('unreg','unnotify'):
-            for x in range(len(idsToCheck)):
-                if idsToCheck[x]['discordID'] == message.author.id:
-                    del idsToCheck[x]
-                    updateUserFile()
-                    await message.channel.send("> You will no longer be notified about when the next lessions start.")
+            if str(message.author.id) in idsToCheck:
+                del idsToCheck[str(message.author.id)]
+                updateUserFile()
+                await message.channel.send("> Du kommer inte längre bli notifierad innan en lektion börjar.")
+            else:
+                await message.channel.send("> Du har inte registrerat dig!")
+
+        if userMessage[1].lower() in ('schema','today'):
+            try:
+                userID = userMessage[2]
+            except:
+                if str(message.author.id) in idsToCheck:
+                    userID = idsToCheck[str(message.author.id)]['id']
+                else:
+                    await message.channel.send(f"> Fel användning av `!gt {userMessage[1].lower()}` (Inget ID)")
                     return
+            
+            currentTimeTemp = CurrentTime()
+            
+            myRequest = GetTime(_id=userID,_day=currentTimeTemp['weekday2'] if currentTimeTemp['weekday2'] != 0 else 1,_week=currentTimeTemp['week2'])
+            
+            await message.channel.send(f">>> Här är ditt schema för {currentTimeTemp['dayNames'][myRequest._day-1].capitalize()}, v.{myRequest._week}!\n" + myRequest.GenerateTextSummary())
 
 @client.event
 async def on_ready():
@@ -93,8 +115,6 @@ cachedResponses = {}
 @tasks.loop(seconds=6)
 async def lessionStart():
     try:
-        # timeNow is a variable that 
-
         global timeNow, cachedResponses, timeScore
         currentTimeTemp = CurrentTime()
 
@@ -110,7 +130,8 @@ async def lessionStart():
             timeScore = (currentTimeTemp['hour'] * 60) + currentTimeTemp['minute']
             
             # Iterates through all the ID's
-            for currentID in idsToCheck:
+            for currentKey in idsToCheck:
+                currentID = idsToCheck[currentKey]
                 logging.error(f"Checking id: {currentID}...")           
                 
                 a = None
@@ -128,7 +149,10 @@ async def lessionStart():
 
                 if a == None:
                     logging.error("Running request")
-                    a = GetTime(_id=currentID['id'],_day=currentTimeTemp['weekday']).fetch()
+                    a = GetTime(
+                        _id=currentID['id'],
+                        _day=currentTimeTemp['weekday'] - 1
+                    ).fetch()
                     cachedResponses[str(currentID['discordID'])] = {'data':a,'age':time.time()}
 
                 for x in a:
@@ -136,20 +160,16 @@ async def lessionStart():
                     lessionTimeScore = (int(temp[0]) * 60) + int(temp[1])
                     minutesBeforeStart = lessionTimeScore-timeScore
 
-                    logging.error(f"'{x.lessionName}' starts in {minutesBeforeStart}")
-
                     if minutesBeforeStart == currentID['minutes']:
                         userDM = await client.fetch_user(user_id=int(currentID['discordID']))
-                        await userDM.send(f"'{x.lessionName}' starts in {minutesBeforeStart} {'minute' if minutesBeforeStart == 1 else 'minutes'}{' in ' + x.classroomName if x.classroomName != '' else ''}!")
-                        logging.error('Notified user')
-                    else:
-                        logging.error('Did not notify user')
+                        await userDM.send(f"'{x.lessionName}' börjar om {minutesBeforeStart} {'minut' if minutesBeforeStart == 1 else 'minuter'}{' in ' + x.classroomName if x.classroomName != '' else ''}!")
 
             logging.error('Waiting for minute to change...')
         else:
             logging.error("Skipping (Not monday-friday)")
     except:
         logging.error(traceback.format_exc()) # Catches any error and puts it in the log file (need to fix proper logging)
+
 if __name__ == "__main__":
     logging.error("Starting Discord Bot...")
     client.run(configfile['discordKey'])
