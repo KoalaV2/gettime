@@ -56,66 +56,6 @@ def SetLogging(path="",filename="log.log",format='%(asctime)s %(levelname)s %(na
 #endregion
 
 #region FUNCTIONS
-# def LoadConfigfile(configFileName):
-#     """
-#         Loads the config.cfg file into a dict.\n
-#         Anything in quotes will always be converted into a string.\n
-#         true/True and false/False will be converted into a bool.\n
-#         Any number with , or . will be converted into a float.\n
-
-#         Args:
-#             configFileName (string): Path and name of configfile
-
-#         Returns:
-#             dict: all the config settings
-#     """
-#     logger = FunctionLogger(functionName='LoadConfigfile')
-#     cfg = {}
-#     try:
-#         logger.info(f"Loading configfile... ({configFileName})")
-#         with open(configFileName,'r') as f:
-#             for x in f.readlines():
-#                 a,b = x.strip('\n').split(" = ")
-                
-#                 # Checks if value is specified as string
-#                 if (b.startswith('"') and b.endswith('"')) or (b.startswith("'") and b.endswith("'")):
-#                     cfg[a] = b[1:-1]
-#                     logger.info(f"Converted '{b}' into a string and saved to '{a}'")
-#                     continue
-
-#                 # Checks if value is true or false
-#                 if b.lower() == "true":
-#                     cfg[a] = True
-#                     logger.info(f"Converted '{b}' into a bool and saved to '{a}'")
-#                     continue
-#                 if b.lower() == "false":
-#                     cfg[a] = False
-#                     logger.info(f"Converted '{b}' into a bool and saved to '{a}'")
-#                     continue
-                
-#                 # Checks if value is float
-#                 try:
-#                     if "," in b or "." in b:
-#                         cfg[a] = float(b)
-#                         logger.info(f"Converted '{b}' into a float and saved to '{a}'")
-#                         continue
-#                 except:
-#                     logger.info(f"Tried to convert '{b}' into a float, but failed.")
-#                     pass
-                
-#                 # Checks if value is INT
-#                 try:
-#                     cfg[a] = int(b)
-#                     logger.info(f"Converted '{b}' into a int and saved to '{a}'")
-#                     continue
-
-#                 # If not, saves it as string
-#                 except:
-#                     cfg[a] = b
-#                     logger.info(f"Nothing else worked, so converted '{b}' into a string and saved to '{a}'")
-#                     continue
-#     except Exception as e:logger.exception(e);pass
-#     return cfg
 def CurrentTime():
     """
         Returns a dictionary with the current time in many different formats.
@@ -123,7 +63,7 @@ def CurrentTime():
         Returns:
             dict: (secound, minute, hour, day, week, month, year, weekday)
     """
-    logger = FunctionLogger(functionName='CurrentTime')
+    #logger = FunctionLogger(functionName='CurrentTime')
     now = datetime.datetime.now() 
     return {
         'secound':now.second,
@@ -142,6 +82,7 @@ def CurrentTime():
 class FunctionLogger:
     def __init__(self,functionName):
         self.functionName = functionName
+        logging.info(f"{self.functionName} : FunctionLogger Object created.")
     def info(self,*message):
         message = [str(x) for x in message]
         logging.info(f"{self.functionName}() : {str(' '.join(message))}")
@@ -177,10 +118,10 @@ class GetTime:
         """
         logger = FunctionLogger(functionName='GetTime.getData')
         if self._id == None:
-            return None #If ID is not set then it returns 0 by default
+            return None #If ID is not set then it returns None by default
         
-        #region Request 1
         logger.info("Request 1 started")
+        #region Request 1
         headers1 = {
             "Connection": "keep-alive",
             "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:85.0) Gecko/20100101 Firefox/85.0",
@@ -196,10 +137,9 @@ class GetTime:
         url1 = 'https://web.skola24.se/api/encrypt/signature'
         payload1 = {"signature":self._id}
         response1 = requests.post(url1, data=json.dumps(payload1), headers=headers1).text.split('"signature": "')[1].split('"')[0]
-        logger.info("Request 1 finished")
         #endregion
+        logger.info("Request 1 finished, request 2 started")
         #region Request 2
-        logger.info("Request 2 started")
         headers2 = {
             "Host": "web.skola24.se",
             "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:85.0) Gecko/20100101 Firefox/85.0",
@@ -220,10 +160,9 @@ class GetTime:
         url2 = 'https://web.skola24.se/api/get/timetable/render/key'
         payload2 = "null"
         response2 = requests.post(url2, data=payload2, headers=headers2).text.split('"key": "')[1].split('"')[0]
-        logger.info("Request 2 finished")
         #endregion
+        logger.info("Request 2 finished, request 3 started")
         #region Request 3
-        logger.info("Request 3 started")
         headers3 = headers2
         url3 = 'https://web.skola24.se/api/render/timetable'
         payload3 = {
@@ -247,8 +186,8 @@ class GetTime:
             "customerKey":""
         }
         response3 = json.loads(requests.post(url3, data=json.dumps(payload3), headers=headers3).text)
-        logger.info("Request 3 finished")
         #endregion
+        logger.info("Request 3 finished")
         return response3
     def fetch(self):
         """
@@ -259,7 +198,7 @@ class GetTime:
             Returns:
                 List with <Lession> objects
         """
-        logger = FunctionLogger(functionName='GetTime.fetch')
+        #logger = FunctionLogger(functionName='GetTime.fetch')
         result = self.getData()
         toReturn = []
         for x in result['data']['lessonInfo']:
@@ -459,7 +398,7 @@ if __name__ == "__main__":
 
     @app.endpoint('internal_script')
     def _getTime():
-        logger = FunctionLogger(functionName='_getTime')
+        #logger = FunctionLogger(functionName='_getTime')
         # Get the finished HTML code for the schedule (Used by the website to generate the image you see)
         myRequest = GetTime(
             _id = request.args['id'],
@@ -475,7 +414,7 @@ if __name__ == "__main__":
 
     @app.endpoint('TERMINAL_SCHEDULE')
     def terminalSchedule():
-        logger = FunctionLogger(functionName='terminalSchedule')
+        #logger = FunctionLogger(functionName='terminalSchedule')
 
         # Text based request (Returns a text based schedule)
         myRequest = GetTime()
@@ -498,7 +437,7 @@ if __name__ == "__main__":
 
     @app.endpoint('API_JSON')
     def getAll():
-        logger = FunctionLogger(functionName='getAll')
+        #logger = FunctionLogger(functionName='getAll')
 
         # Custom API (gets the whole JSON file for the user to mess with)
         # This is what the Skola24 website seems to get.
@@ -517,14 +456,14 @@ if __name__ == "__main__":
 
     @app.endpoint('logfile')
     def logfile():
-        logger = FunctionLogger(functionName='logfile')
+        #logger = FunctionLogger(functionName='logfile')
         if request.args['key'] == configfile['key']:
             with open(logFileLocation+logFileName,"r") as f:
                 return f"<pre>{logFileLocation+logFileName}</pre><pre>{''.join(f.readlines())}</pre>"
     
     @app.endpoint('discord_logfile')
     def discord_logfile():
-        logger = FunctionLogger(functionName='logfile')
+        #logger = FunctionLogger(functionName='discord_logfile')
         if request.args['key'] == configfile['key']:
             with open(logFileLocation+'discord_logfile.log',"r") as f:
                 return f"<pre>{logFileLocation+logFileName}</pre><pre>{''.join(f.readlines())}</pre>"
@@ -534,7 +473,8 @@ if __name__ == "__main__":
     @app.route("/schema/")
     @app.route("/schema")
     def routeToIndex(**a):
-        logging.info(f"routeToIndex : Request landed in the redirects, sending to mainLink ({mainLink})")
+        logger = FunctionLogger(functionName='routeToIndex')
+        logger.info(f"routeToIndex : Request landed in the redirects, sending to mainLink ({mainLink})")
         return redirect(mainLink)
     #endregion
 
