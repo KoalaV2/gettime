@@ -20,11 +20,13 @@
 #endregion
 
 #region IMPORT
-# NewGetTime Requirements:
+import os
+import time
 import json
+import logging
+import datetime
 import requests
-
-# Flask Requirements:
+import traceback
 from flask import Flask
 from flask import Markup
 from flask import jsonify
@@ -37,98 +39,91 @@ from werkzeug.routing import Rule
 from flask import render_template
 from flask_mobility import Mobility
 
-# Other Requirements:
-import os
-import time
-import traceback
-import datetime
-import logging
 #Default settings (before cfg file has been loaded in)
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG, format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s") 
-def setLogging(path="",filename="log.log",format='%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s'):
+def SetLogging(path="",filename="log.log",format='%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s'):
     """
         Changes logging settings.
     """
-    #Clear Logfile
-    open(path+filename, 'w').close()
-    log = logging.getLogger()  # root logger
-    for hdlr in log.handlers[:]:  # remove all old handlers
-        log.removeHandler(hdlr)    
+    open(path+filename, 'w').close() # Clear Logfile
+    log = logging.getLogger() # root logger
+    for hdlr in log.handlers[:]: # remove all old handlers
+        log.removeHandler(hdlr)
     a = logging.FileHandler(path+filename, 'r+')
     a.setFormatter(logging.Formatter(format))
     log.addHandler(a)
 #endregion
 
 #region FUNCTIONS
-def loadConfigfile(configFileName):
-    """
-        Loads the config.cfg file into a dict.\n
-        Anything in quotes will always be converted into a string.\n
-        true/True and false/False will be converted into a bool.\n
-        Any number with , or . will be converted into a float.\n
+# def LoadConfigfile(configFileName):
+#     """
+#         Loads the config.cfg file into a dict.\n
+#         Anything in quotes will always be converted into a string.\n
+#         true/True and false/False will be converted into a bool.\n
+#         Any number with , or . will be converted into a float.\n
 
-        Args:
-            configFileName (string): Path and name of configfile
+#         Args:
+#             configFileName (string): Path and name of configfile
 
-        Returns:
-            dict: all the config settings
-    """
-    logger = functionLogger(functionName='loadConfigfile')
-    cfg = {}
-    try:
-        logger.info(f"Loading configfile... ({configFileName})")
-        with open(configFileName,'r') as f:
-            for x in f.readlines():
-                a,b = x.strip('\n').split(" = ")
+#         Returns:
+#             dict: all the config settings
+#     """
+#     logger = FunctionLogger(functionName='LoadConfigfile')
+#     cfg = {}
+#     try:
+#         logger.info(f"Loading configfile... ({configFileName})")
+#         with open(configFileName,'r') as f:
+#             for x in f.readlines():
+#                 a,b = x.strip('\n').split(" = ")
                 
-                # Checks if value is specified as string
-                if (b.startswith('"') and b.endswith('"')) or (b.startswith("'") and b.endswith("'")):
-                    cfg[a] = b[1:-1]
-                    logger.info(f"Converted '{b}' into a string and saved to '{a}'")
-                    continue
+#                 # Checks if value is specified as string
+#                 if (b.startswith('"') and b.endswith('"')) or (b.startswith("'") and b.endswith("'")):
+#                     cfg[a] = b[1:-1]
+#                     logger.info(f"Converted '{b}' into a string and saved to '{a}'")
+#                     continue
 
-                # Checks if value is true or false
-                if b.lower() == "true":
-                    cfg[a] = True
-                    logger.info(f"Converted '{b}' into a bool and saved to '{a}'")
-                    continue
-                if b.lower() == "false":
-                    cfg[a] = False
-                    logger.info(f"Converted '{b}' into a bool and saved to '{a}'")
-                    continue
+#                 # Checks if value is true or false
+#                 if b.lower() == "true":
+#                     cfg[a] = True
+#                     logger.info(f"Converted '{b}' into a bool and saved to '{a}'")
+#                     continue
+#                 if b.lower() == "false":
+#                     cfg[a] = False
+#                     logger.info(f"Converted '{b}' into a bool and saved to '{a}'")
+#                     continue
                 
-                # Checks if value is float
-                try:
-                    if "," in b or "." in b:
-                        cfg[a] = float(b)
-                        logger.info(f"Converted '{b}' into a float and saved to '{a}'")
-                        continue
-                except:
-                    logger.info(f"Tried to convert '{b}' into a float, but failed.")
-                    pass
+#                 # Checks if value is float
+#                 try:
+#                     if "," in b or "." in b:
+#                         cfg[a] = float(b)
+#                         logger.info(f"Converted '{b}' into a float and saved to '{a}'")
+#                         continue
+#                 except:
+#                     logger.info(f"Tried to convert '{b}' into a float, but failed.")
+#                     pass
                 
-                # Checks if value is INT
-                try:
-                    cfg[a] = int(b)
-                    logger.info(f"Converted '{b}' into a int and saved to '{a}'")
-                    continue
+#                 # Checks if value is INT
+#                 try:
+#                     cfg[a] = int(b)
+#                     logger.info(f"Converted '{b}' into a int and saved to '{a}'")
+#                     continue
 
-                # If not, saves it as string
-                except:
-                    cfg[a] = b
-                    logger.info(f"Nothing else worked, so converted '{b}' into a string and saved to '{a}'")
-                    continue
-    except Exception as e:logger.exception(e);pass
-    return cfg
-def currentTime():
+#                 # If not, saves it as string
+#                 except:
+#                     cfg[a] = b
+#                     logger.info(f"Nothing else worked, so converted '{b}' into a string and saved to '{a}'")
+#                     continue
+#     except Exception as e:logger.exception(e);pass
+#     return cfg
+def CurrentTime():
     """
         Returns a dictionary with the current time in many different formats.
 
         Returns:
             dict: (secound, minute, hour, day, week, month, year, weekday)
     """
-    logger = functionLogger(functionName='currentTime')
+    logger = FunctionLogger(functionName='CurrentTime')
     now = datetime.datetime.now() 
     return {
         'secound':now.second,
@@ -144,7 +139,7 @@ def currentTime():
 #endregion
 
 #region CLASSES
-class functionLogger:
+class FunctionLogger:
     def __init__(self,functionName):
         self.functionName = functionName
     def info(self,*message):
@@ -165,7 +160,7 @@ class GetTime:
     """
         GetTime Request object
     """
-    def __init__(self,_id=None,_week=currentTime()['week'],_day=0,_year=currentTime()['year'],_resolution=(1280,720)):
+    def __init__(self,_id=None,_week=CurrentTime()['week'],_day=0,_year=CurrentTime()['year'],_resolution=(1280,720)):
         self._id = _id
         self._week = _week
         self._day = _day
@@ -180,7 +175,7 @@ class GetTime:
             Returns:
                 <JSON> object with the data inside
         """
-        logger = functionLogger(functionName='GetTime.getData')
+        logger = FunctionLogger(functionName='GetTime.getData')
         if self._id == None:
             return None #If ID is not set then it returns 0 by default
         
@@ -227,7 +222,7 @@ class GetTime:
         response2 = requests.post(url2, data=payload2, headers=headers2).text.split('"key": "')[1].split('"')[0]
         logger.info("Request 2 finished")
         #endregion
-        #region Request 1
+        #region Request 3
         logger.info("Request 3 started")
         headers3 = headers2
         url3 = 'https://web.skola24.se/api/render/timetable'
@@ -253,11 +248,6 @@ class GetTime:
         }
         response3 = json.loads(requests.post(url3, data=json.dumps(payload3), headers=headers3).text)
         logger.info("Request 3 finished")
-
-        #logger.info(f"Response 1: {response1}")
-        #logger.info(f"Response 2: {response2}")
-        #logger.info(f"Response 3: {response3}")
-        
         #endregion
         return response3
     def fetch(self):
@@ -269,7 +259,7 @@ class GetTime:
             Returns:
                 List with <Lession> objects
         """
-        logger = functionLogger(functionName='GetTime.fetch')
+        logger = FunctionLogger(functionName='GetTime.fetch')
         result = self.getData()
         toReturn = []
         for x in result['data']['lessonInfo']:
@@ -295,7 +285,7 @@ class GetTime:
             Returns:
                 {'html':(SVG HTML CODE),'timestamp':timeStamp}
         """
-        logger = functionLogger(functionName='GetTime.handleHTML')
+        logger = FunctionLogger(functionName='GetTime.handleHTML')
         timeStamp = time.time()
         toReturn = []
         scriptsToRun = []
@@ -374,20 +364,19 @@ if __name__ == "__main__":
     os.chdir(os.path.dirname(os.path.realpath(__file__)))
 
     # Load config file
-    # with open("users.json") as f:
-    #     try:configfile = json.load(f)
-    #     except:configfile = []
-    configfile = loadConfigfile("settings.cfg")
+    with open("settings.json") as f:
+        try:configfile = json.load(f)
+        except:configfile = {}
 
     # Change logging to go to file
     if configfile['logToFile']:
         if configfile['logToSameFile']:
             logFileName = "logfile.log"
         else:
-            logFileName = f"logfile_{currentTime()['datestamp']}.log"
+            logFileName = f"logfile_{CurrentTime()['datestamp']}.log"
         logFileLocation = configfile['logFileLocation']
         logging.info(f"From now on, logs will be found at '{logFileLocation+logFileName}'")
-        setLogging(path=logFileLocation,filename=logFileName)
+        SetLogging(path=logFileLocation,filename=logFileName)
     else:
         logging.info("From now on, logging will continue in the console.")
 
@@ -404,11 +393,13 @@ if __name__ == "__main__":
         Rule('/terminal/getall', endpoint='API_JSON'),
         Rule('/api/json', endpoint='API_JSON'),
         Rule('/API/JSON', endpoint='API_JSON'),
-        Rule('/logfile', endpoint='logfile')
+        Rule('/logfile', endpoint='logfile'),
+        Rule('/discord_logfile', endpoint='discord_logfile')
     );[app.url_map.add(x) for x in rules]
     Mobility(app) #Mobile features
     CORS(app) #Behövs så att man kan skicka requests till serven (for some reason idk)
     #endregion
+
     #region FLASK ROUTES
     @app.after_request #Script to help prevent caching
     def after_request(response):
@@ -428,7 +419,7 @@ if __name__ == "__main__":
             errorMessage = []
             try:
                 #errorMessage.append(f"URL : {request.url}")
-                errorMessage.append(f"TIME OF ERROR : {currentTime()['datestamp']}")
+                errorMessage.append(f"TIME OF ERROR : {CurrentTime()['datestamp']}")
                 errorMessage.append("") #End of special parameters, next is traceback
             except:errorMessage.append("SOMETHING ELSE FAILED TOO")
             errorMessage.append(traceback.format_exc())
@@ -438,7 +429,7 @@ if __name__ == "__main__":
 
     @app.endpoint('index')
     def index():
-        logger = functionLogger(functionName='index')
+        logger = FunctionLogger(functionName='index')
 
         # You can send JS code to parseCode, and it will appear at the end of the website.
         # loadAutomaticly is used to help custom url's to work (should be "true" by default)
@@ -468,7 +459,7 @@ if __name__ == "__main__":
 
     @app.endpoint('internal_script')
     def _getTime():
-        logger = functionLogger(functionName='_getTime')
+        logger = FunctionLogger(functionName='_getTime')
         # Get the finished HTML code for the schedule (Used by the website to generate the image you see)
         myRequest = GetTime(
             _id = request.args['id'],
@@ -484,7 +475,7 @@ if __name__ == "__main__":
 
     @app.endpoint('TERMINAL_SCHEDULE')
     def terminalSchedule():
-        logger = functionLogger(functionName='terminalSchedule')
+        logger = FunctionLogger(functionName='terminalSchedule')
 
         # Text based request (Returns a text based schedule)
         myRequest = GetTime()
@@ -493,7 +484,7 @@ if __name__ == "__main__":
         try:myRequest._week = request.args['week']
         except:pass
         try:myRequest._day = request.args['day']
-        except:myRequest._day = currentTime()['weekday']
+        except:myRequest._day = CurrentTime()['weekday']
 
         a = []
         for x in myRequest.getData()['data']['lessonInfo']:
@@ -507,7 +498,7 @@ if __name__ == "__main__":
 
     @app.endpoint('API_JSON')
     def getAll():
-        logger = functionLogger(functionName='getAll')
+        logger = FunctionLogger(functionName='getAll')
 
         # Custom API (gets the whole JSON file for the user to mess with)
         # This is what the Skola24 website seems to get.
@@ -526,9 +517,16 @@ if __name__ == "__main__":
 
     @app.endpoint('logfile')
     def logfile():
-        logger = functionLogger(functionName='logfile')
+        logger = FunctionLogger(functionName='logfile')
         if request.args['key'] == configfile['key']:
             with open(logFileLocation+logFileName,"r") as f:
+                return f"<pre>{logFileLocation+logFileName}</pre><pre>{''.join(f.readlines())}</pre>"
+    
+    @app.endpoint('discord_logfile')
+    def discord_logfile():
+        logger = FunctionLogger(functionName='logfile')
+        if request.args['key'] == configfile['key']:
+            with open(logFileLocation+'discord_logfile.log',"r") as f:
                 return f"<pre>{logFileLocation+logFileName}</pre><pre>{''.join(f.readlines())}</pre>"
 
     # Redirects (For dead links)
@@ -540,7 +538,6 @@ if __name__ == "__main__":
         return redirect(mainLink)
     #endregion
 
-    # Run website
-    app.run(debug=configfile['DEBUGMODE'], host=configfile['ip'], port=configfile['port'])
+    app.run(debug=configfile['DEBUGMODE'], host=configfile['ip'], port=configfile['port']) # Run website
 else:
     logging.info("main.py was imported")
