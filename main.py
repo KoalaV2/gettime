@@ -11,10 +11,10 @@
 #                                                                                                   #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #                                                                                                   #
-#   Original Idea by PierreLeFevre (https://github.com/PierreLeFevre)                               #
-#   Sodschema Sourcecode by PierreLeFevre (https://github.com/PierreLeFevre/sodschema)              #
-#   GetTime Classic was made by TayIsAsleep (https://github.com/TayIsAsleep)                        #
-#   Sodschema reboot made possible by Koala (https://github.com/KoalaV2)                            #
+#        Original Idea by PierreLeFevre (https://github.com/PierreLeFevre)                          #
+#        Sodschema Sourcecode by PierreLeFevre (https://github.com/PierreLeFevre/sodschema)         #
+#        GetTime Classic was made by TayIsAsleep (https://github.com/TayIsAsleep)                   #
+#        Sodschema reboot made possible by Koala (https://github.com/KoalaV2)                       #
 #                                                                                                   #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #endregion
@@ -32,16 +32,15 @@ from flask import Markup
 from flask import jsonify
 from flask import request
 from flask import redirect
-import werkzeug.exceptions
+from flask import render_template
 from flask_cors import CORS
 from flask_minify import minify
-from werkzeug.routing import Rule
-from flask import render_template
 from flask_mobility import Mobility
+from werkzeug.routing import Rule
+from werkzeug.exceptions import NotFound
+#endregion
 
-#Default settings (before cfg file has been loaded in)
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG, format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s") 
+#region FUNCTIONS
 def SetLogging(path="",filename="log.log",format='%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s'):
     """
         Changes logging settings.
@@ -53,19 +52,18 @@ def SetLogging(path="",filename="log.log",format='%(asctime)s %(levelname)s %(na
     a = logging.FileHandler(path+filename, 'r+')
     a.setFormatter(logging.Formatter(format))
     log.addHandler(a)
-#endregion
-
-#region FUNCTIONS
 def CurrentTime():
     """
         Returns a dictionary with the current time in many different formats.
 
         Returns:
-            dict: (secound, minute, hour, day, week, month, year, weekday)
+            dict: (secound, minute, hour, day, week, week2, month, year, weekday, weekday2, datestamp, dayNames)\n
+            'weekday2' returns 1-5, but 0 if its Saturday or Sunday.\n
+            'week2' returns the current week, but if its Saturday or Sunday, it returns the next week.\n
     """
     #logger = FunctionLogger(functionName='CurrentTime')
-    now = datetime.datetime.now() 
-    return {
+    now = datetime.datetime.now()
+    a = {
         'secound':now.second,
         'minute':now.minute,
         'hour':now.hour,
@@ -74,8 +72,14 @@ def CurrentTime():
         'year':now.year,
         'week':datetime.date.today().isocalendar()[1],
         'weekday':now.weekday(),
-        'datestamp':datetime.datetime.today().strftime('%Y-%m-%d-%H-%M-%S')
+        'datestamp':datetime.datetime.today().strftime('%Y-%m-%d-%H-%M-%S'),
+        'dayNames':("måndag", "tisdag", "onsdag", "torsdag", "fredag", "lördag", "söndag")
     }
+    isSundayOrSaturday = False if a['weekday'] in (1,2,3,4,5) else True
+    a['weekday2'] = 0 if isSundayOrSaturday else a['weekday']
+    a['weekday3'] = 1 if isSundayOrSaturday else a['weekday']
+    a['week2'] = a['week'] + 1 if isSundayOrSaturday else 0
+    return a
 #endregion
 
 #region CLASSES
@@ -295,12 +299,17 @@ class GetTime:
             # else:
             #     raise e
             # return {'html':'<svg id="schedule"></svg>','timestamp':0}
+    def GenerateTextSummary(self):
+        a = [(f"{x.timeStart} SPLITHERE {x.lessionName}, börjar kl {x.timeStart[:-3]} och slutar kl {x.timeEnd[:-3]}" + f" i sal {x.classroomName}" if x.classroomName != None else "") for x in self.fetch()]
+        a.sort()
+        return "\n".join([i.split(' SPLITHERE ')[1] for i in a])[:-2]
 #endregion
 
 if __name__ == "__main__":
-    #region SETUP
-    # Set working dir to path of main.py
-    os.chdir(os.path.dirname(os.path.realpath(__file__)))
+    #region INIT
+    logging.basicConfig(level=logging.DEBUG, format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s") # Sets default logging settings (before cfg file has been loaded in)
+
+    os.chdir(os.path.dirname(os.path.realpath(__file__))) # Set working dir to path of main.py
 
     # Load config file
     with open("settings.json") as f:
@@ -319,13 +328,15 @@ if __name__ == "__main__":
     else:
         logging.info("From now on, logging will continue in the console.")
 
-    # Save mainLink
-    mainLink = configfile['mainLink']
-
     # Setup Flask
     app = Flask(__name__)
     minify(app=app, html=True, js=False, cssless=True)
-    rules=(
+    Mobility(app) # Mobile features
+    CORS(app) # Behövs så att man kan skicka requests till serven (for some reason idk)
+    #endregion
+
+    #region FLASK ROUTES
+    [app.url_map.add(x) for x in (
         Rule('/', endpoint='index'),
         Rule('/script/_getTime', endpoint='internal_script'),
         Rule('/terminal/schedule', endpoint='TERMINAL_SCHEDULE'),
@@ -333,22 +344,20 @@ if __name__ == "__main__":
         Rule('/api/json', endpoint='API_JSON'),
         Rule('/API/JSON', endpoint='API_JSON'),
         Rule('/logfile', endpoint='logfile'),
-        Rule('/discord_logfile', endpoint='discord_logfile')
-    );[app.url_map.add(x) for x in rules]
-    Mobility(app) #Mobile features
-    CORS(app) #Behövs så att man kan skicka requests till serven (for some reason idk)
-    #endregion
+        Rule('/discord_logfile', endpoint='discord_logfile'),
+        Rule('/theo', endpoint='TheoCredit'),
+        Rule('/pierre', endpoint='PierreCredit')
+    )]
 
-    #region FLASK ROUTES
-    @app.after_request #Script to help prevent caching
+    @app.after_request # Script to help prevent caching
     def after_request(response):
         response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, public, max-age=0"
         response.headers["Expires"] = 0
         response.headers["Pragma"] = "no-cache"
         return response
 
-    @app.errorhandler(werkzeug.exceptions.NotFound)
-    def handle_bad_request404(e):
+    @app.errorhandler(NotFound)
+    def handle_bad_request_404(e):
         return e,404
 
     @app.errorhandler(Exception)
@@ -357,9 +366,9 @@ if __name__ == "__main__":
             logging.exception(f"This is the error : {e}")
             errorMessage = []
             try:
-                #errorMessage.append(f"URL : {request.url}")
+                #errorMessage.append(f"URL : {request.url}") # Sometimes leaked server IP
                 errorMessage.append(f"TIME OF ERROR : {CurrentTime()['datestamp']}")
-                errorMessage.append("") #End of special parameters, next is traceback
+                errorMessage.append("") # End of special parameters, next is traceback
             except:errorMessage.append("SOMETHING ELSE FAILED TOO")
             errorMessage.append(traceback.format_exc())
             return render_template('error.html',message="\n".join(errorMessage))
@@ -369,15 +378,14 @@ if __name__ == "__main__":
     @app.endpoint('index')
     def index():
         logger = FunctionLogger(functionName='index')
-
         # You can send JS code to parseCode, and it will appear at the end of the website.
         # loadAutomaticly is used to help custom url's to work (should be "true" by default)
         try:
             request.args['id'] #Check if custom id argument was passed in
             logger.info(f"Custom ID argument found ({request.args['id']})")
         except:
-            logger.info("No custom ID argument was passed in (Ignoring)")
-            return render_template("sodschema.html",parseCode="",loadAutomaticly="true",requestURL=mainLink)
+            logger.info("No custom ID argument was passed in (Loading page normally)")
+            return render_template("sodschema.html",parseCode="",loadAutomaticly="true",requestURL=configfile['mainLink'])
         
 
         # This will error out if no ID was specified in the link, and then it fallsback on the normal page
@@ -394,7 +402,7 @@ if __name__ == "__main__":
         toPass += "console.log('Custom URL');"
         toPass += "updateTimetable();"
         
-        return render_template("sodschema.html",parseCode=Markup("<script>$(document).ready(function() {" + toPass + "});</script>"), loadAutomaticly="false", requestURL=mainLink)
+        return render_template("sodschema.html",parseCode=Markup("<script>$(document).ready(function() {" + toPass + "});</script>"), loadAutomaticly="false", requestURL=configfile['mainLink'])
 
     @app.endpoint('internal_script')
     def _getTime():
@@ -420,20 +428,12 @@ if __name__ == "__main__":
         myRequest = GetTime()
         try:myRequest._id = request.args['id']
         except:return "YOU NEED TO PASS ID ARGUMENT"
-        try:myRequest._week = request.args['week']
+        try:myRequest._week = request.args['week2']
         except:pass
         try:myRequest._day = request.args['day']
-        except:myRequest._day = CurrentTime()['weekday']
+        except:myRequest._day = CurrentTime()['weekday3']
 
-        a = []
-        for x in myRequest.getData()['data']['lessonInfo']:
-            try:
-                a.append(f"{x['timeStart']} SPLITHERE {x['texts'][0]}, börjar kl {x['timeStart']} och slutar kl {x['timeEnd']} i sal {x['texts'][2]}")
-            except:
-                a.append(f"{x['timeStart']} SPLITHERE {x['texts'][0]}, börjar kl {x['timeStart']} och slutar kl {x['timeEnd']}")
-        a.sort()
-
-        return "\n".join([i.split(' SPLITHERE ')[1] for i in a])[:-2]
+        return myRequest.GenerateTextSummary()
 
     @app.endpoint('API_JSON')
     def getAll():
@@ -468,14 +468,22 @@ if __name__ == "__main__":
             with open(logFileLocation+'discord_logfile.log',"r") as f:
                 return f"<pre>{logFileLocation+logFileName}</pre><pre>{''.join(f.readlines())}</pre>"
 
+    # Special easter egg URL's for the creators/contributors
+    @app.endpoint('TheoCredit')
+    def TheoCredit():
+        return redirect('https://koalathe.dev/')
+    @app.endpoint('PierreCredit')
+    def PierreCredit():
+        return redirect('https://github.com/PierreLeFevre')
+
     # Redirects (For dead links)
     @app.route("/schema/<a>")
     @app.route("/schema/")
     @app.route("/schema")
     def routeToIndex(**a):
         logger = FunctionLogger(functionName='routeToIndex')
-        logger.info(f"routeToIndex : Request landed in the redirects, sending to mainLink ({mainLink})")
-        return redirect(mainLink)
+        logger.info(f"routeToIndex : Request landed in the redirects, sending to mainLink ({configfile['mainLink']})")
+        return redirect(configfile['mainLink'])
     #endregion
 
     app.run(debug=configfile['DEBUGMODE'], host=configfile['ip'], port=configfile['port']) # Run website
