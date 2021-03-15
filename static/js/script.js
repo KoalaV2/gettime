@@ -88,7 +88,7 @@ function updateClipboard(newClip) {
 
 //Gets the shareable link
 function getShareableURL() {
-	var url = requestURL + 'script/API_SHAREABLE_URL?id=' + $(".input-idnumber").val();
+	var url = requestURL + 'API/SHAREABLE_URL?id=' + $(".input-idnumber").val();
 	$.getJSON(url, function(data){
 		updateClipboard(data['result']['url']);
 		// alert("Kopierade din privata link");

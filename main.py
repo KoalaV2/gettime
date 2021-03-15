@@ -81,7 +81,6 @@ def CurrentTime():
     a['weekday3'] = 1 if isSundayOrSaturday else a['weekday']
     a['week2'] = a['week'] + 1 if isSundayOrSaturday else 0
     return a
-
 def EncodeString(key, clear):
     enc = []
     for i in range(len(clear)):
@@ -97,7 +96,6 @@ def DecodeString(key, enc):
         dec_c = chr((256 + ord(enc[i]) - ord(key_c)) % 256)
         dec.append(dec_c)
     return "".join(dec)
-
 def GenerateHiddenURL(key,idInput,mainLink):
     return mainLink + f"?a={EncodeString(key,idInput)}"
 #endregion
@@ -360,17 +358,29 @@ if __name__ == "__main__":
 
     #region FLASK ROUTES
     [app.url_map.add(x) for x in (
+        #INDEX
         Rule('/', endpoint='index'),
-        Rule('/script/API_SHAREABLE_URL', endpoint='API_SHAREABLE_URL'),
-        Rule('/script/API_GENERATE_HTML', endpoint='API_GENERATE_HTML'),
-        Rule('/terminal/schedule', endpoint='TERMINAL_SCHEDULE'),
-        Rule('/terminal/getall', endpoint='API_JSON'),
-        Rule('/api/json', endpoint='API_JSON'),
+
+        #API
+        Rule('/API/SHAREABLE_URL', endpoint='API_SHAREABLE_URL'),
+        Rule('/API/GENERATE_HTML', endpoint='API_GENERATE_HTML'),
         Rule('/API/JSON', endpoint='API_JSON'),
+        Rule('/API/TERMINAL_SCHEDULE', endpoint='API_TERMINAL_SCHEDULE'),
+
+        #Logfiles
         Rule('/logfile', endpoint='logfile'),
         Rule('/discord_logfile', endpoint='discord_logfile'),
+
+        #Reserved
         Rule('/theo', endpoint='TheoCredit'),
-        Rule('/pierre', endpoint='PierreCredit')
+        Rule('/pierre', endpoint='PierreCredit'),
+
+        # Obsolete/Old formats
+        Rule('/terminal/schedule', endpoint='API_TERMINAL_SCHEDULE'),
+        Rule('/terminal/getall', endpoint='API_JSON'),
+        Rule('/script/API_SHAREABLE_URL', endpoint='API_SHAREABLE_URL'),
+        Rule('/script/API_GENERATE_HTML', endpoint='API_GENERATE_HTML'),
+        Rule('/api/json', endpoint='API_JSON')
     )]
 
     @app.after_request # Script to help prevent caching
@@ -461,7 +471,7 @@ if __name__ == "__main__":
             result = myRequest.handleHTML(privateID=request.args['privateID'])
         return jsonify(result=result) #.headers.add('Access-Control-Allow-Origin', '*')  
 
-    @app.endpoint('TERMINAL_SCHEDULE')
+    @app.endpoint('API_TERMINAL_SCHEDULE')
     def TERMINAL_SCHEDULE():
         #logger = FunctionLogger(functionName='terminalSchedule')
 
