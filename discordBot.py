@@ -8,7 +8,11 @@ import traceback
 from main import GetTime
 from main import SetLogging
 from main import CurrentTime
+from main import GenerateHiddenURL
 from discord.ext import tasks
+from contextlib import closing
+from urllib.parse import urlencode
+from urllib.request import urlopen
 #endregion
 
 #region INIT
@@ -32,7 +36,14 @@ with open("users.json") as f:
     except:idsToCheck = {}
 
 client = discord.Client()
+messageColor = discord.Colour.from_rgb(138,194,241)
 #endregion
+
+def TinyUrlShortener(urlInput):
+    try:
+        with closing(urlopen((f"http://tinyurl.com/api-create.php?{urlencode({'url':urlInput})}"))) as request:return request.read().decode('utf-8') 
+    except:
+        return urlInput
 
 def updateUserFile():
     global idsToCheck
@@ -91,9 +102,15 @@ async def on_message(message):
             
             currentTimeTemp = CurrentTime()
             myRequest = GetTime(_id=userID,_day=currentTimeTemp['weekday3'],_week=currentTimeTemp['week2'])
-            
-            await message.channel.send(f">>> Här är ditt schema för {currentTimeTemp['dayNames'][myRequest._day-1].capitalize()}, v.{myRequest._week}!\n" + myRequest.GenerateTextSummary())
 
+            getTimeURL = GenerateHiddenURL(configfile['key'],myRequest._id,configfile['mainLink']) #TinyUrlShortener(GenerateHiddenURL(configfile['key'],myRequest._id,configfile['mainLink'])) 
+            
+            embed = discord.Embed(
+                color=messageColor,
+                title=f"Här är ditt schema för {currentTimeTemp['dayNames'][myRequest._day-1].capitalize()}, v.{myRequest._week}!\n",
+                description=myRequest.GenerateTextSummary(mode="discord") + f"\n[Öppna schemat online]({getTimeURL})"
+            );await message.channel.send(embed=embed)
+            
 @client.event
 async def on_ready():
     global timeNow
@@ -117,7 +134,7 @@ async def lessionStart():
 
             #Checks if the minute has changed
             if currentTimeTemp['minute'] == timeNow['minute']:
-                logging.error('Minute had not changed yet')
+                #logging.error('Minute had not changed yet')
                 return
             
             timeNow = currentTimeTemp
@@ -159,8 +176,8 @@ async def lessionStart():
                         await userDM.send(f"'{x.lessionName}' börjar om {minutesBeforeStart} {'minut' if minutesBeforeStart == 1 else 'minuter'}{' i ' + x.classroomName if x.classroomName != '' else ''}!")
 
             logging.error('Waiting for minute to change...')
-        else:
-            logging.error("Skipping (Not monday-friday)")
+        # else:
+        #     logging.error("Skipping (Not monday-friday)")
     except:
         logging.error(traceback.format_exc()) # Catches any error and puts it in the log file (need to fix proper logging)
 
