@@ -67,7 +67,7 @@ function updateTimetable(){
 	
 	if (idnumber.length > 0){
 		
-		var url = requestURL + 'script/API_GENERATE_HTML?id=' + idnumber + "&day=" + day + "&week=" + week + "&width=" + width + "&height=" + height + "&privateID=" + (idIsPrivate ? "1" : "0")
+		var url = requestURL + 'API/GENERATE_HTML?id=' + idnumber + "&day=" + day + "&week=" + week + "&width=" + width + "&height=" + height + "&privateID=" + (idIsPrivate ? "1" : "0")
 
 		if (document.getElementById('schedule').classList.contains('menuBgBlur')){
 			url += '&classes=menuBgBlur';

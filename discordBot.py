@@ -34,7 +34,6 @@ with open("users.json") as f:
 client = discord.Client()
 #endregion
 
-
 def updateUserFile():
     global idsToCheck
     with open("users.json", "w") as outfile: 
@@ -73,9 +72,6 @@ async def on_message(message):
                     idsToCheck[str(message.author.id)] = {"id":idToCheck,"discordID":message.author.id,"minutes":remindThisManyMinutes}
                     updateUserFile()
                     await message.channel.send(f"> Du kommer nu bli notifierad {remindThisManyMinutes} {'minut' if remindThisManyMinutes == 1 else 'minuter'} innan varje lektion!")
-           
-
-        
         if userMessage[1].lower() in ('unreg','unnotify'):
             if str(message.author.id) in idsToCheck:
                 del idsToCheck[str(message.author.id)]
@@ -83,8 +79,7 @@ async def on_message(message):
                 await message.channel.send("> Du kommer inte längre bli notifierad innan en lektion börjar.")
             else:
                 await message.channel.send("> Du har inte registrerat dig!")
-
-        if userMessage[1].lower() in ('schema','today'):
+        if userMessage[1].lower() in ('schema','today','me'):
             try:
                 userID = userMessage[2]
             except:
@@ -95,8 +90,7 @@ async def on_message(message):
                     return
             
             currentTimeTemp = CurrentTime()
-            
-            myRequest = GetTime(_id=userID,_day=currentTimeTemp['weekday2'] if currentTimeTemp['weekday2'] != 0 else 1,_week=currentTimeTemp['week2'])
+            myRequest = GetTime(_id=userID,_day=currentTimeTemp['weekday3'],_week=currentTimeTemp['week2'])
             
             await message.channel.send(f">>> Här är ditt schema för {currentTimeTemp['dayNames'][myRequest._day-1].capitalize()}, v.{myRequest._week}!\n" + myRequest.GenerateTextSummary())
 
