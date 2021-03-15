@@ -28,6 +28,7 @@ import logging
 import datetime
 import requests
 import traceback
+from operator import attrgetter
 from flask import Flask
 from flask import Markup
 from flask import jsonify
@@ -221,9 +222,8 @@ class GetTime:
                 List with <Lession> objects
         """
         #logger = FunctionLogger(functionName='GetTime.fetch')
-        result = self.getData()
         toReturn = []
-        for x in result['data']['lessonInfo']:
+        for x in self.getData()['data']['lessonInfo']:
             currentLesson = Lesson(
                 x['texts'][0],
                 x['texts'][1],
@@ -236,6 +236,7 @@ class GetTime:
             try:currentLesson.classroomName = x['texts'][2]
             except:currentLesson.classroomName = ""
             toReturn.append(currentLesson)
+        toReturn.sort(key=attrgetter('timeStart'))
         return toReturn
     def handleHTML(self,classes="", privateID=False):
         """
@@ -314,16 +315,17 @@ class GetTime:
         
         toReturn = "\n".join(toReturn)
         return {'html':toReturn,'timestamp':timeStamp} #toReturn
-        # except Exception as e: 
-            # if str(e) == "'NoneType' object is not iterable":
-            #     logging.info("User ID invalid!")
-            # else:
-            #     raise e
-            # return {'html':'<svg id="schedule"></svg>','timestamp':0}
-    def GenerateTextSummary(self):
-        a = [(f"{x.timeStart} SPLITHERE {x.lessionName} börjar kl {x.timeStart[:-3]} och slutar kl {x.timeEnd[:-3]}" + f" i sal {x.classroomName}" if x.classroomName != None else "") for x in self.fetch()]
-        a.sort()
-        return "\n".join([i.split(' SPLITHERE ')[1] for i in a])[:-2]
+    def GenerateTextSummary(self,mode="normal"):
+        lessons = self.fetch()
+        if mode == "normal":
+            return "\n".join([(f"{x.lessionName} börjar kl {x.timeStart[:-3]} och slutar kl {x.timeEnd[:-3]}" + f" i sal {x.classroomName}" if x.classroomName != None else "") for x in lessons])
+        if mode == "discord":
+            return "\n".join([(f"**`{x.lessionName}`** börjar kl {x.timeStart[:-3]} och slutar kl {x.timeEnd[:-3]}" + f" i sal {x.classroomName}" if x.classroomName != None else "") for x in lessons])
+    def GenerateLessonJSON(self,lessons=None):
+        if lessons == None:
+            lessons = self.fetch()
+        lessons.sort(key=attrgetter('timeStart'))
+        return {'id':self._id,'week':self._week,'day':self._day,'year':self._year,'lessons':[{'lessionName':x.lessionName,'teacherName':x.teacherName,'classroomName':x.classroomName,'timeStart':x.timeStart,'timeEnd':x.timeEnd,'dayOfWeekNumber':x.dayOfWeekNumber} for x in lessons]}
 #endregion
 
 if __name__ == "__main__":
@@ -365,6 +367,7 @@ if __name__ == "__main__":
         Rule('/API/SHAREABLE_URL', endpoint='API_SHAREABLE_URL'),
         Rule('/API/GENERATE_HTML', endpoint='API_GENERATE_HTML'),
         Rule('/API/JSON', endpoint='API_JSON'),
+        Rule('/API/SIMPLE_JSON', endpoint='API_SIMPLE_JSON'),
         Rule('/API/TERMINAL_SCHEDULE', endpoint='API_TERMINAL_SCHEDULE'),
 
         #Logfiles
@@ -457,7 +460,7 @@ if __name__ == "__main__":
     
     @app.endpoint('API_GENERATE_HTML')
     def API_GENERATE_HTML():
-        #logger = FunctionLogger(functionName='_getTime')
+        #logger = FunctionLogger(functionName='API_GENERATE_HTML')
         # This function generates the finished HTML code for the schedule (Used by the website to generate the image you see)
         myRequest = GetTime(
             _id = request.args['id'],
@@ -473,7 +476,7 @@ if __name__ == "__main__":
 
     @app.endpoint('API_TERMINAL_SCHEDULE')
     def TERMINAL_SCHEDULE():
-        #logger = FunctionLogger(functionName='terminalSchedule')
+        #logger = FunctionLogger(functionName='API_TERMINAL_SCHEDULE')
 
         # Text based request (Returns a text based schedule)
         myRequest = GetTime()
@@ -488,7 +491,7 @@ if __name__ == "__main__":
 
     @app.endpoint('API_JSON')
     def API_JSON():
-        #logger = FunctionLogger(functionName='getAll')
+        #logger = FunctionLogger(functionName='API_JSON')
 
         # Custom API (gets the whole JSON file for the user to mess with)
         # This is what the Skola24 website seems to get.
@@ -504,6 +507,42 @@ if __name__ == "__main__":
         try:myRequest._resolution = request.args['res'].split(",")
         except:pass
         return jsonify(myRequest.getData())
+
+    @app.endpoint('API_SIMPLE_JSON')
+    def API_SIMPLE_JSON():
+        myRequest = GetTime()
+        currentTime = CurrentTime()
+
+        try:myRequest._id = request.args['id']
+        except:raise
+        try:myRequest._week = int(request.args['week'])
+        except:myRequest._week = currentTime['week2']
+        try:myRequest._day = int(request.args['day'])
+        except:myRequest._day = currentTime['weekday3']
+        
+        try:
+            #Mode 1 checks if the last lession has ended for the day, and if so, it goes to the next day
+            if int(request.args['a']) == 1:
+                response1 = myRequest.fetch()
+        
+                temp = response1[len(response1)-1].timeEnd.split(':')
+                lessionTimeScore = (int(temp[0]) * 60) + int(temp[1])
+
+                timeScore = (currentTime['hour'] * 60) + currentTime['minute']
+                
+                if timeScore >= lessionTimeScore:
+                    myRequest._day += 1
+                    if myRequest._day > 5:
+                        myRequest._day = 1
+                        myRequest._week += 1
+            #Mode 2 always goes to the next day
+            if int(request.args['a']) == 2:
+                myRequest._day += 1
+                if myRequest._day > 5:
+                    myRequest._day = 1
+                    myRequest._week += 1
+        except:pass
+        return jsonify(myRequest.GenerateLessonJSON())
 
     @app.endpoint('logfile')
     def logfile():
