@@ -76,10 +76,10 @@ def CurrentTime():
         'datestamp':datetime.datetime.today().strftime('%Y-%m-%d-%H-%M-%S'),
         'dayNames':("måndag", "tisdag", "onsdag", "torsdag", "fredag", "lördag", "söndag")
     }
-    isSundayOrSaturday = False if a['weekday'] in (1,2,3,4,5) else True
+    isSundayOrSaturday = True if a['weekday'] in (6,7) else False
     a['weekday2'] = 0 if isSundayOrSaturday else a['weekday']
     a['weekday3'] = 1 if isSundayOrSaturday else a['weekday']
-    a['week2'] = a['week'] + 1 if isSundayOrSaturday else 0
+    a['week2'] = a['week'] + (1 if isSundayOrSaturday else 0)
     return a
 def EncodeString(key, clear):
     enc = []
