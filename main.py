@@ -521,7 +521,7 @@ if __name__ == "__main__":
         except:myRequest._day = currentTime['weekday3']
         
         try:
-            #Mode 1 checks if the last lesson has ended for the day, and if so, it goes to the next day
+            # Mode 1 checks if the last lesson has ended for the day, and if so, it goes to the next day
             if int(request.args['a']) == 1:
                 response1 = myRequest.fetch()
         
@@ -535,7 +535,10 @@ if __name__ == "__main__":
                     if myRequest._day > 5:
                         myRequest._day = 1
                         myRequest._week += 1
-            #Mode 2 always goes to the next day
+                else:
+                    # If the last lession hasnt ended yet, it reuses the response1 data, since it should be identical
+                    return jsonify(myRequest.GenerateLessonJSON(lessons=response1))
+            # Mode 2 always goes to the next day
             if int(request.args['a']) == 2:
                 myRequest._day += 1
                 if myRequest._day > 5:
