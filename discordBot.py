@@ -34,7 +34,6 @@ with open("users.json") as f:
 client = discord.Client()
 #endregion
 
-
 def updateUserFile():
     global idsToCheck
     with open("users.json", "w") as outfile: 
