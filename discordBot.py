@@ -151,7 +151,7 @@ async def lessionStart():
                     logging.error("Running request")
                     a = GetTime(
                         _id=currentID['id'],
-                        _day=currentTimeTemp['weekday'] - 1
+                        _day=currentTimeTemp['weekday']
                     ).fetch()
                     cachedResponses[str(currentID['discordID'])] = {'data':a,'age':time.time()}
 
