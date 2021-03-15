@@ -325,7 +325,7 @@ class GetTime:
         if lessons == None:
             lessons = self.fetch()
         lessons.sort(key=attrgetter('timeStart'))
-        return {'id':self._id,'week':self._week,'day':self._day,'year':self._year,'lessons':[{'lessonName':x.lessonName,'teacherName':x.teacherName,'classroomName':x.classroomName,'timeStart':x.timeStart,'timeEnd':x.timeEnd,'dayOfWeekNumber':x.dayOfWeekNumber} for x in lessons]}
+        return {'id':self._id,'week':self._week,'day':self._day,'year':self._year,'lessons':[{'lessonName':x.lessonName,'teacherName':x.teacherName,'classroomName':x.classroomName,'timeStart':x.timeStart,'timeEnd':x.timeEnd} for x in lessons]}
 #endregion
 
 if __name__ == "__main__":
