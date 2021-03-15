@@ -7,6 +7,7 @@
 			// It is here, because I don't know where JS code should be lmao
 			var loadAutomaticly = {{loadAutomaticly}};
 			var requestURL = "{{requestURL}}";
+			var privateURL = {{privateURL}};
 		</script>
 		
 		<!-- Set title -->
@@ -72,7 +73,7 @@
 			<nav class="navbar">
 
 				<!-- Main input, personal id, class etc -->
-				<input onclick="void(0)" class="input-idnumber control" type="text" name="idnumber" placeholder="PERSONNR/KLASS"/>
+				<input id="id-input-box" onclick="void(0)" class="input-idnumber control" type="text" name="idnumber" placeholder="PERSONNR/KLASS"/>
 
 				<!-- Arrows for fast date navigation -->
 				<i class="fas arrow arrow-left fa-angle-left" title="Last week"></i>
@@ -101,9 +102,17 @@
 						<span>Sparat&nbsp;&nbsp;</span>
 						<i class="far fa-save control-right"></i>
 					</div>
+					
+					{% if privateURL == "false" %}
+						<!-- Generate savable link -->
+						<a onclick="getShareableURL()" class="foodLink control control-container">
+							<span>Skapa privat link&nbsp;&nbsp;</span>
+							<i class="fas fa-link control-right"></i>
+						</a>
+					{% endif %}
+
 
 					<!-- Redirect to school lunch link -->
-					
 					<a href="https://skolmaten.se/nti-gymnasiet-sodertorn" class="foodLink control control-container">
 						<span>Mat&nbsp;&nbsp;</span>
 						<i class="fas fa-link control-right"></i>

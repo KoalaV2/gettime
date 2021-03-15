@@ -5,6 +5,7 @@ function updateTimetable(){
 	idnumber = $(".input-idnumber").val();
 	width = $( window ).width() + 6;
 	height = (window.innerHeight - $(".navbar").height() + 1);
+	var idIsPrivate = $('#id-input-box').is(":hidden");
 
 	if ($("#roundedMode").is(':checked')){
 		height -= 25;
@@ -55,19 +56,28 @@ function updateTimetable(){
     	$("#input-day-label").text("Show day");
 	    day = 0;
 	}
-
-	createCookie("idnumber", idnumber, 360);
+	if (idIsPrivate){
+		console.log("Did not create cookie because ID is private");
+	}
+	else{
+		createCookie("idnumber", idnumber, 360);
+		console.log("Created cookie");
+	}
+	
 	
 	if (idnumber.length > 0){
 		
-		var url = requestURL + 'script/_getTime?id=' + idnumber + "&day=" + day + "&week=" + week + "&width=" + width + "&height=" + height
+		var url = requestURL + 'script/API_GENERATE_HTML?id=' + idnumber + "&day=" + day + "&week=" + week + "&width=" + width + "&height=" + height + "&privateID=" + (idIsPrivate ? "1" : "0")
 
 		if (document.getElementById('schedule').classList.contains('menuBgBlur')){
 			url += '&classes=menuBgBlur';
 		}
 
+		if (!idIsPrivate){
+			console.log("Requesting schedule with this url : " + url)
+		}
+
 		/* This code asks the server to generate a new schedule for you */
-		console.log("Requesting schedule with this url : " + url)
 		$.getJSON(url, function(data) {
 			/* 
 				Saves the included timestamp (age) of the returned schedule
@@ -87,7 +97,13 @@ function updateTimetable(){
 				trElement.innerHTML = data['result']['html'] + trElement.innerHTML;
 				
 				// Run the URL scripts
-				eval($('#scheduleScript').attr('script'));
+				try{
+					eval($('#scheduleScript').attr('script'));
+				} 
+				catch (error){
+					console.error(error);
+				}
+				
 				
 				// Fade in the Schedule
 				$('.arrow').removeClass('arrow-loading');

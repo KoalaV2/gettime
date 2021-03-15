@@ -75,6 +75,26 @@ function hideControls(){
 	});
 };
 
+//Copies text to users clipboard
+function updateClipboard(newClip) {
+	navigator.clipboard.writeText(newClip).then(function() {
+			/* clipboard successfully set */
+			console.log("YES");
+		}, function() {
+			/* clipboard write failed */
+			console.log("NO");
+	});
+}
+
+//Gets the shareable link
+function getShareableURL() {
+	var url = requestURL + 'script/API_SHAREABLE_URL?id=' + $(".input-idnumber").val();
+	$.getJSON(url, function(data){
+		updateClipboard(data['result']['url']);
+		// alert("Kopierade din privata link");
+		window.location.href = data['result']['url'];
+	})
+}
 
 //events on load & event triggers.
 $(window).on("load", function(){
