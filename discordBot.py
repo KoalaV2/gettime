@@ -162,7 +162,7 @@ async def lessionStart():
 
                     if minutesBeforeStart == currentID['minutes']:
                         userDM = await client.fetch_user(user_id=int(currentID['discordID']))
-                        await userDM.send(f"'{x.lessionName}' börjar om {minutesBeforeStart} {'minut' if minutesBeforeStart == 1 else 'minuter'}{' in ' + x.classroomName if x.classroomName != '' else ''}!")
+                        await userDM.send(f"'{x.lessionName}' börjar om {minutesBeforeStart} {'minut' if minutesBeforeStart == 1 else 'minuter'}{' i ' + x.classroomName if x.classroomName != '' else ''}!")
 
             logging.error('Waiting for minute to change...')
         else:

@@ -23,6 +23,7 @@
 import os
 import time
 import json
+import base64
 import logging
 import datetime
 import requests
@@ -80,6 +81,25 @@ def CurrentTime():
     a['weekday3'] = 1 if isSundayOrSaturday else a['weekday']
     a['week2'] = a['week'] + 1 if isSundayOrSaturday else 0
     return a
+
+def EncodeString(key, clear):
+    enc = []
+    for i in range(len(clear)):
+        key_c = key[i % len(key)]
+        enc_c = chr((ord(clear[i]) + ord(key_c)) % 256)
+        enc.append(enc_c)
+    return base64.urlsafe_b64encode("".join(enc).encode()).decode()
+def DecodeString(key, enc):
+    dec = []
+    enc = base64.urlsafe_b64decode(enc).decode()
+    for i in range(len(enc)):
+        key_c = key[i % len(key)]
+        dec_c = chr((256 + ord(enc[i]) - ord(key_c)) % 256)
+        dec.append(dec_c)
+    return "".join(dec)
+
+def GenerateHiddenURL(key,idInput,mainLink):
+    return mainLink + f"?a={EncodeString(key,idInput)}"
 #endregion
 
 #region CLASSES
@@ -105,7 +125,7 @@ class GetTime:
     """
         GetTime Request object
     """
-    def __init__(self,_id=None,_week=CurrentTime()['week'],_day=0,_year=CurrentTime()['year'],_resolution=(1280,720)):
+    def __init__(self, _id=None, _week=CurrentTime()['week'], _day=0, _year=CurrentTime()['year'], _resolution=(1280,720)):
         self._id = _id
         self._week = _week
         self._day = _day
@@ -219,7 +239,7 @@ class GetTime:
             except:currentLesson.classroomName = ""
             toReturn.append(currentLesson)
         return toReturn
-    def handleHTML(self,classes=""):
+    def handleHTML(self,classes="", privateID=False):
         """
             Fetches and converts the <JSON> data into a SVG (for sending to HTML)
             \n
@@ -281,14 +301,17 @@ class GetTime:
         timeTakenToHandleData = time.time() - timeTakenToHandleData
 
         # Add the scripts to a rect so that they can be ran after the schedule has loaded
-        toReturn.append(f'<rect id="scheduleScript" style="display: none;" script="{"".join(scriptsToRun)}"></rect>')
+        if privateID == False:
+            toReturn.append(f'<rect id="scheduleScript" style="display: none;" script="{"".join(scriptsToRun)}"></rect>')
+        
+        # Comments 
         toReturn.append("<!-- THIS SCHEDULE WAS MADE POSSIBLE BY https://github.com/KoalaV2 -->")
-        toReturn.append(f"<!-- SETTINGS USED: id: {self._id}, week: {self._week}, day: {self._day}, resolution: {self._resolution}, class: {classes} -->")
+        toReturn.append(f"<!-- SETTINGS USED: id: {self._id if privateID == False else '[HIDDEN]'}, week: {self._week}, day: {self._day}, resolution: {self._resolution}, class: {classes} -->")
         toReturn.append(f"<!-- Time taken (Requesting data): {timeTakenToFetchData} secounds -->")
         toReturn.append(f"<!-- Time taken (Schedule generation): {timeTakenToHandleData} secounds -->")
         toReturn.append(f"<!-- Time taken (TOTAL): {(timeTakenToFetchData + timeTakenToHandleData)} secounds -->")
         
-        #End of the SVG
+        # End of the SVG
         toReturn.append("</svg>")
         
         toReturn = "\n".join(toReturn)
@@ -338,7 +361,8 @@ if __name__ == "__main__":
     #region FLASK ROUTES
     [app.url_map.add(x) for x in (
         Rule('/', endpoint='index'),
-        Rule('/script/_getTime', endpoint='internal_script'),
+        Rule('/script/API_SHAREABLE_URL', endpoint='API_SHAREABLE_URL'),
+        Rule('/script/API_GENERATE_HTML', endpoint='API_GENERATE_HTML'),
         Rule('/terminal/schedule', endpoint='TERMINAL_SCHEDULE'),
         Rule('/terminal/getall', endpoint='API_JSON'),
         Rule('/api/json', endpoint='API_JSON'),
@@ -380,34 +404,51 @@ if __name__ == "__main__":
         logger = FunctionLogger(functionName='index')
         # You can send JS code to parseCode, and it will appear at the end of the website.
         # loadAutomaticly is used to help custom url's to work (should be "true" by default)
+
+        # Check if custom id argument was passed in
+        passedInID = None
         try:
-            request.args['id'] #Check if custom id argument was passed in
-            logger.info(f"Custom ID argument found ({request.args['id']})")
-        except:
+            passedInID = request.args['id']
+            idIsHidden = False
+            logger.info(f"Custom ID argument found ({passedInID})")
+        except:pass
+        try:
+            passedInID = DecodeString(configfile['key'],request.args['a'])
+            idIsHidden = True
+            logger.info(f"Custom Encoded ID argument found ({passedInID})")
+        except:pass
+
+        if passedInID == None:
             logger.info("No custom ID argument was passed in (Loading page normally)")
-            return render_template("sodschema.html",parseCode="",loadAutomaticly="true",requestURL=configfile['mainLink'])
-        
+            return render_template("sodschema.html",parseCode="",loadAutomaticly="true",requestURL=configfile['mainLink'], privateURL="false")
+        else:
+            toPass = f"""idnumber = "{passedInID}";$(".input-idnumber").val("{passedInID}");"""
 
-        # This will error out if no ID was specified in the link, and then it fallsback on the normal page
-        toPass = f"""idnumber = "{request.args['id']}";""" + '$(".input-idnumber").val("' + request.args['id'] + '");'
+            # Since the week argument is optional, it can be skipped if not included
+            try:
+                toPass += f"""week = "{request.args['week']}";""" + '$(".input-week").val("' + request.args['week'] + '");'
+            except:
+                logger.info("No custom week argument was passed in (Ignoring)")
+                pass
+            
+            # Adds these to make sure it works (it just works better like this ok?)
+            if idIsHidden:
+                toPass += """$('#id-input-box').css("display", "none");"""
+            toPass += "console.log('Custom URL');"
+            toPass += "updateTimetable();"
+            
+            return render_template("sodschema.html",parseCode=Markup("<script>$(document).ready(function() {" + toPass + "});</script>"), loadAutomaticly="false", requestURL=configfile['mainLink'], privateURL=("true" if idIsHidden else "false")) 
 
-        # Since the week argument is optional, it can be skipped if not included
-        try:
-            toPass += f"""week = "{request.args['week']}";""" + '$(".input-week").val("' + request.args['week'] + '");'
-        except:
-            logger.info("No custom week argument was passed in (Ignoring)")
-            pass
-
-        # Adds these to make sure it works (it just works better like this ok?)
-        toPass += "console.log('Custom URL');"
-        toPass += "updateTimetable();"
-        
-        return render_template("sodschema.html",parseCode=Markup("<script>$(document).ready(function() {" + toPass + "});</script>"), loadAutomaticly="false", requestURL=configfile['mainLink'])
-
-    @app.endpoint('internal_script')
-    def _getTime():
+    @app.endpoint('API_SHAREABLE_URL')
+    def API_SHAREABLE_URL():
+        global configfile
+        a = GenerateHiddenURL(configfile['key'],request.args['id'],configfile['mainLink'])
+        return jsonify(result={'url':a})
+    
+    @app.endpoint('API_GENERATE_HTML')
+    def API_GENERATE_HTML():
         #logger = FunctionLogger(functionName='_getTime')
-        # Get the finished HTML code for the schedule (Used by the website to generate the image you see)
+        # This function generates the finished HTML code for the schedule (Used by the website to generate the image you see)
         myRequest = GetTime(
             _id = request.args['id'],
             _week = int(request.args['week']),
@@ -415,13 +456,13 @@ if __name__ == "__main__":
             _resolution = (int(request.args['width']),int(request.args['height']))
         )
         try:
-            result = myRequest.handleHTML(classes=request.args['classes'])
+            result = myRequest.handleHTML(classes=request.args['classes'],privateID=request.args['privateID'])
         except:
-            result = myRequest.handleHTML()
-        return jsonify(result=result)#.headers.add('Access-Control-Allow-Origin', '*')  
+            result = myRequest.handleHTML(privateID=request.args['privateID'])
+        return jsonify(result=result) #.headers.add('Access-Control-Allow-Origin', '*')  
 
     @app.endpoint('TERMINAL_SCHEDULE')
-    def terminalSchedule():
+    def TERMINAL_SCHEDULE():
         #logger = FunctionLogger(functionName='terminalSchedule')
 
         # Text based request (Returns a text based schedule)
@@ -436,7 +477,7 @@ if __name__ == "__main__":
         return myRequest.GenerateTextSummary()
 
     @app.endpoint('API_JSON')
-    def getAll():
+    def API_JSON():
         #logger = FunctionLogger(functionName='getAll')
 
         # Custom API (gets the whole JSON file for the user to mess with)
