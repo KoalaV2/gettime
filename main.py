@@ -71,7 +71,7 @@ def CurrentTime():
         'month':now.month,
         'year':now.year,
         'week':datetime.date.today().isocalendar()[1],
-        'weekday':now.weekday(),
+        'weekday':now.isoweekday(),
         'datestamp':datetime.datetime.today().strftime('%Y-%m-%d-%H-%M-%S'),
         'dayNames':("måndag", "tisdag", "onsdag", "torsdag", "fredag", "lördag", "söndag")
     }
@@ -300,7 +300,7 @@ class GetTime:
             #     raise e
             # return {'html':'<svg id="schedule"></svg>','timestamp':0}
     def GenerateTextSummary(self):
-        a = [(f"{x.timeStart} SPLITHERE {x.lessionName}, börjar kl {x.timeStart[:-3]} och slutar kl {x.timeEnd[:-3]}" + f" i sal {x.classroomName}" if x.classroomName != None else "") for x in self.fetch()]
+        a = [(f"{x.timeStart} SPLITHERE {x.lessionName} börjar kl {x.timeStart[:-3]} och slutar kl {x.timeEnd[:-3]}" + f" i sal {x.classroomName}" if x.classroomName != None else "") for x in self.fetch()]
         a.sort()
         return "\n".join([i.split(' SPLITHERE ')[1] for i in a])[:-2]
 #endregion
