@@ -113,8 +113,8 @@ class FunctionLogger:
         message = [str(x) for x in message]
         logging.exception(f"{self.functionName}() : {str(' '.join(message))}")
 class Lesson:
-    def __init__(self,lessionName,teacherName,classroomName,timeStart,timeEnd,dayOfWeekNumber):
-        self.lessionName = lessionName
+    def __init__(self,lessonName,teacherName,classroomName,timeStart,timeEnd,dayOfWeekNumber):
+        self.lessonName = lessonName
         self.teacherName = teacherName
         self.classroomName = classroomName
         self.timeStart = timeStart
@@ -214,12 +214,12 @@ class GetTime:
         return response3
     def fetch(self):
         """
-            Fetches and formats data into <Lession> objects.
+            Fetches and formats data into <lesson> objects.
             \n
             Takes:
                 None
             Returns:
-                List with <Lession> objects
+                List with <lesson> objects
         """
         #logger = FunctionLogger(functionName='GetTime.fetch')
         toReturn = []
@@ -270,7 +270,7 @@ class GetTime:
 
         scriptBuilder = {}
 
-        #parentIdsSaved = [] #This saves the parentID when the first value has been read (value 1 is the lession name, value 2 is teacher name and value 3 is classroom name, we want value 1, but 2 and 3 overwrite 1)
+        #parentIdsSaved = [] #This saves the parentID when the first value has been read (value 1 is the lesson name, value 2 is teacher name and value 3 is classroom name, we want value 1, but 2 and 3 overwrite 1)
         logger.info("Looping through textList...")
         for current in j['textList']:
             if current['text'] != "":
@@ -318,14 +318,14 @@ class GetTime:
     def GenerateTextSummary(self,mode="normal"):
         lessons = self.fetch()
         if mode == "normal":
-            return "\n".join([(f"{x.lessionName} börjar kl {x.timeStart[:-3]} och slutar kl {x.timeEnd[:-3]}" + f" i sal {x.classroomName}" if x.classroomName != None else "") for x in lessons])
+            return "\n".join([(f"{x.lessonName} börjar kl {x.timeStart[:-3]} och slutar kl {x.timeEnd[:-3]}" + f" i sal {x.classroomName}" if x.classroomName != None else "") for x in lessons])
         if mode == "discord":
-            return "\n".join([(f"**`{x.lessionName}`** börjar kl {x.timeStart[:-3]} och slutar kl {x.timeEnd[:-3]}" + f" i sal {x.classroomName}" if x.classroomName != None else "") for x in lessons])
+            return "\n".join([(f"**`{x.lessonName}`** börjar kl {x.timeStart[:-3]} och slutar kl {x.timeEnd[:-3]}" + f" i sal {x.classroomName}" if x.classroomName != None else "") for x in lessons])
     def GenerateLessonJSON(self,lessons=None):
         if lessons == None:
             lessons = self.fetch()
         lessons.sort(key=attrgetter('timeStart'))
-        return {'id':self._id,'week':self._week,'day':self._day,'year':self._year,'lessons':[{'lessionName':x.lessionName,'teacherName':x.teacherName,'classroomName':x.classroomName,'timeStart':x.timeStart,'timeEnd':x.timeEnd,'dayOfWeekNumber':x.dayOfWeekNumber} for x in lessons]}
+        return {'id':self._id,'week':self._week,'day':self._day,'year':self._year,'lessons':[{'lessonName':x.lessonName,'teacherName':x.teacherName,'classroomName':x.classroomName,'timeStart':x.timeStart,'timeEnd':x.timeEnd,'dayOfWeekNumber':x.dayOfWeekNumber} for x in lessons]}
 #endregion
 
 if __name__ == "__main__":
@@ -521,16 +521,16 @@ if __name__ == "__main__":
         except:myRequest._day = currentTime['weekday3']
         
         try:
-            #Mode 1 checks if the last lession has ended for the day, and if so, it goes to the next day
+            #Mode 1 checks if the last lesson has ended for the day, and if so, it goes to the next day
             if int(request.args['a']) == 1:
                 response1 = myRequest.fetch()
         
                 temp = response1[len(response1)-1].timeEnd.split(':')
-                lessionTimeScore = (int(temp[0]) * 60) + int(temp[1])
+                lessonTimeScore = (int(temp[0]) * 60) + int(temp[1])
 
                 timeScore = (currentTime['hour'] * 60) + currentTime['minute']
                 
-                if timeScore >= lessionTimeScore:
+                if timeScore >= lessonTimeScore:
                     myRequest._day += 1
                     if myRequest._day > 5:
                         myRequest._day = 1

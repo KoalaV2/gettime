@@ -117,14 +117,14 @@ async def on_ready():
     logging.error(f'Logged in as\n{client.user.name}\n{client.user.id}\n------')
 
     timeNow = {'minute':69.420} # Defaults to a impossible value so that it will run the check at startup every time
-    lessionStart.start()
+    lessonStart.start()
     logging.error("Tasks started")
 
 # Still needs alot of optimazation!
 cacheAgeMax = 5*60 #Secounds
 cachedResponses = {}
 @tasks.loop(seconds=6)
-async def lessionStart():
+async def lessonStart():
     try:
         global timeNow, cachedResponses, timeScore
         currentTimeTemp = CurrentTime()
@@ -168,12 +168,12 @@ async def lessionStart():
 
                 for x in a:
                     temp = x.timeStart.split(':')
-                    lessionTimeScore = (int(temp[0]) * 60) + int(temp[1])
-                    minutesBeforeStart = lessionTimeScore-timeScore
+                    lessonTimeScore = (int(temp[0]) * 60) + int(temp[1])
+                    minutesBeforeStart = lessonTimeScore-timeScore
 
                     if minutesBeforeStart == currentID['minutes']:
                         userDM = await client.fetch_user(user_id=int(currentID['discordID']))
-                        await userDM.send(f"'{x.lessionName}' börjar om {minutesBeforeStart} {'minut' if minutesBeforeStart == 1 else 'minuter'}{' i ' + x.classroomName if x.classroomName != '' else ''}!")
+                        await userDM.send(f"'{x.lessonName}' börjar om {minutesBeforeStart} {'minut' if minutesBeforeStart == 1 else 'minuter'}{' i ' + x.classroomName if x.classroomName != '' else ''}!")
 
             logging.error('Waiting for minute to change...')
         # else:
