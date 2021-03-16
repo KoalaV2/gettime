@@ -14,7 +14,7 @@ Date.prototype.getWeek = function(){
 function showSaved(){
 
 	$(".savedList").empty();
-	$(".savedList").append("<li class='savedItems'>Click the entries to delete them</li>");
+	$(".savedList").append("<li class='savedItems'>Tryck på länkarna för att ta bort dom</li>");
 	savedItems = getAllCookieNamesThatStartWith("URL_");
 
 	for (var i = savedItems.length - 1; i >= 0; i--) {
@@ -30,7 +30,7 @@ function showSaved(){
 		$(".savedList").append("<li class='savedItems'>You have no saved URL's</li>");
 	}
 	else{
-		$(".savedList").append('<button class="clearSavedItems mobileSaved control-container" onclick="deleteAllURLCookies();">Clear saved URLS</button>');
+		$(".savedList").append('<button class="clearSavedItems mobileSaved control-container" onclick="deleteAllURLCookies();">Ta bort alla</button>');
 	}
 	
 	$(".savedIDs").fadeIn("fast");
