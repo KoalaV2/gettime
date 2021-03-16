@@ -103,6 +103,12 @@ def GenerateHiddenURL(key,idInput,mainLink):
 
 #region CLASSES
 class FunctionLogger:
+    """
+        Object that helps make logfiles slightly easier to read\n
+        In the beginning of a function you create a FunctionLogger object\n
+        with "functionName" set to whatever name the function is.\n
+        Then you log like normal, but instead of using logging.info(), you use FunctionLogger.info()
+    """
     def __init__(self,functionName):
         self.functionName = functionName
         logging.info(f"{self.functionName} : FunctionLogger Object created.")
@@ -249,8 +255,6 @@ class GetTime:
         """
         logger = FunctionLogger(functionName='GetTime.handleHTML')
 
-        # timeStamp = time.time() # This value should contain when the request was recieved by the server
-
         toReturn = []
         timeTakenToFetchData = time.time()
         j = self.getData()['data']
@@ -290,7 +294,7 @@ class GetTime:
         logger.info("Looping through lineList...")
         for current in j['lineList']:
             x1,x2=current['p1x'],current['p2x']
-            #Checks delta lenght and skips those smalled then 10px
+            # Checks delta lenght and skips those smalled then 10px
             if int(x1-x2 if x1>x2 else x2-x1) > 10:
                 toReturn.append(f"""<line x1="{current['p1x']}" y1="{current['p1y']}" x2="{current['p2x']}" y2="{current['p2y']}" stroke="{current['color']}"></line>""")
         
