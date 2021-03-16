@@ -25,11 +25,11 @@
 		<!-- Basic meta tags -->
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no">
-		<META NAME="Title" CONTENT="GetTime - 2021">
-		<META NAME="Keywords" CONTENT="GetTime, Södertörn, NTI, NTI-Gymnasiet, NTI-Gymnasiet Södertörn">
-		<META NAME="Description" CONTENT="Schemaläsare för elever och personal på NTI-Gymnasiet Södertörn">
-		<META NAME="Subject" CONTENT="NTI Södertörn Schema">
-		<META NAME="Language" CONTENT="Swedish">
+		<meta name="Title" content="GetTime - 2021">
+		<meta name="Keywords" content="GetTime, Södertörn, NTI, NTI-Gymnasiet, NTI-Gymnasiet Södertörn">
+		<meta name="Description" content="Schemaläsare för elever och personal på NTI-Gymnasiet Södertörn">
+		<meta name="Subject" content="NTI Södertörn Schema">
+		<meta name="Language" content="Swedish">
 
 		<!-- To prevent caching -->
 		<meta http-equiv='cache-control' content='no-cache'> 
@@ -96,13 +96,15 @@
 						<span>Vecka&nbsp;&nbsp;</span>
 						<input onclick="void(0)" class="input-week label" type="number" name="week" placeholder="XX" min="1" max="53"/>
 					</div>
-
-					<!-- Show saved timetables button -->
-					<div class="control savebutton saveBox control-container" onclick="showSaved()">
-						<span>Sparat&nbsp;&nbsp;</span>
-						<i class="far fa-save control-right"></i>
-					</div>
 					
+					{% if privateURL == "false" %}
+						<!-- Show saved timetables button -->
+						<div class="control savebutton saveBox control-container" onclick="showSaved()">
+							<span>Sparat&nbsp;&nbsp;</span>
+							<i class="far fa-save control-right"></i>
+						</div>
+					{% endif %}
+
 					{% if privateURL == "false" %}
 						<!-- Generate savable link -->
 						<a onclick="getShareableURL()" class="foodLink control control-container">
