@@ -147,6 +147,7 @@ class GetTime:
         """
         logger = FunctionLogger(functionName='GetTime.getData')
         if self._id == None:
+            logger.info("Returning None because _id was None")
             return None #If ID is not set then it returns None by default
         
         logger.info("Request 1 started")
@@ -217,7 +218,21 @@ class GetTime:
         response3 = json.loads(requests.post(url3, data=json.dumps(payload3), headers=headers3).text)
         #endregion
         logger.info("Request 3 finished")
+
+        if response3 == None:
+            logger.info("Response3 is None!")
         return response3
+    def CheckIfIDIsValid(self):
+        response = self.getData()
+
+        if response['error'] != None:
+            # Error -1 : 'error' was not empty
+            return -1,response['error']
+        if len(response['validation']) != 0:
+            # Error -2 : 'validation' was not empty
+            return -2,response['validation']
+        # If nothing seems to be wrong, it returns code 0 and the response
+        return 0,response
     def fetch(self):
         """
             Fetches and formats data into <lesson> objects.
@@ -227,9 +242,18 @@ class GetTime:
             Returns:
                 List with <lesson> objects
         """
-        #logger = FunctionLogger(functionName='GetTime.fetch')
+        logger = FunctionLogger(functionName='GetTime.fetch')
         toReturn = []
-        for x in self.getData()['data']['lessonInfo']:
+        response = self.CheckIfIDIsValid()
+
+        if response[0] < 0:
+            logger.info('ERROR!',response)
+            return []
+
+        if response[1]['data']['lessonInfo'] == None:
+            return [] # No lessions this day
+
+        for x in response[1]['data']['lessonInfo']:
             currentLesson = Lesson(
                 x['texts'][0],
                 x['texts'][1],
@@ -545,6 +569,7 @@ if __name__ == "__main__":
         try:
             # Mode 1 checks if the last lesson has ended for the day, and if so, it goes to the next day
             if int(request.args['a']) == 1:
+                print(1)
                 response1 = myRequest.fetch()
         
                 temp = response1[len(response1)-1].timeEnd.split(':')
@@ -553,15 +578,18 @@ if __name__ == "__main__":
                 timeScore = (currentTime['hour'] * 60) + currentTime['minute']
                 
                 if timeScore >= lessonTimeScore:
+                    print(11)
                     myRequest._day += 1
                     if myRequest._day > 5:
                         myRequest._day = 1
                         myRequest._week += 1
                 else:
+                    print(12)
                     # If the last lession hasnt ended yet, it reuses the response1 data, since it should be identical
                     return jsonify(myRequest.GenerateLessonJSON(lessons=response1))
             # Mode 2 always goes to the next day
             if int(request.args['a']) == 2:
+                print(2)
                 myRequest._day += 1
                 if myRequest._day > 5:
                     myRequest._day = 1
