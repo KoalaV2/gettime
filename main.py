@@ -248,33 +248,33 @@ class GetTime:
                 {'html':(SVG HTML CODE),'timestamp':timeStamp}
         """
         logger = FunctionLogger(functionName='GetTime.handleHTML')
-        timeStamp = time.time()
+
+        # timeStamp = time.time() # This value should contain when the request was recieved by the server
+
         toReturn = []
-        scriptsToRun = []
-        timeTakenToFetchData = time.time() #This value should contain when the request was recieved by the server
+        timeTakenToFetchData = time.time()
         j = self.getData()['data']
         timeTakenToFetchData = time.time()-timeTakenToFetchData
         
         timeTakenToHandleData = time.time() 
 
-        #Start of the SVG
+        # Start of the SVG
         toReturn.append(f"""<svg id="schedule" class="{classes}" style="width:{self._resolution[0]}; height:{self._resolution[1]};" viewBox="0 0 {self._resolution[0]} {self._resolution[1]}" shape-rendering="crispEdges">""")
 
         logger.info("Looping through boxList...")
         for current in j['boxList']:
-            #toReturn.append(f"""<rect {("".join([f'{str(key)}="{str(current[key])}" ' for key in [key for key in current]]))}></rect>""")
             if current['type'].startswith("ClockFrame"):
                 toReturn.append(f"""<rect x="{current['x']}" y="{current['y']}" width="{current['width']}" height="{current['height']}" style="fill:{current['bColor']};"></rect>""")
             else:
                 toReturn.append(f"""<rect id="{current['id']}" x="{current['x']}" y="{current['y']}" width="{current['width']}" height="{current['height']}" style="fill:{current['bColor']};stroke:black;stroke-width:1;"></rect>""")
 
         scriptBuilder = {}
-
-        #parentIdsSaved = [] #This saves the parentID when the first value has been read (value 1 is the lesson name, value 2 is teacher name and value 3 is classroom name, we want value 1, but 2 and 3 overwrite 1)
         logger.info("Looping through textList...")
         for current in j['textList']:
             if current['text'] != "":
-                if current['type'] == "Lesson":
+                # If the text is of a Lession type, that means that it sits ontop of a block that the user should be able to click to set a URL.
+                # This only happens if privateID is false, because if the ID is private, it doesnt add the scripts anyways, so why bother generating them in the first place?
+                if privateID == False and current['type'] == "Lesson":
 
                     # If the key does not exist yet, it creates an empty list for it
                     if not current['parentId'] in scriptBuilder:
@@ -283,13 +283,9 @@ class GetTime:
                     # Only takes the first 2 arguments (skips the 3rd, aka classroom name)
                     if len(scriptBuilder[current['parentId']]) <= 1:
                         scriptBuilder[current['parentId']].append(str(current['text'])) 
-                    
+                
+                # Adds text object to list
                 toReturn.append(f"""<text x="{current['x']}" y="{current['y']+12}" style="font-size:{int(current['fontsize'])}px;fill:{current['fColor']};">{current['text']}</text>""")
-
-        # Loops through the ids, and creates scripts for them
-        for x in scriptBuilder:
-            scriptsToRun.append(f"""checkMyUrl('{x}','{"_".join(scriptBuilder[x])}');""") # Saves the check script for later
-
 
         logger.info("Looping through lineList...")
         for current in j['lineList']:
@@ -297,35 +293,57 @@ class GetTime:
             #Checks delta lenght and skips those smalled then 10px
             if int(x1-x2 if x1>x2 else x2-x1) > 10:
                 toReturn.append(f"""<line x1="{current['p1x']}" y1="{current['p1y']}" x2="{current['p2x']}" y2="{current['p2y']}" stroke="{current['color']}"></line>""")
-        timeTakenToHandleData = time.time() - timeTakenToHandleData
-
-        # Add the scripts to a rect so that they can be ran after the schedule has loaded
+        
+        # Add the scripts to a rect so that they can be ran after the schedule has loaded (Skips this when ID is hidden)
         if privateID == False:
+            scriptsToRun = [f"""checkMyUrl('{x}','{"_".join(scriptBuilder[x])}');""" for x in scriptBuilder] # Loops through the ids, and creates scripts for them
             toReturn.append(f'<rect id="scheduleScript" style="display: none;" script="{"".join(scriptsToRun)}"></rect>')
         
+        timeTakenToHandleData = time.time() - timeTakenToHandleData
+
         # Comments 
         toReturn.append("<!-- THIS SCHEDULE WAS MADE POSSIBLE BY https://github.com/KoalaV2 -->")
-        toReturn.append(f"<!-- SETTINGS USED: id: {self._id if privateID == False else '[HIDDEN]'}, week: {self._week}, day: {self._day}, resolution: {self._resolution}, class: {classes} -->")
+        toReturn.append(f"<!-- SETTINGS USED: id: {'[HIDDEN]' if privateID else self._id}, week: {self._week}, day: {self._day}, resolution: {self._resolution}, class: {classes} -->")
         toReturn.append(f"<!-- Time taken (Requesting data): {timeTakenToFetchData} secounds -->")
         toReturn.append(f"<!-- Time taken (Schedule generation): {timeTakenToHandleData} secounds -->")
         toReturn.append(f"<!-- Time taken (TOTAL): {(timeTakenToFetchData + timeTakenToHandleData)} secounds -->")
         
         # End of the SVG
         toReturn.append("</svg>")
-        
-        toReturn = "\n".join(toReturn)
-        return {'html':toReturn,'timestamp':timeStamp} #toReturn
-    def GenerateTextSummary(self,mode="normal"):
-        lessons = self.fetch()
+
+        return {'html':"\n".join(toReturn)}
+    def GenerateTextSummary(self,mode="normal",lessons=None):
+        if lessons == None:
+            lessons = self.fetch()
         if mode == "normal":
             return "\n".join([(f"{x.lessonName} börjar kl {x.timeStart[:-3]} och slutar kl {x.timeEnd[:-3]}" + f" i sal {x.classroomName}" if x.classroomName != None else "") for x in lessons])
         if mode == "discord":
             return "\n".join([(f"**`{x.lessonName}`** börjar kl {x.timeStart[:-3]} och slutar kl {x.timeEnd[:-3]}" + f" i sal {x.classroomName}" if x.classroomName != None else "") for x in lessons])
     def GenerateLessonJSON(self,lessons=None):
+        """
+            Generates a dict used to create the SIMPLE_JSON API.
+            Takes:
+                <List> lessons (optional) (If you have allready runned .fetch() then you can simply convert that data to SIMPLE_JSON)
+            Returns:
+                <Dict> SIMPLE_JSON format
+        """
         if lessons == None:
             lessons = self.fetch()
         lessons.sort(key=attrgetter('timeStart'))
-        return {'id':self._id,'week':self._week,'day':self._day,'year':self._year,'lessons':[{'lessonName':x.lessonName,'teacherName':x.teacherName,'classroomName':x.classroomName,'timeStart':x.timeStart,'timeEnd':x.timeEnd} for x in lessons]}
+        return{
+            'id':self._id,
+            'week':self._week,
+            'day':self._day,
+            'year':self._year,
+            'lessons':[
+                {'lessonName':x.lessonName,
+                'teacherName':x.teacherName,
+                'classroomName':x.classroomName,
+                'timeStart':x.timeStart,
+                'timeEnd':x.timeEnd
+                }for x in lessons
+            ]
+        }
 #endregion
 
 if __name__ == "__main__":
