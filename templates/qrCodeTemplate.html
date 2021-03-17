@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script>
+            var requestURL = "{{requestURL}}";
+            var passedID = "{{passedID}}";
+        </script>
+
+        <script src= "https://code.jquery.com/jquery-3.5.1.js"></script>
+        <script type="text/javascript" src="/static/js/cookies.js"></script>
+
+
+        <style>
+            body{
+                background: linear-gradient(68deg, rgba(25,21,93,100) 0%, rgba(67,67,178,100) 37%, rgba(23,160,188,1) 96%);
+                background: linear-gradient(68deg,#19155d 0%,#4343b2 37%,#1398b3 96%);
+                height: 99vh;
+                margin: 0;
+                
+            }
+            p{
+                text-align: center;
+                font-family: 'Rubik', sans-serif;
+                color: white;
+                text-shadow: 2px 2px 1px rgb(0 0 0 / 25%);
+            }
+            #qr-code{
+                display: block;
+                margin: auto;
+                width: 70vw;
+                padding-top: 8vh;
+            }
+            @page {
+                size: A4;
+                margin: 0;
+            }
+            @media print {
+                html, body {
+                    width: 210mm;
+                    height: 297mm;
+                }
+            }
+        </style>
+    </head>
+       
+
+    <body>
+        <img id="qr-code" src=""/>
+
+        {% if not privateID %}
+            <p id="maintext" style="font-size: 6rem;"></p>
+        {% endif %}
+
+        <p id="subtext" style="font-size: 2rem;"></p>
+        
+        <script> 
+            
+            if (passedID == "None"){
+                var id = readCookie("idnumber");
+            }
+            else{
+                var id = passedID;
+            }
+            
+            function htmlEncode(value) { 
+              return $('<div/>').text(value).html(); 
+            }
+
+            {% if privateID %}
+                var url = requestURL + "?a=" + id;
+            {% else %}
+                var url = requestURL + "?id=" + id;
+            {% endif %}
+            
+            $('#maintext').text(id);
+            $('#subtext').text(url);
+
+
+            var witdh = $('#qr-code').width();
+            var height = $('#qr-code').height()
+
+            let finalURL = 'https://chart.googleapis.com/chart?cht=qr&chl=' + htmlEncode(url) + '&chs=160x160&chld=L|0' 
+        
+            $('#qr-code').attr('src', finalURL);
+            window.print();
+
+        </script> 
+    </body>
+</html>

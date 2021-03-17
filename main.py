@@ -98,7 +98,8 @@ def DecodeString(key, enc):
         dec.append(dec_c)
     return "".join(dec)
 def GenerateHiddenURL(key,idInput,mainLink):
-    return mainLink + f"?a={EncodeString(key,idInput)}"
+    a = EncodeString(key,idInput)
+    return mainLink + f"?a={a}",a
 #endregion
 
 #region CLASSES
@@ -410,6 +411,7 @@ if __name__ == "__main__":
         Rule('/', endpoint='index'),
 
         #API
+        Rule('/API/QR_CODE', endpoint='API_QR_CODE'),
         Rule('/API/SHAREABLE_URL', endpoint='API_SHAREABLE_URL'),
         Rule('/API/GENERATE_HTML', endpoint='API_GENERATE_HTML'),
         Rule('/API/JSON', endpoint='API_JSON'),
@@ -503,11 +505,20 @@ if __name__ == "__main__":
             saveIdToCookie="false"
         ) 
 
+    @app.endpoint('API_QR_CODE')
+    def API_QR_CODE():
+        return render_template(
+            'qrCodeTemplate.html',
+            requestURL=configfile['mainLink'],
+            passedID=None if not 'id' in request.args else request.args['id'],
+            privateID=False if not 'p' in request.args else (True if str(request.args['p']) == "1" else False)
+        )
+
     @app.endpoint('API_SHAREABLE_URL')
     def API_SHAREABLE_URL():
         global configfile
         a = GenerateHiddenURL(configfile['key'],request.args['id'],configfile['mainLink'])
-        return jsonify(result={'url':a})
+        return jsonify(result={'url':a[0],'id':a[1]})
     
     @app.endpoint('API_GENERATE_HTML')
     def API_GENERATE_HTML():
