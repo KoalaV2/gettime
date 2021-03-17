@@ -55,12 +55,12 @@ function updateTimetable(){
     	$("#input-day-label").text("Show day");
 	    day = 0;
 	}
-	if (privateURL){
-		console.log("Did not create cookie because ID is private");
+	if (saveIdToCookie){
+		createCookie("idnumber", idnumber, 360);
+		console.log("Saved to cookie");
 	}
 	else{
-		createCookie("idnumber", idnumber, 360);
-		console.log("Created cookie");
+		console.log("Did not create cookie because ID is private");
 	}
 	
 	if (idnumber.length > 0){
