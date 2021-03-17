@@ -30,11 +30,14 @@
             }
             @media screen{
                 #qr-code{
-                    height: 80vh;
                     position: fixed;
                     top: 50%;
                     left: 50%;
                     transform: translate(-50%, -50%);
+                    max-width: 80vw;
+                    max-height: 80vh;
+                    width: 100%;
+                    object-fit: contain;
                 }
                 #maintext, #subtext{
                     display: none;
@@ -55,7 +58,7 @@
         </style>
     </head>
     <body>
-        <img id="qr-code" src=""/>
+        <img id="qr-code" src="" onclick="window.print()"/>
 
         {% if not privateID %}
             <p id="maintext" style="font-size: 6rem;"></p>
@@ -93,8 +96,8 @@
         
             $('#qr-code').attr('src', finalURL);
 
-            window.setTimeout(document.querySelector('img').complete, 100); // Wait for image to load
-            window.print();
+            //window.setTimeout(document.querySelector('img').complete, 100); // Wait for image to load
+            //window.print();
 
         </script> 
     </body>
