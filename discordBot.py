@@ -105,7 +105,7 @@ async def on_message(message):
             currentTimeTemp = CurrentTime()
             myRequest = GetTime(_id=userID,_day=currentTimeTemp['weekday3'],_week=currentTimeTemp['week2'])
 
-            getTimeURL = GenerateHiddenURL(configfile['key'],myRequest._id,configfile['mainLink']) #TinyUrlShortener(GenerateHiddenURL(configfile['key'],myRequest._id,configfile['mainLink'])) 
+            getTimeURL = GenerateHiddenURL(configfile['key'],myRequest._id,configfile['mainLink'])[0] #TinyUrlShortener(GenerateHiddenURL(configfile['key'],myRequest._id,configfile['mainLink'])) 
             
             embed = discord.Embed(
                 color=messageColor,

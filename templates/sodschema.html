@@ -98,6 +98,8 @@
 						<input onclick="void(0)" class="input-week label" type="number" name="week" placeholder="XX" min="1" max="53"/>
 					</div>
 					
+
+
 					{% if privateURL == "false" %}
 						<!-- Show saved timetables button -->
 						<div class="control savebutton saveBox control-container" onclick="showSaved()">
@@ -105,12 +107,30 @@
 							<i class="far fa-save control-right"></i>
 						</div>
 					{% endif %}
+					
+					<!-- Generate QR code -->
+					<script>
+						function qrCodeURL(){
+
+							
+
+
+							
+							window.location.href = requestURL + "API/QR_CODE?id=" + (privateURL ? (getShareableURL()['id'] + "&p=1") : ($(".input-idnumber").val() + "&p=0"));
+						}
+						
+					</script>
+					<a onclick="qrCodeURL()" class="foodLink control control-container">
+						<span>Skapa QR kod&nbsp;&nbsp;</span>
+						<i class="fas fa-qrcode control-right"></i>
+					</a>
+
 
 					{% if privateURL == "false" %}
 						<!-- Generate savable link -->
-						<a onclick="getShareableURL()" class="foodLink control control-container">
+						<a onclick="window.location.href = getShareableURL()['url'];" class="foodLink control control-container">
 							<span>Skapa privat link&nbsp;&nbsp;</span>
-							<i class="fas fa-link control-right"></i>
+							<i class="fas fa-user-lock control-right"></i>
 						</a>
 					{% endif %}
 

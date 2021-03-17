@@ -87,14 +87,15 @@ function updateClipboard(newClip) {
 }
 
 //Gets the shareable link
-function getShareableURL() {
-	var url = requestURL + 'API/SHAREABLE_URL?id=' + $(".input-idnumber").val();
-	$.getJSON(url, function(data){
-		updateClipboard(data['result']['url']);
-		// alert("Kopierade din privata link");
-		window.location.href = data['result']['url'];
-	})
-}
+function getShareableURL(){
+	var value= $.ajax({ 
+	   url: requestURL + 'API/SHAREABLE_URL?id=' + $(".input-idnumber").val(), 
+	   async: false
+	}).responseJSON;
+	return value['result'];
+ }
+
+
 
 //events on load & event triggers.
 $(window).on("load", function(){
