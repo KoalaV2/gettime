@@ -118,9 +118,11 @@ $(window).on("load", function(){
 	//hide controls div before load
 	hideControls();
 
-	//get idnumber cookie and input data
-	$(".input-idnumber").val(readCookie("idnumber"));
-
+	if (loadAutomaticly){
+		//get idnumber cookie and input data
+		$(".input-idnumber").val(readCookie("idnumber"));
+	}
+	
 	//hide saved ids div before load
 	$(".savedIDs").fadeOut(0);
 
