@@ -5,14 +5,13 @@ import json
 import logging
 import discord
 import traceback
+from subprocess import run
 from main import GetTime
 from main import SetLogging
 from main import CurrentTime
 from main import GenerateHiddenURL
 from discord.ext import tasks
-from contextlib import closing
 from urllib.parse import urlencode
-from urllib.request import urlopen
 #endregion
 
 #region INIT
@@ -41,7 +40,10 @@ messageColor = discord.Colour.from_rgb(138,194,241)
 
 def TinyUrlShortener(urlInput):
     try:
-        with closing(urlopen((f"http://tinyurl.com/api-create.php?{urlencode({'url':urlInput})}"))) as request:return request.read().decode('utf-8') 
+        a = run(f'curl "http://tinyurl.com/api-create.php?{urlencode({"url":urlInput})}"',capture_output=1).stdout.decode('utf-8')
+        if a == "Error":
+            return urlInput
+        return a
     except:
         return urlInput
 
@@ -52,7 +54,7 @@ def updateUserFile():
 
 @client.event
 async def on_message(message):   
-    if message.author == client.user:return #keep bot from responding to itself 
+    if message.author == client.user:return # Keeps bot from responding to itself
     if message.content.lower().startswith("!gt"):
         userMessage = message.content.split(' ')
         
@@ -176,8 +178,6 @@ async def lessonStart():
                         await userDM.send(f"'{x.lessonName}' börjar om {minutesBeforeStart} {'minut' if minutesBeforeStart == 1 else 'minuter'}{' i ' + x.classroomName if x.classroomName != '' else ''}!")
 
             logging.error('Waiting for minute to change...')
-        # else:
-        #     logging.error("Skipping (Not monday-friday)")
     except:
         logging.error(traceback.format_exc()) # Catches any error and puts it in the log file (need to fix proper logging)
 
