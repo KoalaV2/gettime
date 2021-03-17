@@ -16,7 +16,6 @@
                 background: linear-gradient(68deg,#19155d 0%,#4343b2 37%,#1398b3 96%);
                 height: 99vh;
                 margin: 0;
-                
             }
             p{
                 text-align: center;
@@ -24,26 +23,37 @@
                 color: white;
                 text-shadow: 2px 2px 1px rgb(0 0 0 / 25%);
             }
-            #qr-code{
-                display: block;
-                margin: auto;
-                width: 70vw;
-                padding-top: 8vh;
-            }
-            @page {
+
+            @page{
                 size: A4;
                 margin: 0;
             }
-            @media print {
-                html, body {
+            @media screen{
+                #qr-code{
+                    height: 80vh;
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                }
+                #maintext, #subtext{
+                    display: none;
+                }
+            }
+            @media print{
+                html, body{
                     width: 210mm;
                     height: 297mm;
+                }
+                #qr-code{
+                    display: block;
+                    margin: auto;
+                    width: 70vw;
+                    padding-top: 8vh;
                 }
             }
         </style>
     </head>
-       
-
     <body>
         <img id="qr-code" src=""/>
 
@@ -82,6 +92,8 @@
             let finalURL = 'https://chart.googleapis.com/chart?cht=qr&chl=' + htmlEncode(url) + '&chs=160x160&chld=L|0' 
         
             $('#qr-code').attr('src', finalURL);
+
+            window.setTimeout(document.querySelector('img').complete, 100); // Wait for image to load
             window.print();
 
         </script> 
