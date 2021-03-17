@@ -465,38 +465,43 @@ if __name__ == "__main__":
         # loadAutomaticly is used to help custom url's to work (should be "true" by default)
 
         # Check if custom id argument was passed in
-        passedInID = None
-        try:
+        if 'id' in request.args:
             passedInID = request.args['id']
-            idIsHidden = False
             logger.info(f"Custom ID argument found ({passedInID})")
-        except:pass
-        try:
+        elif 'a' in request.args:
             passedInID = DecodeString(configfile['key'],request.args['a'])
-            idIsHidden = True
             logger.info(f"Custom Encoded ID argument found ({passedInID})")
-        except:pass
-
-        if passedInID == None:
-            logger.info("No custom ID argument was passed in (Loading page normally)")
-            return render_template("sodschema.html",parseCode="",loadAutomaticly="true",requestURL=configfile['mainLink'], privateURL="false")
         else:
-            toPass = f"""idnumber = "{passedInID}";$(".input-idnumber").val("{passedInID}");"""
+            logger.info("No custom ID argument was passed in (Loading page normally)")
+            return render_template(
+                "sodschema.html",
+                parseCode="",
+                loadAutomaticly="true",
+                requestURL=configfile['mainLink'],
+                privateURL="false",
+                saveIdToCookie="true"
+            )
+    
+        toPass = f"""idnumber = "{passedInID}";$(".input-idnumber").val("{passedInID}");"""
 
-            # Since the week argument is optional, it can be skipped if not included
-            try:
-                toPass += f"""week = "{request.args['week']}";""" + '$(".input-week").val("' + request.args['week'] + '");'
-            except:
-                logger.info("No custom week argument was passed in (Ignoring)")
-                pass
-            
-            # Adds these to make sure it works (it just works better like this ok?)
-            if idIsHidden:
-                toPass += """$('#id-input-box').css("display", "none");"""
-            toPass += "console.log('Custom URL');"
-            toPass += "updateTimetable();"
-            
-            return render_template("sodschema.html",parseCode=Markup("<script>$(document).ready(function() {" + toPass + "});</script>"), loadAutomaticly="false", requestURL=configfile['mainLink'], privateURL=("true" if idIsHidden else "false")) 
+        # Since the week argument is optional, it can be skipped if not included
+        if 'week' in request.args:
+            toPass += f"""week = "{request.args['week']}";""" + '$(".input-week").val("' + request.args['week'] + '");'
+        
+        # Adds these to make sure it works (it just works better like this ok?)
+        if 'a' in request.args:
+            toPass += """$('#id-input-box').css("display", "none");"""
+        toPass += "console.log('Custom URL');"
+        toPass += "updateTimetable();"
+        
+        return render_template(
+            "sodschema.html",
+            parseCode=Markup("<script>$(document).ready(function() {" + toPass + "});</script>"),
+            loadAutomaticly="false",
+            requestURL=configfile['mainLink'],
+            privateURL=("true" if 'a' in request.args else "false"),
+            saveIdToCookie="false"
+        ) 
 
     @app.endpoint('API_SHAREABLE_URL')
     def API_SHAREABLE_URL():
@@ -514,11 +519,11 @@ if __name__ == "__main__":
             _day = int(request.args['day']),
             _resolution = (int(request.args['width']),int(request.args['height']))
         )
-        try:
-            result = myRequest.handleHTML(classes=request.args['classes'],privateID=request.args['privateID'])
-        except:
-            result = myRequest.handleHTML(privateID=request.args['privateID'])
-        return jsonify(result=result) #.headers.add('Access-Control-Allow-Origin', '*')  
+        if 'classes' in request.args:
+            return jsonify(result=myRequest.handleHTML(classes=request.args['classes'],privateID=True if request.args['privateID'] == "1" else False))
+        else:
+            return jsonify(result=myRequest.handleHTML(privateID=True if request.args['privateID'] == "1" else False))
+        #return jsonify(result=result) #.headers.add('Access-Control-Allow-Origin', '*')  
 
     @app.endpoint('API_TERMINAL_SCHEDULE')
     def TERMINAL_SCHEDULE():
