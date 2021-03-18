@@ -263,5 +263,46 @@
 
 		{{parseCode}}
 
+		{% if debugmode %}
+			<!-- This code is for debugging and testing! !! DO NOT REMOVE !! -->
+			<script>
+				// Code from https://tinyurl.com/4ectw2cz
+				const origConsoleLog = console.log;
+				const logArr = [];
+				console.log = (...args) => {
+					origConsoleLog.apply(console, args);
+					logArr.push(args);
+				};
+				const logAll = () => {
+					origConsoleLog.call(console, logArr.join('\n'));
+				};
+				
+				// Code from https://tinyurl.com/ybvdtuv7
+				window.onerror = function(msg, url, line, col, error) {
+					// Note that col & error are new to the HTML 5 spec and may not be 
+					// supported in every browser.  It worked for me in Chrome.
+					var extra = !col ? '' : '\ncolumn: ' + col;
+					extra += !error ? '' : '\nerror: ' + error;
+
+					// You can view the information in an alert to see things working like this:
+					alert("Error: " + msg + "\nurl: " + url + "\nline: " + line + extra);
+
+					// TODO: Report this error via ajax so you can keep track
+					//       of what pages have JS issues
+
+					var suppressErrorAlert = true;
+					// If you return true, then error alerts (like in older versions of 
+					// Internet Explorer) will be suppressed.
+					return suppressErrorAlert;
+				};
+
+				console.log("THIS IS A DEBUG LOG<br><br>!!YOU CAN HIDE THIS BOX BY CLICKING IT!!<br>")
+				setInterval(function () {
+					document.getElementById("debuglog").innerHTML = logArr.join('<br>');
+				}, 1000);
+			</script>
+			<p id="debuglog" style="position: fixed;left: 0;bottom: 0;color: black; background: rgba(255,255,255,0.5);" onclick="$(this).hide();"></p>
+		{% endif %}
+
 	</body>
 </html>
