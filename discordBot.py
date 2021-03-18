@@ -58,9 +58,20 @@ async def on_message(message):
     if message.content.lower().startswith("!gt"):
         userMessage = message.content.split(' ')
         
+        def GetIdFromUser(messageIndex=2):
+            try:
+                return userMessage[messageIndex]
+            except:
+                if str(message.author.id) in idsToCheck:
+                    return idsToCheck[str(message.author.id)]['id']
+                else:
+                    return None
+
         if userMessage[1].lower() in ('reg','notify'):
-            try:idToCheck = userMessage[2]
-            except:await message.channel.send(f"> Fel användning av `!gt {userMessage[1].lower()}` (Inget ID)")
+            idToCheck = GetIdFromUser()
+            if idsToCheck == None:
+                await message.channel.send(f"> Fel användning av `!gt {userMessage[1].lower()}` (Inget ID)")
+                return
 
             try:remindThisManyMinutes = int(userMessage[3])
             except:remindThisManyMinutes = 5 # Default value is 5 minutes
@@ -112,7 +123,27 @@ async def on_message(message):
                 title=f"Här är ditt schema för {currentTimeTemp['dayNames'][myRequest._day-1].capitalize()}, v.{myRequest._week}!\n",
                 description=myRequest.GenerateTextSummary(mode="discord") + f"\n[Öppna schemat online]({getTimeURL})"
             );await message.channel.send(embed=embed)
+        # if userMessage[1].lower() in ('next'):
+        #     idToCheck = GetIdFromUser()
+        #     if idsToCheck == None:
+        #         await message.channel.send(f"> Fel användning av `!gt {userMessage[1].lower()}` (Inget ID)")
+        #         return
+                    
+        #     a = json.loads(run(f'curl "https://gettime.ga/API/SIMPLE_JSON?{urlencode({"a":1,"id":idToCheck})}"',capture_output=1).stdout.decode('utf-8'))
             
+        #     currentTimeTemp = CurrentTime()
+
+        #     timeScore = (currentTimeTemp['hour'] * 60) + currentTimeTemp['minute']
+
+        #     for x in a['lessons']:
+        #         temp = x['timeStart'].split(':')
+        #         lessonTimeScore = (int(temp[0]) * 60) + int(temp[1])
+
+        #         if lessonTimeScore > timeScore:
+        #             print(f"Nästa lektion är '{x['lessonName']}' som börjar kl {x['timeStart']} {' i ' + x['classroomName'] if x['classroomName'] != '' else ''}!")
+
+
+
 @client.event
 async def on_ready():
     global timeNow
@@ -172,10 +203,13 @@ async def lessonStart():
                     temp = x.timeStart.split(':')
                     lessonTimeScore = (int(temp[0]) * 60) + int(temp[1])
                     minutesBeforeStart = lessonTimeScore-timeScore
-
                     if minutesBeforeStart == currentID['minutes']:
                         userDM = await client.fetch_user(user_id=int(currentID['discordID']))
-                        await userDM.send(f"'{x.lessonName}' börjar om {minutesBeforeStart} {'minut' if minutesBeforeStart == 1 else 'minuter'}{' i ' + x.classroomName if x.classroomName != '' else ''}!")
+
+                        embed = discord.Embed(
+                            color=messageColor,
+                            title=f"'{x.lessonName}' börjar om {minutesBeforeStart} {'minut' if minutesBeforeStart == 1 else 'minuter'}{' i ' + x.classroomName if x.classroomName != '' else ''}!"
+                        );await userDM.send(embed=embed)
 
             logging.error('Waiting for minute to change...')
     except:

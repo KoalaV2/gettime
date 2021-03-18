@@ -55,7 +55,16 @@ function updateTimetable(){
     	$("#input-day-label").text("Show day");
 	    day = 0;
 	}
-	if (saveIdToCookie){
+
+	var SUSSY = idnumber.toLowerCase() == "sus" || idnumber.toLowerCase() == "ඞ";
+
+	
+
+	if (SUSSY){
+		window.location.href = requestURL + "ඞ";
+	}
+
+	if (saveIdToCookie && !SUSSY){
 		createCookie("idnumber", idnumber, 360);
 		console.log("Saved to cookie");
 	}
@@ -63,6 +72,8 @@ function updateTimetable(){
 		console.log("Did not create cookie because ID is private");
 	}
 	
+
+
 	if (idnumber.length > 0){
 		
 		var url = requestURL + 'API/GENERATE_HTML?id=' + idnumber + "&day=" + day + "&week=" + week + "&width=" + width + "&height=" + height + "&privateID=" + (privateURL ? "1" : "0")
