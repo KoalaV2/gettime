@@ -297,7 +297,11 @@ class GetTime:
 
         toReturn = []
         timeTakenToFetchData = time.time()
-        j = self.getData()['data']
+        j = self.getData()
+
+        if len(j['validation']) > 0:
+            return {'html':"None"}
+
         timeTakenToFetchData = time.time()-timeTakenToFetchData
         
         timeTakenToHandleData = time.time() 
@@ -306,7 +310,7 @@ class GetTime:
         toReturn.append(f"""<svg id="schedule" class="{classes}" style="width:{self._resolution[0]}; height:{self._resolution[1]};" viewBox="0 0 {self._resolution[0]} {self._resolution[1]}" shape-rendering="crispEdges">""")
 
         logger.info("Looping through boxList...")
-        for current in j['boxList']:
+        for current in j['data']['boxList']:
             if current['type'].startswith("ClockFrame"):
                 toReturn.append(f"""<rect x="{current['x']}" y="{current['y']}" width="{current['width']}" height="{current['height']}" style="fill:{current['bColor']};"></rect>""")
             else:
@@ -314,7 +318,7 @@ class GetTime:
 
         scriptBuilder = {}
         logger.info("Looping through textList...")
-        for current in j['textList']:
+        for current in j['data']['textList']:
             if current['text'] != "":
                 # If the text is of a Lession type, that means that it sits ontop of a block that the user should be able to click to set a URL.
                 # This only happens if privateID is false, because if the ID is private, it doesnt add the scripts anyways, so why bother generating them in the first place?
@@ -332,7 +336,7 @@ class GetTime:
                 toReturn.append(f"""<text x="{current['x']}" y="{current['y']+12}" style="font-size:{int(current['fontsize'])}px;fill:{current['fColor']};">{current['text']}</text>""")
 
         logger.info("Looping through lineList...")
-        for current in j['lineList']:
+        for current in j['data']['lineList']:
             x1,x2=current['p1x'],current['p2x']
             # Checks delta lenght and skips those smalled then 10px
             if int(x1-x2 if x1>x2 else x2-x1) > 10:
@@ -392,9 +396,7 @@ class GetTime:
     # def GetLessonsLeft(self,lessons=None,a=0):
     #     if lessons == None:
     #         lessons = self.fetch()
-        
     #     timeScore = int(f"{self._year}{self._week}{self._day}{CurrentTime()['timeScore']}")
-
     #     try:
     #         # Mode 1 checks if the last lesson has ended for the day, and if so, it goes to the next day
     #         if a == 1:
@@ -414,8 +416,6 @@ class GetTime:
     #                 self._week += 1
     #     except:pass
     #     lessons = self.GenerateLessonJSON()
-        
-        
     #     toReturn = []
     #     for currentLesson in lessons['lessons']:
     #         a = Lesson(insertDict=currentLesson,dateScore=(self._year,self._week,self._day))
@@ -529,7 +529,8 @@ if __name__ == "__main__":
                 loadAutomaticly="true",
                 requestURL=configfile['mainLink'],
                 privateURL="false",
-                saveIdToCookie="true"
+                saveIdToCookie="true",
+                debugmode=(False if not 'debugmode' in request.args else (True if str(request.args['debugmode']) == "1" else False))
             )
     
         toPass = f"""idnumber = "{passedInID}";$(".input-idnumber").val("{passedInID}");"""
@@ -550,7 +551,8 @@ if __name__ == "__main__":
             loadAutomaticly="false",
             requestURL=configfile['mainLink'],
             privateURL=("true" if 'a' in request.args else "false"),
-            saveIdToCookie="false"
+            saveIdToCookie="false",
+            debugmode=(False if not 'debugmode' in request.args else (True if str(request.args['debugmode']) == "1" else False))
         ) 
 
     # API
@@ -666,7 +668,7 @@ if __name__ == "__main__":
         return redirect('https://github.com/PierreLeFevre')
     @app.endpoint('ඞ')
     def ඞ():
-        return render_template('ඞ.html')
+        return render_template('AmongUs.html')
 
     # Redirects (For dead links)
     @app.route("/schema/<a>")

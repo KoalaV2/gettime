@@ -59,20 +59,9 @@ function updateTimetable(){
 	var SUSSY = idnumber.toLowerCase() == "sus" || idnumber.toLowerCase() == "ඞ";
 
 	
-
 	if (SUSSY){
 		window.location.href = requestURL + "ඞ";
 	}
-
-	if (saveIdToCookie && !SUSSY){
-		createCookie("idnumber", idnumber, 360);
-		console.log("Saved to cookie");
-	}
-	else{
-		console.log("Did not create cookie because ID is private");
-	}
-	
-
 
 	if (idnumber.length > 0){
 		
@@ -89,26 +78,33 @@ function updateTimetable(){
 
 		/* This code asks the server to generate a new schedule for you */
 		$.getJSON(url, function(data) {
-			// Replaces the SVG with the new SVG data
-			var tdElement = document.getElementById('schedule');
-			var trElement = tdElement.parentNode;
-			trElement.removeChild(tdElement);
-			trElement.innerHTML = data['result']['html'] + trElement.innerHTML;
-			
-			// Run the URL scripts
-			try{
-				eval($('#scheduleScript').attr('script'));
-			} 
-			catch (error){
-				console.error(error);
+
+			if (data['result']['html'] != "None" && saveIdToCookie && !SUSSY){
+				createCookie("idnumber", idnumber, 360);
+				console.log("Saved ID to cookie");
 			}
-			
-			// Fade in the Schedule
-			$('.arrow').removeClass('arrow-loading');
-			$('#schedule').fadeIn(500);
-			$("#schedule").css({"transform": "none", "opacity": 1});
-			$("#background-roller").fadeOut("fast");
-			$(".arrow-center-text").text(week);
+			if (data['result']['html'] != "None"){
+				// Replaces the SVG with the new SVG data
+				var tdElement = document.getElementById('schedule');
+				var trElement = tdElement.parentNode;
+				trElement.removeChild(tdElement);
+				trElement.innerHTML = data['result']['html'] + trElement.innerHTML;
+				
+				// Run the URL scripts
+				try{
+					eval($('#scheduleScript').attr('script'));
+				} 
+				catch (error){
+					console.error(error);
+				}
+				
+				// Fade in the Schedule
+				$('.arrow').removeClass('arrow-loading');
+				$('#schedule').fadeIn(500);
+				$("#schedule").css({"transform": "none", "opacity": 1});
+				$("#background-roller").fadeOut("fast");
+				$(".arrow-center-text").text(week);
+			}
 
 		})
 
