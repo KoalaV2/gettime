@@ -51,7 +51,7 @@ def SetLogging(path="",filename="log.log",format='%(asctime)s %(levelname)s %(na
     log = logging.getLogger() # root logger
     for hdlr in log.handlers[:]: # remove all old handlers
         log.removeHandler(hdlr)
-    a = logging.FileHandler(path+filename, 'r+')
+    a = logging.FileHandler(path+filename, 'r+', encoding="utf-8")
     a.setFormatter(logging.Formatter(format))
     log.addHandler(a)
 def CurrentTime():
