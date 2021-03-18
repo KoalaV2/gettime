@@ -111,11 +111,6 @@
 					<!-- Generate QR code -->
 					<script>
 						function qrCodeURL(){
-
-							
-
-
-							
 							window.location.href = requestURL + "API/QR_CODE?id=" + (privateURL ? (getShareableURL()['id'] + "&p=1") : ($(".input-idnumber").val() + "&p=0"));
 						}
 						

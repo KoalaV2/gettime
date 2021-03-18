@@ -81,6 +81,7 @@ def CurrentTime():
     a['weekday2'] = 0 if isSundayOrSaturday else a['weekday']
     a['weekday3'] = 1 if isSundayOrSaturday else a['weekday']
     a['week2'] = a['week'] + (1 if isSundayOrSaturday else 0)
+    a['timeScore'] = (a['hour'] * 60) + a['minute']
     return a
 def EncodeString(key, clear):
     enc = []
@@ -120,18 +121,34 @@ class FunctionLogger:
         message = [str(x) for x in message]
         logging.exception(f"{self.functionName}() : {str(' '.join(message))}")
 class Lesson:
-    def __init__(self,lessonName,teacherName,classroomName,timeStart,timeEnd,dayOfWeekNumber):
-        self.lessonName = lessonName
-        self.teacherName = teacherName
-        self.classroomName = classroomName
-        self.timeStart = timeStart
-        self.timeEnd = timeEnd
-        self.dayOfWeekNumber = dayOfWeekNumber
+    def __init__(self,lessonName=None,teacherName=None,classroomName=None,timeStart=None,timeEnd=None,insertDict=None):
+        if insertDict != None:
+            self.lessonName = insertDict['lessonName']
+            self.teacherName = insertDict['teacherName']
+            self.classroomName = insertDict['classroomName']
+            self.timeStart = insertDict['timeStart']
+            self.timeEnd = insertDict['timeEnd']
+        else:
+            self.lessonName = lessonName
+            self.teacherName = teacherName
+            self.classroomName = classroomName
+            self.timeStart = timeStart
+            self.timeEnd = timeEnd
+    def GetTimeScore(self,start=True,end=False):
+        if end == True:start = False
+        #KNOWN ISSUE: 
+        #If time is 23:00, and you try and get timescore for a lesson that starts 01:00 the next day, it will not return 2 hours
+        #This is because timescore does not care about dates, only hours and minutes
+        
+        secounds = sum(x * int(t) for x, t in zip([1, 60, 3600], reversed((self.timeStart if start else self.timeEnd).split(":"))))
+        return int(secounds / 60)
+        
 class GetTime:
     """
         GetTime Request object
     """
-    def __init__(self, _id=None, _week=CurrentTime()['week'], _day=0, _year=CurrentTime()['year'], _resolution=(1280,720)):
+    t = CurrentTime()
+    def __init__(self, _id=None, _week=t['week2'], _day=t['weekday2'], _year=t['year'], _resolution=(1280,720)):
         self._id = _id
         self._week = _week
         self._day = _day
@@ -256,12 +273,10 @@ class GetTime:
 
         for x in response[1]['data']['lessonInfo']:
             currentLesson = Lesson(
-                x['texts'][0],
-                x['texts'][1],
-                None,
-                x['timeStart'],
-                x['timeEnd'],
-                x['dayOfWeekNumber']
+                lessonName=x['texts'][0],
+                teacherName=x['texts'][1],
+                timeStart=x['timeStart'],
+                timeEnd=x['timeEnd']
             ) 
             #Sometimes the classroomName is absent
             try:currentLesson.classroomName = x['texts'][2]
@@ -342,8 +357,7 @@ class GetTime:
 
         return {'html':"\n".join(toReturn)}
     def GenerateTextSummary(self,mode="normal",lessons=None):
-        if lessons == None:
-            lessons = self.fetch()
+        if lessons == None:lessons = self.fetch()
         if mode == "normal":
             return "\n".join([(f"{x.lessonName} börjar kl {x.timeStart[:-3]} och slutar kl {x.timeEnd[:-3]}" + f" i sal {x.classroomName}" if x.classroomName != None else "") for x in lessons])
         if mode == "discord":
@@ -356,8 +370,7 @@ class GetTime:
             Returns:
                 <Dict> SIMPLE_JSON format
         """
-        if lessons == None:
-            lessons = self.fetch()
+        if lessons == None:lessons = self.fetch()
         lessons.sort(key=attrgetter('timeStart'))
         return{
             'id':self._id,
@@ -373,6 +386,42 @@ class GetTime:
                 }for x in lessons
             ]
         }
+    def HasDayEnded(self,lessons=None):
+        if lessons == None:lessons = self.fetch()
+        return CurrentTime()['timeScore'] >= lessons[-1].GetTimeScore(end=True)
+    # def GetLessonsLeft(self,lessons=None,a=0):
+    #     if lessons == None:
+    #         lessons = self.fetch()
+        
+    #     timeScore = int(f"{self._year}{self._week}{self._day}{CurrentTime()['timeScore']}")
+
+    #     try:
+    #         # Mode 1 checks if the last lesson has ended for the day, and if so, it goes to the next day
+    #         if a == 1:
+    #             if self.HasDayEnded(lessons=lessons):
+    #                 self._day += 1
+    #                 if self._day > 5:
+    #                     self._day = 1
+    #                     self._week += 1
+    #             else:
+    #                 # If the last lession hasnt ended yet, it reuses the lessons data, since it should be identical
+    #                 lessons = self.GenerateLessonJSON(lessons=lessons)
+    #         # Mode 2 always goes to the next day
+    #         if a == 2:
+    #             self._day += 1
+    #             if self._day > 5:
+    #                 self._day = 1
+    #                 self._week += 1
+    #     except:pass
+    #     lessons = self.GenerateLessonJSON()
+        
+        
+    #     toReturn = []
+    #     for currentLesson in lessons['lessons']:
+    #         a = Lesson(insertDict=currentLesson,dateScore=(self._year,self._week,self._day))
+    #         b = a.GetTimeScore()
+    #         if b > timeScore:
+    #             toReturn.append(a)
 #endregion
 
 if __name__ == "__main__":
@@ -425,6 +474,7 @@ if __name__ == "__main__":
         #Reserved
         Rule('/theo', endpoint='TheoCredit'),
         Rule('/pierre', endpoint='PierreCredit'),
+        Rule('/ඞ', endpoint='ඞ'),
 
         # Obsolete/Old formats
         Rule('/terminal/schedule', endpoint='API_TERMINAL_SCHEDULE'),
@@ -440,11 +490,9 @@ if __name__ == "__main__":
         response.headers["Expires"] = 0
         response.headers["Pragma"] = "no-cache"
         return response
-
     @app.errorhandler(NotFound)
     def handle_bad_request_404(e):
         return e,404
-
     @app.errorhandler(Exception)
     def handle_bad_request(e):
         if configfile['enableErrorHandler']:
@@ -505,6 +553,7 @@ if __name__ == "__main__":
             saveIdToCookie="false"
         ) 
 
+    # API
     @app.endpoint('API_QR_CODE')
     def API_QR_CODE():
         return render_template(
@@ -513,13 +562,11 @@ if __name__ == "__main__":
             passedID=None if not 'id' in request.args else request.args['id'],
             privateID=False if not 'p' in request.args else (True if str(request.args['p']) == "1" else False)
         )
-
     @app.endpoint('API_SHAREABLE_URL')
     def API_SHAREABLE_URL():
         global configfile
         a = GenerateHiddenURL(configfile['key'],request.args['id'],configfile['mainLink'])
         return jsonify(result={'url':a[0],'id':a[1]})
-    
     @app.endpoint('API_GENERATE_HTML')
     def API_GENERATE_HTML():
         #logger = FunctionLogger(functionName='API_GENERATE_HTML')
@@ -535,22 +582,6 @@ if __name__ == "__main__":
         else:
             return jsonify(result=myRequest.handleHTML(privateID=True if request.args['privateID'] == "1" else False))
         #return jsonify(result=result) #.headers.add('Access-Control-Allow-Origin', '*')  
-
-    @app.endpoint('API_TERMINAL_SCHEDULE')
-    def TERMINAL_SCHEDULE():
-        #logger = FunctionLogger(functionName='API_TERMINAL_SCHEDULE')
-
-        # Text based request (Returns a text based schedule)
-        myRequest = GetTime()
-        try:myRequest._id = request.args['id']
-        except:return "YOU NEED TO PASS ID ARGUMENT"
-        try:myRequest._week = request.args['week2']
-        except:pass
-        try:myRequest._day = request.args['day']
-        except:myRequest._day = CurrentTime()['weekday3']
-
-        return myRequest.GenerateTextSummary()
-
     @app.endpoint('API_JSON')
     def API_JSON():
         #logger = FunctionLogger(functionName='API_JSON')
@@ -569,7 +600,6 @@ if __name__ == "__main__":
         try:myRequest._resolution = request.args['res'].split(",")
         except:pass
         return jsonify(myRequest.getData())
-
     @app.endpoint('API_SIMPLE_JSON')
     def API_SIMPLE_JSON():
         myRequest = GetTime()
@@ -581,7 +611,7 @@ if __name__ == "__main__":
         except:myRequest._week = currentTime['week2']
         try:myRequest._day = int(request.args['day'])
         except:myRequest._day = currentTime['weekday3']
-        
+
         try:
             # Mode 1 checks if the last lesson has ended for the day, and if so, it goes to the next day
             if int(request.args['a']) == 1:
@@ -613,13 +643,13 @@ if __name__ == "__main__":
         except:pass
         return jsonify(myRequest.GenerateLessonJSON())
 
+    # Logs
     @app.endpoint('logfile')
     def logfile():
         #logger = FunctionLogger(functionName='logfile')
         if request.args['key'] == configfile['key']:
             with open(logFileLocation+logFileName,"r") as f:
                 return f"<pre>{logFileLocation+logFileName}</pre><pre>{''.join(f.readlines())}</pre>"
-    
     @app.endpoint('discord_logfile')
     def discord_logfile():
         #logger = FunctionLogger(functionName='discord_logfile')
@@ -627,13 +657,16 @@ if __name__ == "__main__":
             with open(logFileLocation+'discord_logfile.log',"r") as f:
                 return f"<pre>{logFileLocation+logFileName}</pre><pre>{''.join(f.readlines())}</pre>"
 
-    # Special easter egg URL's for the creators/contributors
+    # Special easter egg URL's for the creators/contributors AND AMOGUS ඞ
     @app.endpoint('TheoCredit')
     def TheoCredit():
         return redirect('https://koalathe.dev/')
     @app.endpoint('PierreCredit')
     def PierreCredit():
         return redirect('https://github.com/PierreLeFevre')
+    @app.endpoint('ඞ')
+    def ඞ():
+        return render_template('ඞ.html')
 
     # Redirects (For dead links)
     @app.route("/schema/<a>")
