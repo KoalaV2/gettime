@@ -31,7 +31,7 @@ function inputExceeded(){
 var lastKnownID = "ඞ";
 function checkIfIDTextFits(){
 	var el = $('#id-input-box');
-	if (el.val() != lastKnownID){
+	if (el.val() != lastKnownID || inputExceeded()){
 		if (inputExceeded()){
 			while(inputExceeded()){
 				var oldSize = parseInt(el.css("--font-size"),10);
@@ -44,7 +44,7 @@ function checkIfIDTextFits(){
 				}
 	
 				el.css({
-					"font-size":"min( " + newSize + "px,24px)",
+					"font-size":"min(" + newSize + "px,24px)",
 					"--font-size":newSize + "px"
 				});
 			}
@@ -61,14 +61,13 @@ function checkIfIDTextFits(){
 				}
 	
 				el.css({
-					"font-size":"min( " + newSize + "px,24px)",
+					"font-size":"min(" + newSize + "px,24px)",
 					"--font-size":newSize + "px"
 				});
 			}
 		}
 		lastKnownID = el.val();
 	}
-	
 	
 }
 
