@@ -28,7 +28,7 @@ import logging
 import datetime
 import requests
 import traceback
-from operator import attrgetter
+from operator import attrgetter, truediv
 from flask import Flask
 from flask import Markup
 from flask import jsonify
@@ -141,8 +141,7 @@ class Lesson:
         #This is because timescore does not care about dates, only hours and minutes
         
         secounds = sum(x * int(t) for x, t in zip([1, 60, 3600], reversed((self.timeStart if start else self.timeEnd).split(":"))))
-        return int(secounds / 60)
-        
+        return int(secounds / 60)       
 class GetTime:
     """
         GetTime Request object
@@ -511,49 +510,59 @@ if __name__ == "__main__":
     @app.endpoint('index')
     def index():
         logger = FunctionLogger(functionName='index')
-        # You can send JS code to parseCode, and it will appear at the end of the website.
-        # loadAutomaticly is used to help custom url's to work (should be "true" by default)
 
-        # Check if custom id argument was passed in
+        # Default values
+        t = CurrentTime()
+        initID = ""
+        initDayMode = False
+        initWeek = t['week2']
+        initDay = t['weekday3']
+        debugmode = False
+        privateURL = False
+        saveIdToCookie = True
+        mobileRequest = request.MOBILE
+        
+        # Check parameters
         if 'id' in request.args:
-            passedInID = request.args['id']
-            logger.info(f"Custom ID argument found ({passedInID})")
-        elif 'a' in request.args:
-            passedInID = DecodeString(configfile['key'],request.args['a'])
-            logger.info(f"Custom Encoded ID argument found ({passedInID})")
-        else:
-            logger.info("No custom ID argument was passed in (Loading page normally)")
-            return render_template(
-                "sodschema.html",
-                parseCode="",
-                loadAutomaticly="true",
-                requestURL=configfile['mainLink'],
-                privateURL="false",
-                saveIdToCookie="true",
-                debugmode=(False if not 'debugmode' in request.args else (True if str(request.args['debugmode']) == "1" else False))
-            )
-    
-        toPass = f"""idnumber = "{passedInID}";$(".input-idnumber").val("{passedInID}");"""
-
-        # Since the week argument is optional, it can be skipped if not included
-        if 'week' in request.args:
-            toPass += f"""week = "{request.args['week']}";""" + '$(".input-week").val("' + request.args['week'] + '");'
-        
-        # Adds these to make sure it works (it just works better like this ok?)
+            initID = request.args['id']
+            saveIdToCookie = False
+            logger.info(f"Custom ID argument found ({initID})")
         if 'a' in request.args:
-            toPass += """$('#id-input-box').css("display", "none");"""
-        toPass += "console.log('Custom URL');"
-        toPass += "updateTimetable();"
-        
+            initID = DecodeString(configfile['key'],request.args['a'])
+            privateURL = True
+            saveIdToCookie = False
+            logger.info(f"Custom Encoded ID argument found ({initID})")
+        if 'week' in request.args:
+            try:initWeek = int(request.args['week'])
+            except:pass
+        if 'day' in request.args:
+            try:initDay = int(request.args['day'])
+            except:pass
+        initDayMode = mobileRequest # initDayMode is True by default if the request is a mobile request...
+        if 'daymode' in request.args: # ...unless specified in the URL.
+            if str(request.args['daymode']) == "1":
+                initDayMode = True
+            elif str(request.args['daymode']) == "0":
+                initDayMode = False
+        if 'debugmode' in request.args:
+            if str(request.args['debugmode']) == "1":
+                debugmode = True
+            elif str(request.args['debugmode']) == "0":
+                debugmode = False
+
         return render_template(
-            "sodschema.html",
-            parseCode=Markup("<script>$(document).ready(function() {" + toPass + "});</script>"),
-            loadAutomaticly="false",
+            template_name_or_list="sodschema.html",
+            parseCode="",
             requestURL=configfile['mainLink'],
-            privateURL=("true" if 'a' in request.args else "false"),
-            saveIdToCookie="false",
-            debugmode=(False if not 'debugmode' in request.args else (True if str(request.args['debugmode']) == "1" else False))
-        ) 
+            privateURL=privateURL,
+            saveIdToCookie=saveIdToCookie,
+            mobileRequest=mobileRequest,
+            debugmode=debugmode,
+            initID=initID,
+            initDayMode=initDayMode,
+            initWeek=initWeek,
+            initDay=initDay
+        )
 
     # API
     @app.endpoint('API_QR_CODE')

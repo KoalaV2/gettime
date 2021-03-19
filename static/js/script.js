@@ -1,8 +1,5 @@
-var dateModifier = 0;
-var week = 0;
-var date = new Date();
-var dateDay = date.getDay();
-var scheduleAge = 0
+var week;
+var day = initDay;
 
 //get week number function
 Date.prototype.getWeek = function(){
@@ -10,8 +7,72 @@ Date.prototype.getWeek = function(){
 	return Math.ceil((((this - onejan) / 86400000) + onejan.getDay() + 1) / 7);
 } 
 
+function inputExceeded(){
+	// Modified code from https://stackoverflow.com/a/4836059
+	var el = $('#id-input-box');
+	var s = $('<span >'+el.val()+'</span>');
+	s.css({
+	   position: 'absolute',
+	   left: -9999,
+	   top: -9999,
+	   // ensure that the span has same font properties as the element
+	   'font-family': el.css('font-family'),
+	   'font-size': el.css('font-size'),
+	   'font-weight': el.css('font-weight'),
+	   'font-style': el.css('font-style')
+	});
+	$('body').append(s);
+	var result = s.width() > el.width();
+	//remove the newly created span
+	s.remove();
+	return result;
+}
+
+function checkIfIDTextFits(){
+
+	var el = $('#id-input-box');
+	if (inputExceeded()){
+		while(inputExceeded()){
+			var oldSize = parseInt(el.css("--font-size"),10);
+			console.log(oldSize);
+			var newSize = oldSize - 1;
+			console.log(newSize);
+			
+			if(newSize < 1){
+				break;
+			}
+
+			el.css({
+				"font-size":"min( " + newSize + "px,24px)",
+				"--font-size":newSize + "px"
+			});
+		}
+	}
+	else{
+		while(!inputExceeded()){
+			var oldSize = parseInt(el.css("--font-size"),10);
+			console.log(oldSize);
+			var newSize = oldSize + 1;
+			console.log(newSize);
+			
+			if(newSize > 24){
+				break;
+			}
+
+			el.css({
+				"font-size":"min( " + newSize + "px,24px)",
+				"--font-size":newSize + "px"
+			});
+		}
+	}
+	
+}
+
 // show and update saved url's
 function showSaved(){
+
+	$('#schedule').addClass("menuBgBlur");
+	$(".menuIcon").removeClass("fa-bars").addClass("fa-times");
 
 	$(".savedList").empty();
 	$(".savedList").append("<li class='savedItems'>Tryck på länkarna för att ta bort dom</li>");
@@ -34,6 +95,7 @@ function showSaved(){
 	}
 	
 	$(".savedIDs").fadeIn("fast");
+
 };
 
 //accept cookie policy
@@ -51,7 +113,6 @@ function newsClose(){
 	$( ".input-idnumber" ).focus();	
 };
 
-
 //save inputed item in box
 function savedItemClicked(item){
 	$(".input-idnumber").val(item.text());
@@ -59,7 +120,6 @@ function savedItemClicked(item){
 	console.log('save inputed item in box');
 	updateTimetable();
 };
-
 
 //hide controls menu on mobile
 function hideControls(){
@@ -93,9 +153,23 @@ function getShareableURL(){
 	   async: false
 	}).responseJSON;
 	return value['result'];
- }
+}
 
-
+function updateMenuButtonsBasedOnSize(){
+	if (window.innerWidth < 450){
+		$("#button-text-day").html("Visa dag");
+		$("#button-text-qr").html("QR kod");
+		$("#button-text-private").html("Privat länk");
+		$("#button-text-copy").html("Kopiera länk");
+		$("#button-text-saved").html("Länkar");
+	}else{
+		$("#button-text-day").html("Visa bara dag&nbsp;&nbsp;");
+		$("#button-text-qr").html("Skapa QR kod&nbsp;&nbsp;");
+		$("#button-text-private").html("Skapa privat länk&nbsp;&nbsp;");
+		$("#button-text-copy").html("Kopiera privat länk&nbsp;&nbsp;");
+		$("#button-text-saved").html("Sparade länkar&nbsp;&nbsp;");
+	}
+}
 
 //events on load & event triggers.
 $(window).on("load", function(){
@@ -116,23 +190,28 @@ $(window).on("load", function(){
 		};
 	};
 
+	if (privateURL){
+		$('#id-input-box').css("display", "none");
+	}
+
+
 	//hide controls div before load
 	hideControls();
 
-	if (loadAutomaticly){
-		//get idnumber cookie and input data
+	//get idnumber cookie and input data
+	if (initID == ""){
 		$(".input-idnumber").val(readCookie("idnumber"));
+	}
+	else{
+		$(".input-idnumber").val(initID);
 	}
 	
 	//hide saved ids div before load
 	$(".savedIDs").fadeOut(0);
 
-
-	//automatically enable day mode for mobile devices
-	if($( window ).width() <= 820){
-		$('#input-day').prop('checked', true);	
-	}
-
+	//enable day mode by default for mobile devices
+	$('#input-day').prop('checked', initDayMode);
+	
 	//get info closed cookie and hide or show info accordingly
 	if(readCookie("infoClosed") == "closed"){
 		$('.info').hide();
@@ -157,29 +236,26 @@ $(window).on("load", function(){
 	}
 
 	//get and set current week
-	week = (new Date()).getWeek() - 1;
+	week = initWeek;
 	$(".input-week").val(week);
 	$(".arrow-center-text").text(week);
 	$(".arrow-center").attr("title", ("Current week (" + week + ")"));
 
 	//load timetable after cookie info get
-	if(loadAutomaticly){
-		console.log("load timetable after cookie info get")
-		updateTimetable();
-	}
-	else{
-		console.log('Did not load automaticly, since "loadAutomaticly" was false');
-	}
+	console.log("load timetable after cookie info get")
+	updateTimetable();
+	updateMenuButtonsBasedOnSize();
+	checkIfIDTextFits();
 
 	// Page finished loading, slide up loader screen
 	$(".loader-main").slideToggle();
 
-
 	// TRIGGERS
-
 	// update timetable to fit new window size
 	var update_timetable_to_fit_new_window_size = debounce(function() {
 		console.log("update timetable to fit new window size");
+		checkIfIDTextFits();
+		updateMenuButtonsBasedOnSize();
 		updateTimetable();
 	}, 250);
 	window.addEventListener('resize', update_timetable_to_fit_new_window_size);
@@ -188,7 +264,17 @@ $(window).on("load", function(){
 	$(".arrow-left").on("click", function(){
 		$('.arrow-left').addClass('arrow-loading');
 		$("#schedule").fadeOut(500, function(){
-			$(".input-week").val( parseInt($(".input-week").val()) - 1);
+			if ($("#input-day").is(':checked')){
+				day -= 1;
+				if (day < 1){
+					week -= 1;
+					day = 5;
+				}
+			}
+			else{
+				week -= 1;
+			}
+			$(".input-week").val(week);
 			updateTimetable();
 		});
 	});
@@ -197,7 +283,11 @@ $(window).on("load", function(){
 	$(".arrow-center").on("click", function(){
 		$('.arrow-center').addClass('arrow-loading');
 		$("#schedule").fadeOut(500, function(){
-			$(".input-week").val( new Date().getWeek() - 1);
+			if ($("#input-day").is(':checked')){
+				$('#input-day').prop('checked', false);
+			}
+			week = initWeek;
+			$(".input-week").val(initWeek);
 			updateTimetable();
 		});
 	});
@@ -206,7 +296,17 @@ $(window).on("load", function(){
 	$(".arrow-right").on("click", function(){
 		$('.arrow-right').addClass('arrow-loading');
 		$("#schedule").fadeOut(500, function(){
-			$(".input-week").val( parseInt($(".input-week").val()) + 1);
+			if ($("#input-day").is(':checked')){
+				day += 1;
+				if (day > 5){
+					week += 1;
+					day = 1;
+				}
+			}
+			else{
+				week += 1;
+			}
+			$(".input-week").val(week);
 			updateTimetable();			
 		});
 	});
@@ -237,6 +337,10 @@ $(window).on("load", function(){
 	//update timetable on related button click
 	$('#input-day').on('click', function() {
 		console.log('update timetable on related button click');
+		// if ($("#input-day").is(':checked')){
+		// 	day = initDay;
+		// 	week = initWeek;
+		// }
 		updateTimetable();
 	});
 
@@ -265,6 +369,7 @@ $(window).on("load", function(){
 		hideControls();
 		$(".input-idnumber").blur();
 		$(".savedIDs").fadeOut("fast");
+		checkIfIDTextFits();
 	});
 
 	// remove focus from input when enter is clicked for cleaner ux
@@ -288,27 +393,6 @@ $(window).on("load", function(){
 	// hide controls when save button is clicked
 	$('.savebutton').on("click", function(){
 		hideControls();
-	});
-
-	//create new save item when enter is clicked in input box. 
-
-	//FIX NEEDED: solutions coming soon
-	//-create button (preferred)
-	//-show label
-
-	$('#saveItem').keypress(function(event){
-		var keycode = (event.keyCode ? event.keyCode : event.which);
-		if(keycode == '13'){
-			savedIDs = readCookie("savedIDs");
-
-			savedIDs +=	($("#saveItem").val() + "|");
-
-			$("#saveItem").val("");
-
-			createCookie("savedIDs", savedIDs, 360);
-
-			showSaved();
-		};
 	});
 
 	// close saveIDs if clicked outside of div

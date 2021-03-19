@@ -15,12 +15,20 @@
 		border: 0;
 	}
 
-	.arrow{
+	/* .menuBgBlur{
+		filter: none;
+		top: 100vh !important;
+	} */
+
+	.arrow-center{
 		display: none !important;
 	}
+	.arrow-left {
+		right: calc(80px + 1rem);
+	}
 
-	.input-idnumber{
-		width: calc(100vw - 5.5rem);
+	.input-idnumber {
+		width: calc(calc(100vw - 5.5rem) - 70px);
 	}
 
 	.controls{
@@ -51,11 +59,6 @@
 
 	.control-container span{
 		color: rgba(65,80,176,1);
-	}
-
-	.menuBgBlur{
-		filter: none;
-		top: 100vh !important;
 	}
 
 	.savedIDs{

@@ -4,11 +4,14 @@
 		<!-- GetTime -->
 		<script>
 			// This is where some constants and settings are stored
-			// It is here, because I don't know where JS code should be lmao
-			var loadAutomaticly = {{loadAutomaticly}};
-			var requestURL = "{{requestURL}}";
-			var privateURL = {{privateURL}};
-			var saveIdToCookie = {{saveIdToCookie}};
+			var requestURL = "{{requestURL}}"; // string
+			var privateURL = {{"true" if privateURL else "false"}}; // bool
+			var saveIdToCookie = {{"true" if saveIdToCookie else "false"}}; // bool
+			var mobileRequest = {{"true" if mobileRequest else "false"}}; // bool
+			var initID = "{{initID}}" // string
+			var initDayMode = {{"true" if initDayMode else "false"}} // bool
+			var initWeek = {{initWeek}} // int
+			var initDay = {{initDay}} // int
 		</script>
 		
 		<!-- Set title -->
@@ -31,6 +34,8 @@
 		<meta name="Description" content="Schemaläsare för elever och personal på NTI-Gymnasiet Södertörn">
 		<meta name="Subject" content="NTI Södertörn Schema">
 		<meta name="Language" content="Swedish">
+		<meta property="og:title" content="GetTime">
+		<meta property="og:description" content="Guess who's back 👀">
 
 		<!-- To prevent caching -->
 		<meta http-equiv='cache-control' content='no-cache'> 
@@ -94,16 +99,14 @@
 
 					<!-- Week input -->
 					<div class="control control-container input-week-container">
-						<span>Vecka&nbsp;&nbsp;</span>
+						<span id="button-text-week">Vecka&nbsp;&nbsp;</span>
 						<input onclick="void(0)" class="input-week label" type="number" name="week" placeholder="XX" min="1" max="53"/>
 					</div>
 					
-
-
-					{% if privateURL == "false" %}
+					{% if not privateURL%}
 						<!-- Show saved timetables button -->
 						<div class="control savebutton saveBox control-container" onclick="showSaved()">
-							<span>Sparat&nbsp;&nbsp;</span>
+							<span id="button-text-saved">Sparade länkar&nbsp;&nbsp;</span>
 							<i class="far fa-save control-right"></i>
 						</div>
 					{% endif %}
@@ -116,15 +119,21 @@
 						
 					</script>
 					<a onclick="qrCodeURL()" class="foodLink control control-container">
-						<span>Skapa QR kod&nbsp;&nbsp;</span>
+						<span id="button-text-qr">Skapa QR kod&nbsp;&nbsp;</span>
 						<i class="fas fa-qrcode control-right"></i>
 					</a>
 
 
-					{% if privateURL == "false" %}
+					{% if privateURL %}
+						<!-- Copy savable link -->
+						<a onclick="updateClipboard(window.location.href)" class="foodLink control control-container">
+							<span id="button-text-copy">Kopiera privat länk&nbsp;&nbsp;</span>
+							<i class="fas fa-user-lock control-right"></i>
+						</a>
+					{% else %}
 						<!-- Generate savable link -->
 						<a onclick="window.location.href = getShareableURL()['url'];" class="foodLink control control-container">
-							<span>Skapa privat link&nbsp;&nbsp;</span>
+							<span id="button-text-private">Skapa privat länk&nbsp;&nbsp;</span>
 							<i class="fas fa-user-lock control-right"></i>
 						</a>
 					{% endif %}
@@ -132,31 +141,35 @@
 
 					<!-- Redirect to school lunch link -->
 					<a href="https://skolmaten.se/nti-gymnasiet-sodertorn" class="foodLink control control-container">
-						<span>Mat&nbsp;&nbsp;</span>
-						<i class="fas fa-link control-right"></i>
+						<span id="button-text-food">Mat&nbsp;&nbsp;</span>
+						<i class="fas fa-utensils control-right"></i>
 					</a>
 
 					<!-- Rounded mode toggle switch -->
-					<label class="roundedModeBox mobileOnly toggleBox control-container" for="roundedMode">
-						<span>
-							Rounded&nbsp;&nbsp;	
-						</span>
+					<!-- <label class="roundedModeBox mobileOnly toggleBox control-container" for="roundedMode">
+						<span id="button-text-rounded">Rounded</span>
 						<label class="switch ">
 							<input id="roundedMode" name="roundedMode" type="checkbox">
 							<span class="slider round control control-right"></span>
 						</label>
-					</label>
+					</label> -->
 
 					<!-- Day only mode toggle switch -->
 					<label class="dayModeBox toggleBox control-container" for="input-day">
-						<span>
-							Dag&nbsp;&nbsp;	
-						</span>
+						<span id="button-text-day">Dag&nbsp;&nbsp;</span>
 						<label class="switch ">
 							<input type="checkbox" name="input-day" id="input-day"/>
 							<span class="slider round control control-right"></span>
 						</label>
 					</label>
+
+					{% if privateURL %}
+						<!-- Go back to main page -->
+						<a onclick="window.location.href = requestURL" class="foodLink control control-container">
+							<span id="button-text-gotostart">Startsida&nbsp;&nbsp;</span>
+							<i class="far fa-calendar-alt control-right"></i>
+						</a>
+					{% endif %}
 
 				</div>
 			</div>

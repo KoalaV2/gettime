@@ -3,25 +3,9 @@
 function updateTimetable(){
 
 	idnumber = $(".input-idnumber").val();
-	width = $( window ).width() + 6;
-	height = (window.innerHeight - $(".navbar").height() + 1);
-
-	if ($("#roundedMode").is(':checked')){
-		height -= 25;
-		createCookie("roundedMode", "rounded", 360);
-	}
-	else{
-		createCookie("roundedMode", "straight", 360);
-	}
-
-	week = $(".input-week").val();
-	if (week == ""){
-		console.log("Date hasnt been set yet. Setting now.")
-		week = (new Date()).getWeek() - 1;
-		$(".input-week").val(week);
-		$(".arrow-center-text").text(week);
-		$(".arrow-center").attr("title", ("Current week (" + week + ")"));
-	}
+	checkIfIDTextFits();
+	width = $(window).width() + 6;
+	height = (window.innerHeight - $(".navbar").height() + 1); // Sets height of schedule to the full screen size, minus the navigation bar at the top
 
 	dayOnly = $("#input-day").is(':checked');
 
@@ -42,35 +26,27 @@ function updateTimetable(){
 		$(".savedIDs").css("transform", "none");
 	}
 
-	currentDay = dateDay + dateModifier;
-
+	var dayTEMP;
     if(dayOnly){
     	$("#input-day-label").text("Show week");
-		day = 1;
-		if (currentDay >= 1 && currentDay <= 5){
-			day = currentDay;
-		}
+		dayTEMP = day;
 	}
 	else{
     	$("#input-day-label").text("Show day");
-	    day = 0;
+	    dayTEMP = 0;
 	}
 
 	var SUSSY = idnumber.toLowerCase() == "sus" || idnumber.toLowerCase() == "ඞ";
-
-	
 	if (SUSSY){
 		window.location.href = requestURL + "ඞ";
 	}
 
 	if (idnumber.length > 0){
 		
-		var url = requestURL + 'API/GENERATE_HTML?id=' + idnumber + "&day=" + day + "&week=" + week + "&width=" + width + "&height=" + height + "&privateID=" + (privateURL ? "1" : "0")
+		var url = requestURL + 'API/GENERATE_HTML?id=' + idnumber + "&day=" + dayTEMP + "&week=" + week + "&width=" + width + "&height=" + height + "&privateID=" + (privateURL ? "1" : "0")
 
 		// If the schedule is supposed to be blurred, the new request will return with the blur class allready applied
-		if (document.getElementById('schedule').classList.contains('menuBgBlur')){
-			url += '&classes=menuBgBlur';
-		}
+		if (document.getElementById('schedule').classList.contains('menuBgBlur')){url += '&classes=menuBgBlur';}
 
 		if (!privateURL){
 			console.log("Requesting schedule with this url : " + url)
