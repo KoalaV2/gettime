@@ -183,7 +183,10 @@ class GetTime:
         }
         url1 = 'https://web.skola24.se/api/encrypt/signature'
         payload1 = {"signature":self._id}
-        response1 = requests.post(url1, data=json.dumps(payload1), headers=headers1).text.split('"signature": "')[1].split('"')[0]
+        response1 = requests.post(url1, data=json.dumps(payload1), headers=headers1).text
+        if "Our service is down for maintenance. We apologize for any inconvenience this may cause." in response1:
+            return {"error":"Skola24 ligger nere"}
+        response1 = response1.split('"signature": "')[1].split('"')[0]
         #endregion
         logger.info("Request 1 finished, request 2 started")
         #region Request 2
@@ -265,7 +268,7 @@ class GetTime:
 
         if response[0] < 0:
             logger.info('ERROR!',response)
-            return []
+            return response
 
         if response[1]['data']['lessonInfo'] == None:
             return [] # No lessions this day
@@ -297,6 +300,9 @@ class GetTime:
         toReturn = []
         timeTakenToFetchData = time.time()
         j = self.getData()
+
+        if 'error' in j:
+            return {'html':f"""<p>{j['error']}</p>"""}
 
         if len(j['validation']) > 0:
             return {'html':"None"}
@@ -361,6 +367,9 @@ class GetTime:
         return {'html':"\n".join(toReturn)}
     def GenerateTextSummary(self,mode="normal",lessons=None):
         if lessons == None:lessons = self.fetch()
+        try:
+            if lessons[0] < 0:return str(lessons[1])
+        except:pass
         if mode == "normal":
             return "\n".join([(f"{x.lessonName} börjar kl {x.timeStart[:-3]} och slutar kl {x.timeEnd[:-3]}" + f" i sal {x.classroomName}" if x.classroomName != None else "") for x in lessons])
         if mode == "discord":
@@ -374,6 +383,9 @@ class GetTime:
                 <Dict> SIMPLE_JSON format
         """
         if lessons == None:lessons = self.fetch()
+        try:
+            if lessons[0] < 0:return lessons[1]
+        except:pass
         lessons.sort(key=attrgetter('timeStart'))
         return{
             'id':self._id,
@@ -389,9 +401,9 @@ class GetTime:
                 }for x in lessons
             ]
         }
-    def HasDayEnded(self,lessons=None):
-        if lessons == None:lessons = self.fetch()
-        return CurrentTime()['timeScore'] >= lessons[-1].GetTimeScore(end=True)
+    # def HasDayEnded(self,lessons=None):
+    #     if lessons == None:lessons = self.fetch()
+    #     return CurrentTime()['timeScore'] >= lessons[-1].GetTimeScore(end=True)
     # def GetLessonsLeft(self,lessons=None,a=0):
     #     if lessons == None:
     #         lessons = self.fetch()
@@ -535,11 +547,13 @@ if __name__ == "__main__":
         if 'week' in request.args:
             try:initWeek = int(request.args['week'])
             except:pass
+        initDayMode = mobileRequest # initDayMode is True by default if the request is a mobile request unless...
         if 'day' in request.args:
-            try:initDay = int(request.args['day'])
+            try:
+                initDay = int(request.args['day'])
+                initDayMode = True # ...day is specified...
             except:pass
-        initDayMode = mobileRequest # initDayMode is True by default if the request is a mobile request...
-        if 'daymode' in request.args: # ...unless specified in the URL.
+        if 'daymode' in request.args: # ...or daymode is specified in the URL.
             if str(request.args['daymode']) == "1":
                 initDayMode = True
             elif str(request.args['daymode']) == "0":
@@ -628,6 +642,9 @@ if __name__ == "__main__":
             if int(request.args['a']) == 1:
                 print(1)
                 response1 = myRequest.fetch()
+                try:
+                    if response1[0] < 0:return jsonify(response1[1])
+                except:pass
         
                 temp = response1[len(response1)-1].timeEnd.split(':')
                 lessonTimeScore = (int(temp[0]) * 60) + int(temp[1])

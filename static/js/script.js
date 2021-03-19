@@ -1,3 +1,4 @@
+var urlArguments = {};
 var week;
 var day = initDay;
 
@@ -5,7 +6,33 @@ var day = initDay;
 Date.prototype.getWeek = function(){
 	var onejan = new Date(this.getFullYear(), 0, 1);
 	return Math.ceil((((this - onejan) / 86400000) + onejan.getDay() + 1) / 7);
-} 
+}
+
+var getParams = function (url) {
+	var params = {};
+	var parser = document.createElement('a');
+	parser.href = url;
+	var query = parser.search.substring(1);
+	var vars = query.split('&');
+	for (var i = 0; i < vars.length; i++) {
+		var pair = vars[i].split('=');
+		params[pair[0]] = decodeURIComponent(pair[1]);
+	}
+	return params;
+};
+
+function UpdateEntryInUrlArguments(key,value,update=false){
+	urlArguments[key] = value;
+	if (update){
+		var a = getParams(window.location.href);
+		for (var _key in a){
+			if (_key != ""){
+				urlArguments[_key] = a[_key];
+			}
+		}
+		window.history.pushState("", "", "?"+$.param(urlArguments));
+	}
+}
 
 function inputExceeded(){
 	// Modified code from https://stackoverflow.com/a/4836059
@@ -272,10 +299,13 @@ $(window).on("load", function(){
 				if (day < 1){
 					week -= 1;
 					day = 5;
+					//UpdateEntryInUrlArguments('week',week);
 				}
+				//UpdateEntryInUrlArguments('day',day,true);
 			}
 			else{
 				week -= 1;
+				//UpdateEntryInUrlArguments('week',week,true);
 			}
 			$(".input-week").val(week);
 			updateTimetable();
@@ -304,10 +334,13 @@ $(window).on("load", function(){
 				if (day > 5){
 					week += 1;
 					day = 1;
+					//UpdateEntryInUrlArguments('week',week);
 				}
+				//UpdateEntryInUrlArguments('day',day,true);
 			}
 			else{
 				week += 1;
+				//UpdateEntryInUrlArguments('week',week,true);
 			}
 			$(".input-week").val(week);
 			updateTimetable();			
