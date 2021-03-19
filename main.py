@@ -28,7 +28,7 @@ import logging
 import datetime
 import requests
 import traceback
-from operator import attrgetter, truediv
+from operator import attrgetter
 from flask import Flask
 from flask import Markup
 from flask import jsonify
