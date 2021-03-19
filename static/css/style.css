@@ -92,8 +92,8 @@ a:hover{
 	color: white;
 	margin: 0;
 	box-sizing: border-box;
-	-webkit-transition: all 0.2s ease-in-out;
-	transition: all 0.2s ease-in-out;
+	/* -webkit-transition: all 0.2s ease-in-out;
+	transition: all 0.2s ease-in-out; */
 	-webkit-appearance: none;
 	-moz-appearance: none;
 	appearance: none;
@@ -275,7 +275,8 @@ a:hover{
 .input-week{
 	font-family: 'Roboto', sans-serif;
 	-webkit-appearance: none;
-	border: none;
+	/* border: none; */
+	border: solid white 0.18rem;
 	text-align: right;
 	width: calc(2em + 3px);
 	box-sizing: border-box;
@@ -386,6 +387,14 @@ a:hover{
 	flex-direction: column;
 	z-index: 2000000;
 }
-#myHiddenPage { 
-    display: none;
-} 
+
+.control-right:not(.slider){
+    width: 30px;
+    height: 30px;
+	text-align: right;
+}
+
+#id-input-box{
+	font-size: min(24px,24px);
+	--font-size:24px;
+}
