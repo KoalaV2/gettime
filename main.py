@@ -535,11 +535,13 @@ if __name__ == "__main__":
         if 'week' in request.args:
             try:initWeek = int(request.args['week'])
             except:pass
+        initDayMode = mobileRequest # initDayMode is True by default if the request is a mobile request unless...
         if 'day' in request.args:
-            try:initDay = int(request.args['day'])
+            try:
+                initDay = int(request.args['day'])
+                initDayMode = True # ...day is specified...
             except:pass
-        initDayMode = mobileRequest # initDayMode is True by default if the request is a mobile request...
-        if 'daymode' in request.args: # ...unless specified in the URL.
+        if 'daymode' in request.args: # ...or daymode is specified in the URL.
             if str(request.args['daymode']) == "1":
                 initDayMode = True
             elif str(request.args['daymode']) == "0":
