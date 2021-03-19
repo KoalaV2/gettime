@@ -307,7 +307,7 @@ class GetTime:
         j = self.getData()
 
         if j['status'] < 0:
-            return {'html':"""<div style="all: initial;*{all:unset;}">""" + j['data'] + "</div>"}
+            return {'html':"""<div id="schedule" style="all: initial;*{all:unset;}">""" + j['data'] + "</div>"}
 
         timeTakenToFetchData = time.time()-timeTakenToFetchData
         
