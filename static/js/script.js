@@ -28,43 +28,48 @@ function inputExceeded(){
 	return result;
 }
 
+var lastTextSize = 0;
 function checkIfIDTextFits(){
 
 	var el = $('#id-input-box');
-	if (inputExceeded()){
-		while(inputExceeded()){
-			var oldSize = parseInt(el.css("--font-size"),10);
-			console.log(oldSize);
-			var newSize = oldSize - 1;
-			console.log(newSize);
-			
-			if(newSize < 1){
-				break;
+	if (parseInt(el.css("--font-size"),10) != lastTextSize){
+		if (inputExceeded()){
+			while(inputExceeded()){
+				var oldSize = parseInt(el.css("--font-size"),10);
+				console.log(oldSize);
+				var newSize = oldSize - 1;
+				console.log(newSize);
+				
+				if(newSize < 1){
+					break;
+				}
+	
+				el.css({
+					"font-size":"min( " + newSize + "px,24px)",
+					"--font-size":newSize + "px"
+				});
 			}
-
-			el.css({
-				"font-size":"min( " + newSize + "px,24px)",
-				"--font-size":newSize + "px"
-			});
 		}
-	}
-	else{
-		while(!inputExceeded()){
-			var oldSize = parseInt(el.css("--font-size"),10);
-			console.log(oldSize);
-			var newSize = oldSize + 1;
-			console.log(newSize);
-			
-			if(newSize > 24){
-				break;
+		else{
+			while(!inputExceeded()){
+				var oldSize = parseInt(el.css("--font-size"),10);
+				console.log(oldSize);
+				var newSize = oldSize + 1;
+				console.log(newSize);
+				
+				if(newSize > 24){
+					break;
+				}
+	
+				el.css({
+					"font-size":"min( " + newSize + "px,24px)",
+					"--font-size":newSize + "px"
+				});
 			}
-
-			el.css({
-				"font-size":"min( " + newSize + "px,24px)",
-				"--font-size":newSize + "px"
-			});
 		}
+		lastTextSize = newSize;
 	}
+	
 	
 }
 
