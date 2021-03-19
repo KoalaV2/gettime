@@ -179,13 +179,14 @@ class GetTime:
             "Referer": "https://web.skola24.se/timetable/timetable-viewer/it-gymnasiet.skola24.se/IT-Gymnasiet%20S%C3%B6dert%C3%B6rn/",
             "Accept-Encoding": "gzip,deflate",
             "Accept-Language": "en-US;q=0.5",
-            "Cookie": "ASP.NET_SessionId=5hgt3njwnabrqso3cujrrj2p"
+            "Cookie": "ASP.NET_SessionId=5hgt3njwnabrqso3cujrrj2p",
+            'Content-type': 'text/plain; charset=utf-8'
         }
         url1 = 'https://web.skola24.se/api/encrypt/signature'
         payload1 = {"signature":self._id}
-        response1 = requests.post(url1, data=json.dumps(payload1), headers=headers1).text
+        response1 = requests.post(url1, data=json.dumps(payload1), headers=headers1).text.encode("windows-1252").decode("utf-8")
         if "Our service is down for maintenance. We apologize for any inconvenience this may cause." in response1:
-            return {"error":"Skola24 ligger nere"}
+            return {"status":-1,"message":"Skola24 ligger nere","data":response1}
         response1 = response1.split('"signature": "')[1].split('"')[0]
         #endregion
         logger.info("Request 1 finished, request 2 started")
@@ -205,7 +206,8 @@ class GetTime:
             "Referer": "https://web.skola24.se/timetable/timetable-viewer/it-gymnasiet.skola24.se/IT-Gymnasiet%20S%C3%B6dert%C3%B6rn/",
             "Cookie": "ASP.NET_SessionId=5hgt3njwnabrqso3cujrrj2p",
             "Sec-GPC": "1",
-            "DNT":"1"
+            "DNT":"1",
+            'Content-type': 'text/plain; charset=utf-8'
         }
         url2 = 'https://web.skola24.se/api/get/timetable/render/key'
         payload2 = "null"
@@ -241,16 +243,19 @@ class GetTime:
 
         if response3 == None:
             logger.info("Response3 is None!")
-        return response3
+        return {"status":0,"message":"OK","data":response3}
     def CheckIfIDIsValid(self):
         response = self.getData()
 
-        if response['error'] != None:
+        if response['status'] < 0:
+            return response
+
+        if response['data']['error'] != None:
             # Error -1 : 'error' was not empty
-            return -1,response
-        if len(response['validation']) != 0:
+            return {'status':-2,'message':"data/error was not None","data":response['data']}
+        if len(response['data']['validation']) != 0:
             # Error -2 : 'validation' was not empty
-            return -2,response
+            return {'status':-3,'message':"len of data/validation was not 0","data":response['data']}
         # If nothing seems to be wrong, it returns code 0 and the response
         return 0,response
     def fetch(self):
@@ -266,11 +271,11 @@ class GetTime:
         toReturn = []
         response = self.CheckIfIDIsValid()
 
-        if response[0] < 0:
+        if response['status'] < 0:
             logger.info('ERROR!',response)
             return response
 
-        if response[1]['data']['lessonInfo'] == None:
+        if response['data']['lessonInfo'] == None:
             return [] # No lessions this day
 
         for x in response[1]['data']['lessonInfo']:
@@ -301,11 +306,8 @@ class GetTime:
         timeTakenToFetchData = time.time()
         j = self.getData()
 
-        if 'error' in j:
-            return {'html':f"""<p>{j['error']}</p>"""}
-
-        if len(j['validation']) > 0:
-            return {'html':"None"}
+        if j['status'] < 0:
+            return {'html':"""<div style="all: initial;*{all:unset;}">""" + j['data'] + "</div>"}
 
         timeTakenToFetchData = time.time()-timeTakenToFetchData
         
@@ -383,8 +385,10 @@ class GetTime:
                 <Dict> SIMPLE_JSON format
         """
         if lessons == None:lessons = self.fetch()
+
+        
         try:
-            if lessons[0] < 0:return lessons[1]
+            if lessons['status'] < 0:return lessons
         except:pass
         lessons.sort(key=attrgetter('timeStart'))
         return{
