@@ -28,11 +28,10 @@ function inputExceeded(){
 	return result;
 }
 
-var lastTextSize = 0;
+var lastKnownID = "ඞ";
 function checkIfIDTextFits(){
-
 	var el = $('#id-input-box');
-	if (parseInt(el.css("--font-size"),10) != lastTextSize){
+	if (el.val() != lastKnownID){
 		if (inputExceeded()){
 			while(inputExceeded()){
 				var oldSize = parseInt(el.css("--font-size"),10);
@@ -67,7 +66,7 @@ function checkIfIDTextFits(){
 				});
 			}
 		}
-		lastTextSize = newSize;
+		lastKnownID = el.val();
 	}
 	
 	
