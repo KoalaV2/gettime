@@ -301,11 +301,11 @@ $(window).on("load", function(){
 					day = 5;
 					//UpdateEntryInUrlArguments('week',week);
 				}
-				//UpdateEntryInUrlArguments('day',day,true);
+				//UpdateEntryInUrlArguments('day',day);
 			}
 			else{
 				week -= 1;
-				//UpdateEntryInUrlArguments('week',week,true);
+				//UpdateEntryInUrlArguments('week',week);
 			}
 			$(".input-week").val(week);
 			updateTimetable();
@@ -336,11 +336,11 @@ $(window).on("load", function(){
 					day = 1;
 					//UpdateEntryInUrlArguments('week',week);
 				}
-				//UpdateEntryInUrlArguments('day',day,true);
+				//UpdateEntryInUrlArguments('day',day);
 			}
 			else{
 				week += 1;
-				//UpdateEntryInUrlArguments('week',week,true);
+				//UpdateEntryInUrlArguments('week',week);
 			}
 			$(".input-week").val(week);
 			updateTimetable();			

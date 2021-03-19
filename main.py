@@ -247,10 +247,10 @@ class GetTime:
 
         if response['error'] != None:
             # Error -1 : 'error' was not empty
-            return -1,response['error']
+            return -1,response
         if len(response['validation']) != 0:
             # Error -2 : 'validation' was not empty
-            return -2,response['validation']
+            return -2,response
         # If nothing seems to be wrong, it returns code 0 and the response
         return 0,response
     def fetch(self):
@@ -640,10 +640,10 @@ if __name__ == "__main__":
         try:
             # Mode 1 checks if the last lesson has ended for the day, and if so, it goes to the next day
             if int(request.args['a']) == 1:
-                print(1)
                 response1 = myRequest.fetch()
                 try:
-                    if response1[0] < 0:return jsonify(response1[1])
+                    if response1[0] < 0:
+                        return jsonify({"error":response1})
                 except:pass
         
                 temp = response1[len(response1)-1].timeEnd.split(':')
@@ -652,18 +652,15 @@ if __name__ == "__main__":
                 timeScore = (currentTime['hour'] * 60) + currentTime['minute']
                 
                 if timeScore >= lessonTimeScore:
-                    print(11)
                     myRequest._day += 1
                     if myRequest._day > 5:
                         myRequest._day = 1
                         myRequest._week += 1
                 else:
-                    print(12)
                     # If the last lession hasnt ended yet, it reuses the response1 data, since it should be identical
                     return jsonify(myRequest.GenerateLessonJSON(lessons=response1))
             # Mode 2 always goes to the next day
             if int(request.args['a']) == 2:
-                print(2)
                 myRequest._day += 1
                 if myRequest._day > 5:
                     myRequest._day = 1

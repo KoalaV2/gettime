@@ -81,7 +81,7 @@ function updateTimetable(){
 				// toUrl['week'] = week;
 				// toUrl['day'] = dayTEMP;
 				// if (!privateURL){
-				// 	UpdateEntryInUrlArguments('id',idnumber,true);
+				// 	UpdateEntryInUrlArguments('id',idnumber);
 				// }
 				
 
