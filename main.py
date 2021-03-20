@@ -697,7 +697,10 @@ if __name__ == "__main__":
         try:myRequest._day = int(request.args['day'])
         except:myRequest._day = currentTime['weekday3']
 
-        return myRequest.GenerateTextSummary()
+        if "text" in request.args and request.args['text'] == "1":
+            return myRequest.GenerateTextSummary()
+        return jsonify({'result':myRequest.GenerateTextSummary()})
+        
 
     # Logs
     @app.endpoint('logfile')
