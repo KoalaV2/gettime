@@ -272,7 +272,7 @@ class GetTime:
             # Error -2 : 'validation' was not empty
             return {'status':-6,'message':"len of data/validation was not 0","data":response['data']}
         # If nothing seems to be wrong, it returns code 0 and the response
-        return 0,response
+        return response
     def fetch(self):
         """
             Fetches and formats data into <lesson> objects.
@@ -285,15 +285,14 @@ class GetTime:
         logger = FunctionLogger(functionName='GetTime.fetch')
         toReturn = []
         response = self.CheckIfIDIsValid()
-
         if response['status'] < 0:
             logger.info('ERROR!',response)
             return response
 
-        if response['data']['lessonInfo'] == None:
+        if response['data']['data']['lessonInfo'] == None:
             return [] # No lessions this day
 
-        for x in response[1]['data']['lessonInfo']:
+        for x in response['data']['data']['lessonInfo']:
             currentLesson = Lesson(
                 lessonName=x['texts'][0],
                 teacherName=x['texts'][1],
