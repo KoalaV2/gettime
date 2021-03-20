@@ -165,7 +165,7 @@ class GetTime:
         logger = FunctionLogger(functionName='GetTime.getData')
         if self._id == None:
             logger.info("Returning None because _id was None")
-            return None #If ID is not set then it returns None by default
+            return {"status":-7,"message":"_id was None (No ID specified)","data":None} #If ID is not set then it returns None by default
         
         logger.info("Request 1 started")
         #region Request 1
@@ -179,12 +179,11 @@ class GetTime:
             "Referer": "https://web.skola24.se/timetable/timetable-viewer/it-gymnasiet.skola24.se/IT-Gymnasiet%20S%C3%B6dert%C3%B6rn/",
             "Accept-Encoding": "gzip,deflate",
             "Accept-Language": "en-US;q=0.5",
-            "Cookie": "ASP.NET_SessionId=5hgt3njwnabrqso3cujrrj2p",
-            'Content-type': 'text/plain; charset=utf-8'
+            "Cookie": "ASP.NET_SessionId=5hgt3njwnabrqso3cujrrj2p"
         }
         url1 = 'https://web.skola24.se/api/encrypt/signature'
         payload1 = {"signature":self._id}
-        response1 = requests.post(url1, data=json.dumps(payload1), headers=headers1).text.encode("windows-1252").decode("utf-8")
+        response1 = requests.post(url1, data=json.dumps(payload1), headers=headers1).text#.encode("windows-1252").decode("utf-8") # Makes sure text is decoded as UTF-8
         if "Our service is down for maintenance. We apologize for any inconvenience this may cause." in response1:
             return {"status":-1,"message":"Skola24 ligger nere","data":response1}
         try:
@@ -209,8 +208,7 @@ class GetTime:
             "Referer": "https://web.skola24.se/timetable/timetable-viewer/it-gymnasiet.skola24.se/IT-Gymnasiet%20S%C3%B6dert%C3%B6rn/",
             "Cookie": "ASP.NET_SessionId=5hgt3njwnabrqso3cujrrj2p",
             "Sec-GPC": "1",
-            "DNT":"1",
-            'Content-type': 'text/plain; charset=utf-8'
+            "DNT":"1"
         }
         url2 = 'https://web.skola24.se/api/get/timetable/render/key'
         payload2 = "null"
@@ -318,7 +316,7 @@ class GetTime:
         j = self.getData()
 
         if j['status'] < 0:
-            return {'html':"""<div id="schedule" style="all: initial;*{all:unset;}">""" + f"""<p style="color:white">{j['message']}</p>""" + j['data'] + "</div>"}
+            return {'html':"""<div id="schedule"  style="all: initial;*{all:unset;}">""" + f"""<p style="color:white">{j['message']}</p>""" + j['data'] + "</div>"}
 
         timeTakenToFetchData = time.time()-timeTakenToFetchData
         
@@ -328,7 +326,7 @@ class GetTime:
         toReturn.append(f"""<svg id="schedule" class="{classes}" style="width:{self._resolution[0]}; height:{self._resolution[1]};" viewBox="0 0 {self._resolution[0]} {self._resolution[1]}" shape-rendering="crispEdges">""")
 
         logger.info("Looping through boxList...")
-        for current in j['data']['boxList']:
+        for current in j['data']['data']['boxList']:
             if current['type'].startswith("ClockFrame"):
                 toReturn.append(f"""<rect x="{current['x']}" y="{current['y']}" width="{current['width']}" height="{current['height']}" style="fill:{current['bColor']};"></rect>""")
             else:
@@ -336,7 +334,7 @@ class GetTime:
 
         scriptBuilder = {}
         logger.info("Looping through textList...")
-        for current in j['data']['textList']:
+        for current in j['data']['data']['textList']:
             if current['text'] != "":
                 # If the text is of a Lession type, that means that it sits ontop of a block that the user should be able to click to set a URL.
                 # This only happens if privateID is false, because if the ID is private, it doesnt add the scripts anyways, so why bother generating them in the first place?
@@ -354,7 +352,7 @@ class GetTime:
                 toReturn.append(f"""<text x="{current['x']}" y="{current['y']+12}" style="font-size:{int(current['fontsize'])}px;fill:{current['fColor']};">{current['text']}</text>""")
 
         logger.info("Looping through lineList...")
-        for current in j['data']['lineList']:
+        for current in j['data']['data']['lineList']:
             x1,x2=current['p1x'],current['p2x']
             # Checks delta lenght and skips those smalled then 10px
             if int(x1-x2 if x1>x2 else x2-x1) > 10:
