@@ -28,6 +28,7 @@ import logging
 import datetime
 import requests
 import traceback
+from urllib.parse import quote as urlsafe
 from operator import attrgetter
 from flask import Flask
 from flask import Markup
@@ -103,6 +104,19 @@ def GenerateHiddenURL(key,idInput,mainLink):
     return mainLink + f"?a={a}",a
 #endregion
 
+# testSchool = [
+#     "IT-Gymnasiet Göteborg",
+#     "IT-Gymnasiet Helsingborg",
+#     "IT-Gymnasiet Karlstad",
+#     "IT-Gymnasiet Kristianstad",
+#     "IT-Gymnasiet Skövde",
+#     "IT-Gymnasiet Södertörn",
+#     "IT-Gymnasiet Uppsala",
+#     "IT-Gymnasiet Västerås",
+#     "IT-Gymnasiet Örebro",
+#     "NTI Sundbyberg"
+# ]
+
 #region CLASSES
 class FunctionLogger:
     """
@@ -163,6 +177,7 @@ class GetTime:
                 <JSON> object with the data inside
         """
         logger = FunctionLogger(functionName='GetTime.getData')
+
         if self._id == None:
             logger.info("Returning None because _id was None")
             return {"status":-7,"message":"_id was None (No ID specified)","data":None} #If ID is not set then it returns None by default
@@ -177,19 +192,16 @@ class GetTime:
             "Content-Type": "application/json",
             "Accept": "application/json, text/javascript, */*; q=0.01",
             "Referer": "https://web.skola24.se/timetable/timetable-viewer/it-gymnasiet.skola24.se/IT-Gymnasiet%20S%C3%B6dert%C3%B6rn/",
+            #"Referer": f"https://web.skola24.se/timetable/timetable-viewer/it-gymnasiet.skola24.se/{urlsafe(testSchool[3])}/",
             "Accept-Encoding": "gzip,deflate",
             "Accept-Language": "en-US;q=0.5",
             "Cookie": "ASP.NET_SessionId=5hgt3njwnabrqso3cujrrj2p"
         }
         url1 = 'https://web.skola24.se/api/encrypt/signature'
         payload1 = {"signature":self._id}
-        response1 = requests.post(url1, data=json.dumps(payload1), headers=headers1).text#.encode("windows-1252").decode("utf-8") # Makes sure text is decoded as UTF-8
-        if "Our service is down for maintenance. We apologize for any inconvenience this may cause." in response1:
-            return {"status":-1,"message":"Skola24 ligger nere","data":response1}
-        try:
-            response1 = response1.split('"signature": "')[1].split('"')[0]
-        except:
-            return {"status":-2,"message":"Response 1 Error","data":response1}
+        response1 = requests.post(url1, data=json.dumps(payload1), headers=headers1)
+        try:response1 = json.loads(response1.text)['data']['signature']
+        except:return {"status":-2,"message":"Response 1 Error","data":response1}
         #endregion
         logger.info("Request 1 finished, request 2 started")
         #region Request 2
@@ -206,17 +218,16 @@ class GetTime:
             "Origin": "https://web.skola24.se",
             "Connection": "close",
             "Referer": "https://web.skola24.se/timetable/timetable-viewer/it-gymnasiet.skola24.se/IT-Gymnasiet%20S%C3%B6dert%C3%B6rn/",
+            #"Referer": f"https://web.skola24.se/timetable/timetable-viewer/it-gymnasiet.skola24.se/{urlsafe(testSchool[3])}/",
             "Cookie": "ASP.NET_SessionId=5hgt3njwnabrqso3cujrrj2p",
             "Sec-GPC": "1",
             "DNT":"1"
         }
         url2 = 'https://web.skola24.se/api/get/timetable/render/key'
         payload2 = "null"
-        response2 = requests.post(url2, data=payload2, headers=headers2).text
-        try:
-            response2 = response2.split('"key": "')[1].split('"')[0]
-        except:
-            return {"status":-3,"message":"Response 2 Error","data":response2}
+        response2 = requests.post(url2, data=payload2, headers=headers2)
+        try:response2 = json.loads(response2.text)['data']['key']
+        except:return {"status":-3,"message":"Response 2 Error","data":response2}
         #endregion
         logger.info("Request 2 finished, request 3 started")
         #region Request 3
@@ -242,16 +253,11 @@ class GetTime:
             "privateSelectionMode":"null",
             "customerKey":""
         }
-        response3 = requests.post(url3, data=json.dumps(payload3), headers=headers3).text
-        try:
-            response3 = json.loads(response3)
-        except:
-            return {"status":-4,"message":"Response 3 Error","data":response3}
+        response3 = requests.post(url3, data=json.dumps(payload3), headers=headers3)
+        try:response3 = json.loads(response3.text)
+        except:return {"status":-4,"message":"Response 3 Error","data":response3}
         #endregion
         logger.info("Request 3 finished")
-
-        if response3 == None:
-            logger.info("Response3 is None!")
         return {"status":0,"message":"OK","data":response3}
     def CheckIfIDIsValid(self):
         response = self.getData()
@@ -314,16 +320,17 @@ class GetTime:
         toReturn = []
         timeTakenToFetchData = time.time()
         j = self.getData()
-
+        
         if j['status'] < 0:
-            return {'html':"""<div id="schedule"  style="all: initial;*{all:unset;}">""" + f"""<p style="color:white">{j['message']}</p>""" + j['data'] + "</div>"}
+            return {'html':"""<div id="schedule" style="all: initial;*{all:unset;}">""" + f"""<p style="color:white">{j['message']}</p>""" + j['data'].text + "</div>"}
 
         timeTakenToFetchData = time.time()-timeTakenToFetchData
         
         timeTakenToHandleData = time.time() 
-
-        # Start of the SVG
-        toReturn.append(f"""<svg id="schedule" class="{classes}" style="width:{self._resolution[0]}; height:{self._resolution[1]};" viewBox="0 0 {self._resolution[0]} {self._resolution[1]}" shape-rendering="crispEdges">""")
+         
+        #_id="{EncodeString(configfile['key'],self._id)}" _week="{self._week}" _day="{self._day}" _resolution="{self._resolution}" class="{classes}"
+        # Start of the SVG 
+        toReturn.append(f"""<svg id="schedule" style="width:{self._resolution[0]}; height:{self._resolution[1]};" viewBox="0 0 {self._resolution[0]} {self._resolution[1]}" shape-rendering="crispEdges">""")
 
         logger.info("Looping through boxList...")
         for current in j['data']['data']['boxList']:
