@@ -187,7 +187,10 @@ class GetTime:
         response1 = requests.post(url1, data=json.dumps(payload1), headers=headers1).text.encode("windows-1252").decode("utf-8")
         if "Our service is down for maintenance. We apologize for any inconvenience this may cause." in response1:
             return {"status":-1,"message":"Skola24 ligger nere","data":response1}
-        response1 = response1.split('"signature": "')[1].split('"')[0]
+        try:
+            response1 = response1.split('"signature": "')[1].split('"')[0]
+        except:
+            return {"status":-4,"message":"Response 1 Error","data":response1}
         #endregion
         logger.info("Request 1 finished, request 2 started")
         #region Request 2
@@ -211,7 +214,11 @@ class GetTime:
         }
         url2 = 'https://web.skola24.se/api/get/timetable/render/key'
         payload2 = "null"
-        response2 = requests.post(url2, data=payload2, headers=headers2).text.split('"key": "')[1].split('"')[0]
+        response2 = requests.post(url2, data=payload2, headers=headers2).text
+        try:
+            response2 = response2.split('"key": "')[1].split('"')[0]
+        except:
+            return {"status":-5,"message":"Response 2 Error","data":response2}
         #endregion
         logger.info("Request 2 finished, request 3 started")
         #region Request 3
@@ -237,7 +244,11 @@ class GetTime:
             "privateSelectionMode":"null",
             "customerKey":""
         }
-        response3 = json.loads(requests.post(url3, data=json.dumps(payload3), headers=headers3).text)
+        response3 = requests.post(url3, data=json.dumps(payload3), headers=headers3).text
+        try:
+            response3 = json.loads(response3)
+        except:
+            return {"status":-5,"message":"Response 3 Error","data":response3}
         #endregion
         logger.info("Request 3 finished")
 
