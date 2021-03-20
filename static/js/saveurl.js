@@ -24,7 +24,7 @@ function iWasClicked(theID,className){
     
     // If there is a saved URL it asks you what you want to save in the block
     if (cookieLoad == null){
-        var newURL = prompt("Please enter the url you want to store here", "");
+        var newURL = prompt("Skriv in URL till den här lektionen", "");
         
         // Checks if the user cancelled the input
         if (newURL != null){

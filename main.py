@@ -401,7 +401,6 @@ class GetTime:
         """
         if lessons == None:lessons = self.fetch()
 
-        
         try:
             if lessons['status'] < 0:return lessons
         except:pass
@@ -686,6 +685,19 @@ if __name__ == "__main__":
                     myRequest._week += 1
         except:pass
         return jsonify(myRequest.GenerateLessonJSON())
+    @app.endpoint('API_TERMINAL_SCHEDULE')
+    def API_TERMINAL_SCHEDULE():
+        myRequest = GetTime()
+        currentTime = CurrentTime()
+
+        try:myRequest._id = request.args['id']
+        except:raise
+        try:myRequest._week = int(request.args['week'])
+        except:myRequest._week = currentTime['week2']
+        try:myRequest._day = int(request.args['day'])
+        except:myRequest._day = currentTime['weekday3']
+
+        return myRequest.GenerateTextSummary()
 
     # Logs
     @app.endpoint('logfile')
