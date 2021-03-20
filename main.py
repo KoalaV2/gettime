@@ -190,7 +190,7 @@ class GetTime:
         try:
             response1 = response1.split('"signature": "')[1].split('"')[0]
         except:
-            return {"status":-4,"message":"Response 1 Error","data":response1}
+            return {"status":-2,"message":"Response 1 Error","data":response1}
         #endregion
         logger.info("Request 1 finished, request 2 started")
         #region Request 2
@@ -218,7 +218,7 @@ class GetTime:
         try:
             response2 = response2.split('"key": "')[1].split('"')[0]
         except:
-            return {"status":-5,"message":"Response 2 Error","data":response2}
+            return {"status":-3,"message":"Response 2 Error","data":response2}
         #endregion
         logger.info("Request 2 finished, request 3 started")
         #region Request 3
@@ -248,7 +248,7 @@ class GetTime:
         try:
             response3 = json.loads(response3)
         except:
-            return {"status":-5,"message":"Response 3 Error","data":response3}
+            return {"status":-4,"message":"Response 3 Error","data":response3}
         #endregion
         logger.info("Request 3 finished")
 
@@ -263,10 +263,10 @@ class GetTime:
 
         if response['data']['error'] != None:
             # Error -1 : 'error' was not empty
-            return {'status':-2,'message':"data/error was not None","data":response['data']}
+            return {'status':-5,'message':"data/error was not None","data":response['data']}
         if len(response['data']['validation']) != 0:
             # Error -2 : 'validation' was not empty
-            return {'status':-3,'message':"len of data/validation was not 0","data":response['data']}
+            return {'status':-6,'message':"len of data/validation was not 0","data":response['data']}
         # If nothing seems to be wrong, it returns code 0 and the response
         return 0,response
     def fetch(self):
