@@ -20,14 +20,17 @@
 #endregion
 
 #region IMPORT
+from inspect import trace
 import os
 import time
 import json
 import base64
 import logging
+import hashlib
 import datetime
 import requests
 import traceback
+import threading
 from urllib.parse import quote as urlsafe
 from operator import attrgetter
 from flask import Flask
@@ -102,20 +105,11 @@ def DecodeString(key, enc):
 def GenerateHiddenURL(key,idInput,mainLink):
     a = EncodeString(key,idInput)
     return mainLink + f"?a={a}",a
+def sha256(hash_string):
+    sha_signature = \
+        hashlib.sha256(hash_string.encode()).hexdigest()
+    return sha_signature
 #endregion
-
-# testSchool = [
-#     "IT-Gymnasiet Göteborg",
-#     "IT-Gymnasiet Helsingborg",
-#     "IT-Gymnasiet Karlstad",
-#     "IT-Gymnasiet Kristianstad",
-#     "IT-Gymnasiet Skövde",
-#     "IT-Gymnasiet Södertörn",
-#     "IT-Gymnasiet Uppsala",
-#     "IT-Gymnasiet Västerås",
-#     "IT-Gymnasiet Örebro",
-#     "NTI Sundbyberg"
-# ]
 
 #region CLASSES
 class FunctionLogger:
@@ -156,6 +150,8 @@ class Lesson:
         
         secounds = sum(x * int(t) for x, t in zip([1, 60, 3600], reversed((self.timeStart if start else self.timeEnd).split(":"))))
         return int(secounds / 60)       
+getDataCacheMaxAge = 2*60 # Secounds
+getDataCache = {}
 class GetTime:
     """
         GetTime Request object
@@ -167,7 +163,9 @@ class GetTime:
         self._day = _day
         self._year = _year
         self._resolution = _resolution
-    def getData(self):
+    def getHash(self):
+        return sha256("".join([str(x) for x in (self._id,self._week,self._day,self._year,self._resolution)]))
+    def getData(self, allowCache=True):
         """
             This function makes a request to Skola24's servers and returns the schedule data
             \n
@@ -182,98 +180,103 @@ class GetTime:
             logger.info("Returning None because _id was None")
             return {"status":-7,"message":"_id was None (No ID specified)","data":None} #If ID is not set then it returns None by default
         
-        logger.info("Request 1 started")
-        #region Request 1
-        headers1 = {
-            "Connection": "keep-alive",
-            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:85.0) Gecko/20100101 Firefox/85.0",
-            "X-Scope": "8a22163c-8662-4535-9050-bc5e1923df48",
-            "X-Requested-With": "XMLHttpRequest",
-            "Content-Type": "application/json",
-            "Accept": "application/json, text/javascript, */*; q=0.01",
-            "Referer": "https://web.skola24.se/timetable/timetable-viewer/it-gymnasiet.skola24.se/IT-Gymnasiet%20S%C3%B6dert%C3%B6rn/",
-            #"Referer": f"https://web.skola24.se/timetable/timetable-viewer/it-gymnasiet.skola24.se/{urlsafe(testSchool[3])}/",
-            "Accept-Encoding": "gzip,deflate",
-            "Accept-Language": "en-US;q=0.5",
-            "Cookie": "ASP.NET_SessionId=5hgt3njwnabrqso3cujrrj2p"
-        }
-        url1 = 'https://web.skola24.se/api/encrypt/signature'
-        payload1 = {"signature":self._id}
-        response1 = requests.post(url1, data=json.dumps(payload1), headers=headers1)
-        try:response1 = json.loads(response1.text)['data']['signature']
-        except:return {"status":-2,"message":"Response 1 Error","data":response1}
-        #endregion
-        logger.info("Request 1 finished, request 2 started")
-        #region Request 2
-        headers2 = {
-            "Host": "web.skola24.se",
-            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:85.0) Gecko/20100101 Firefox/85.0",
-            "Accept": "application/json, text/javascript, */*; q=0.01",
-            "Accept-Language": "en-US,en;q=0.5",
-            "Accept-Encoding": "gzip, deflate",
-            "Content-Type": "application/json",
-            "X-Scope": "8a22163c-8662-4535-9050-bc5e1923df48",
-            "X-Requested-With": "XMLHttpRequest",
-            "Content-Length": "4",
-            "Origin": "https://web.skola24.se",
-            "Connection": "close",
-            "Referer": "https://web.skola24.se/timetable/timetable-viewer/it-gymnasiet.skola24.se/IT-Gymnasiet%20S%C3%B6dert%C3%B6rn/",
-            #"Referer": f"https://web.skola24.se/timetable/timetable-viewer/it-gymnasiet.skola24.se/{urlsafe(testSchool[3])}/",
-            "Cookie": "ASP.NET_SessionId=5hgt3njwnabrqso3cujrrj2p",
-            "Sec-GPC": "1",
-            "DNT":"1"
-        }
-        url2 = 'https://web.skola24.se/api/get/timetable/render/key'
-        payload2 = "null"
-        response2 = requests.post(url2, data=payload2, headers=headers2)
-        try:response2 = json.loads(response2.text)['data']['key']
-        except:return {"status":-3,"message":"Response 2 Error","data":response2}
-        #endregion
-        logger.info("Request 2 finished, request 3 started")
-        #region Request 3
-        headers3 = headers2
-        url3 = 'https://web.skola24.se/api/render/timetable'
-        payload3 = {
-            "renderKey":response2,
-            "host":"it-gymnasiet.skola24.se",
-            "unitGuid":"ZTEyNTdlZjItZDc3OC1mZWJkLThiYmEtOGYyZDA4NGU1YjI2",
-            "startDate":"null",
-            "endDate":"null",
-            "scheduleDay":int(self._day),
-            "blackAndWhite":"false",
-            "width":int(self._resolution[0]),
-            "height":int(self._resolution[1]),
-            "selectionType":4,
-            "selection":response1,
-            "showHeader":"false",
-            "periodText":"",
-            "week":int(self._week),
-            "year":int(self._year),
-            "privateFreeTextMode":"false",
-            "privateSelectionMode":"null",
-            "customerKey":""
-        }
-        response3 = requests.post(url3, data=json.dumps(payload3), headers=headers3)
-        try:response3 = json.loads(response3.text)
-        except:return {"status":-4,"message":"Response 3 Error","data":response3}
-        #endregion
-        logger.info("Request 3 finished")
-        return {"status":0,"message":"OK","data":response3}
-    def CheckIfIDIsValid(self):
-        response = self.getData()
+        myHash = self.getHash()
+        if allowCache and myHash in getDataCache and time.time() - getDataCache[myHash]['age'] < getDataCacheMaxAge:
+            logger.info("Using cache!")
+            toReturn = getDataCache[myHash]['data']
+        else:
+            #region Request 1
+            logger.info("Request 1")
+            headers1 = {
+                "Connection": "keep-alive",
+                "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:85.0) Gecko/20100101 Firefox/85.0",
+                "X-Scope": "8a22163c-8662-4535-9050-bc5e1923df48",
+                "X-Requested-With": "XMLHttpRequest",
+                "Content-Type": "application/json",
+                "Accept": "application/json, text/javascript, */*; q=0.01",
+                "Referer": "https://web.skola24.se/timetable/timetable-viewer/it-gymnasiet.skola24.se/IT-Gymnasiet%20S%C3%B6dert%C3%B6rn/",
+                #"Referer": f"https://web.skola24.se/timetable/timetable-viewer/it-gymnasiet.skola24.se/{urlsafe(testSchool[3])}/",
+                "Accept-Encoding": "gzip,deflate",
+                "Accept-Language": "en-US;q=0.5",
+                "Cookie": "ASP.NET_SessionId=5hgt3njwnabrqso3cujrrj2p"
+            }
+            url1 = 'https://web.skola24.se/api/encrypt/signature'
+            payload1 = {"signature":self._id}
+            response1 = requests.post(url1, data=json.dumps(payload1), headers=headers1)
+            try:response1 = json.loads(response1.text)['data']['signature']
+            except:return {"status":-2,"message":"Response 1 Error","data":response1}
+            #endregion
+            #region Request 2
+            logger.info("Request 2")
+            headers2 = {
+                "Host": "web.skola24.se",
+                "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:85.0) Gecko/20100101 Firefox/85.0",
+                "Accept": "application/json, text/javascript, */*; q=0.01",
+                "Accept-Language": "en-US,en;q=0.5",
+                "Accept-Encoding": "gzip, deflate",
+                "Content-Type": "application/json",
+                "X-Scope": "8a22163c-8662-4535-9050-bc5e1923df48",
+                "X-Requested-With": "XMLHttpRequest",
+                "Content-Length": "4",
+                "Origin": "https://web.skola24.se",
+                "Connection": "close",
+                "Referer": "https://web.skola24.se/timetable/timetable-viewer/it-gymnasiet.skola24.se/IT-Gymnasiet%20S%C3%B6dert%C3%B6rn/",
+                #"Referer": f"https://web.skola24.se/timetable/timetable-viewer/it-gymnasiet.skola24.se/{urlsafe(testSchool[3])}/",
+                "Cookie": "ASP.NET_SessionId=5hgt3njwnabrqso3cujrrj2p",
+                "Sec-GPC": "1",
+                "DNT":"1"
+            }
+            url2 = 'https://web.skola24.se/api/get/timetable/render/key'
+            payload2 = "null"
+            response2 = requests.post(url2, data=payload2, headers=headers2)
+            try:response2 = json.loads(response2.text)['data']['key']
+            except:return {"status":-3,"message":"Response 2 Error","data":response2}
+            #endregion
+            #region Request 3
+            logger.info("Request 3")
+            headers3 = headers2
+            url3 = 'https://web.skola24.se/api/render/timetable'
+            payload3 = {
+                "renderKey":response2,
+                "host":"it-gymnasiet.skola24.se",
+                "unitGuid":"ZTEyNTdlZjItZDc3OC1mZWJkLThiYmEtOGYyZDA4NGU1YjI2",
+                "startDate":"null",
+                "endDate":"null",
+                "scheduleDay":int(self._day),
+                "blackAndWhite":"false",
+                "width":int(self._resolution[0]),
+                "height":int(self._resolution[1]),
+                "selectionType":4,
+                "selection":response1,
+                "showHeader":"false",
+                "periodText":"",
+                "week":int(self._week),
+                "year":int(self._year),
+                "privateFreeTextMode":"false",
+                "privateSelectionMode":"null",
+                "customerKey":""
+            }
+            response3 = requests.post(url3, data=json.dumps(payload3), headers=headers3)
+            try:response3 = json.loads(response3.text)
+            except:return {"status":-4,"message":"Response 3 Error","data":response3}
+            #endregion
 
-        if response['status'] < 0:
-            return response
-
-        if response['data']['error'] != None:
-            # Error -1 : 'error' was not empty
-            return {'status':-5,'message':"data/error was not None","data":response['data']}
-        if len(response['data']['validation']) != 0:
-            # Error -2 : 'validation' was not empty
-            return {'status':-6,'message':"len of data/validation was not 0","data":response['data']}
-        # If nothing seems to be wrong, it returns code 0 and the response
-        return response
-    def fetch(self):
+            logger.info("Request 3 is finished. Will now check for errors")
+            
+            toReturn = {"status":0,"message":"OK","data":response3}
+            #Error Checking
+            try:
+                if response3['error'] != None:
+                    toReturn = {'status':-5,'message':"error was not None","data":response3}
+                if len(response3['validation']) != 0:
+                    toReturn = {'status':-6,'message':"validation was not empty : " + ','.join([x['message'] for x in response3['validation']]),"data":response3,"validation":response3['validation']}
+            except:
+                toReturn = {'status':-8,'message':f"An error occured when trying to check for other errors! Here is the traceback : {traceback.format_exc()}","data":response3}
+            
+            if allowCache:
+                getDataCache[myHash] = {'age':time.time(),'data':toReturn}
+        return toReturn
+    def fetch(self, allowCache=True):
         """
             Fetches and formats data into <lesson> objects.
             \n
@@ -284,7 +287,7 @@ class GetTime:
         """
         logger = FunctionLogger(functionName='GetTime.fetch')
         toReturn = []
-        response = self.CheckIfIDIsValid()
+        response = self.getData(allowCache=allowCache)
         if response['status'] < 0:
             logger.info('ERROR!',response)
             return response
@@ -305,7 +308,7 @@ class GetTime:
             toReturn.append(currentLesson)
         toReturn.sort(key=attrgetter('timeStart'))
         return toReturn
-    def handleHTML(self,classes="", privateID=False):
+    def handleHTML(self,classes="", privateID=False, allowCache=True):
         """
             Fetches and converts the <JSON> data into a SVG (for sending to HTML)
             \n
@@ -318,7 +321,7 @@ class GetTime:
 
         toReturn = []
         timeTakenToFetchData = time.time()
-        j = self.getData()
+        j = self.getData(allowCache=allowCache)
         
         if j['status'] < 0:
             return {'html':"""<div id="schedule" style="all: initial;*{all:unset;}">""" + f"""<p style="color:white">{j['message']}</p>""" + j['data'].text + "</div>"}
@@ -382,8 +385,8 @@ class GetTime:
         toReturn.append("</svg>")
 
         return {'html':"\n".join(toReturn)}
-    def GenerateTextSummary(self,mode="normal",lessons=None):
-        if lessons == None:lessons = self.fetch()
+    def GenerateTextSummary(self,mode="normal",lessons=None, allowCache=True):
+        if lessons == None:lessons = self.fetch(allowCache=allowCache)
         try:
             if lessons[0] < 0:return str(lessons[1])
         except:pass
@@ -391,7 +394,7 @@ class GetTime:
             return "\n".join([(f"{x.lessonName} börjar kl {x.timeStart[:-3]} och slutar kl {x.timeEnd[:-3]}" + f" i sal {x.classroomName}" if x.classroomName != None else "") for x in lessons])
         if mode == "discord":
             return "\n".join([(f"**`{x.lessonName}`** börjar kl {x.timeStart[:-3]} och slutar kl {x.timeEnd[:-3]}" + f" i sal {x.classroomName}" if x.classroomName != None else "") for x in lessons])
-    def GenerateLessonJSON(self,lessons=None):
+    def GenerateLessonJSON(self,lessons=None, allowCache=True):
         """
             Generates a dict used to create the SIMPLE_JSON API.
             Takes:
@@ -399,7 +402,7 @@ class GetTime:
             Returns:
                 <Dict> SIMPLE_JSON format
         """
-        if lessons == None:lessons = self.fetch()
+        if lessons == None:lessons = self.fetch(allowCache=allowCache)
 
         try:
             if lessons['status'] < 0:return lessons
@@ -419,43 +422,12 @@ class GetTime:
                 }for x in lessons
             ]
         }
-    # def HasDayEnded(self,lessons=None):
-    #     if lessons == None:lessons = self.fetch()
-    #     return CurrentTime()['timeScore'] >= lessons[-1].GetTimeScore(end=True)
-    # def GetLessonsLeft(self,lessons=None,a=0):
-    #     if lessons == None:
-    #         lessons = self.fetch()
-    #     timeScore = int(f"{self._year}{self._week}{self._day}{CurrentTime()['timeScore']}")
-    #     try:
-    #         # Mode 1 checks if the last lesson has ended for the day, and if so, it goes to the next day
-    #         if a == 1:
-    #             if self.HasDayEnded(lessons=lessons):
-    #                 self._day += 1
-    #                 if self._day > 5:
-    #                     self._day = 1
-    #                     self._week += 1
-    #             else:
-    #                 # If the last lession hasnt ended yet, it reuses the lessons data, since it should be identical
-    #                 lessons = self.GenerateLessonJSON(lessons=lessons)
-    #         # Mode 2 always goes to the next day
-    #         if a == 2:
-    #             self._day += 1
-    #             if self._day > 5:
-    #                 self._day = 1
-    #                 self._week += 1
-    #     except:pass
-    #     lessons = self.GenerateLessonJSON()
-    #     toReturn = []
-    #     for currentLesson in lessons['lessons']:
-    #         a = Lesson(insertDict=currentLesson,dateScore=(self._year,self._week,self._day))
-    #         b = a.GetTimeScore()
-    #         if b > timeScore:
-    #             toReturn.append(a)
 #endregion
 
 if __name__ == "__main__":
+
     #region INIT
-    logging.basicConfig(level=logging.DEBUG, format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s") # Sets default logging settings (before cfg file has been loaded in)
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s") # Sets default logging settings (before cfg file has been loaded in)
 
     os.chdir(os.path.dirname(os.path.realpath(__file__))) # Set working dir to path of main.py
 
@@ -736,7 +708,27 @@ if __name__ == "__main__":
         logger.info(f"routeToIndex : Request landed in the redirects, sending to mainLink ({configfile['mainLink']})")
         return redirect(configfile['mainLink'])
     #endregion
+    
+    def background():
+        logger = FunctionLogger('cacheClearer')
+        while 1:
+            try:
+                toDelete = []
+                for x in getDataCache:
+                    if time.time() - getDataCache[x]['age'] > getDataCacheMaxAge:
+                        toDelete.append(x)
+                for x in toDelete:
+                    logger.info(f"Deleting {x} from cache")
+                    del getDataCache[x]
+                time.sleep(1)
+            except RuntimeError as e:
+                logger.info(e)
+                pass
+            except:
+                logger.exception(traceback.format_exc())
+                pass
 
+    threading.Thread(target=background, args=(), daemon=True).start()
     app.run(debug=configfile['DEBUGMODE'], host=configfile['ip'], port=configfile['port']) # Run website
 else:
     logging.info("main.py was imported")
