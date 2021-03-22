@@ -117,8 +117,6 @@ async def on_message(message):
         #         description=a
         #     );await message.channel.send(embed=embed)
 
-            
-
         if userMessage[1].lower() in ('reg','notify'):
             idToCheck = GetIdFromUser()
             if idsToCheck == None:
@@ -129,7 +127,7 @@ async def on_message(message):
             except:remindThisManyMinutes = 5 # Default value is 5 minutes
             
             #Tries to fetch the ID to see if its valid
-            checkIDisValid = GetTime(_id=idToCheck).getData()
+            checkIDisValid = GetTime(_id=idToCheck).getData(allowCache=False)
             if checkIDisValid['status'] < 0:
                 if checkIDisValid['status'] == -6:
                     await message.channel.send(f"> Något gick fel! ({checkIDisValid['validation'][0]['message']})")
@@ -169,7 +167,6 @@ async def on_message(message):
                 f"Här är ditt schema för {currentTimeTemp['dayNames'][myRequest._day-1].capitalize()}, v.{myRequest._week}!\n",
                 myRequest.GenerateTextSummary(mode="discord") + f"\n{urlEmbed('Öppna schemat online',getTimeURL)}"
             ).send(message.channel)
-
         if userMessage[1].lower() in ('next'):
             idToCheck = GetIdFromUser()
             if idsToCheck == None:
@@ -179,7 +176,7 @@ async def on_message(message):
                 a = GetTime(
                     _id=idToCheck,
                     _day=currentTimeTemp['weekday']
-                ).fetch()
+                ).fetch(allowCache=False)
 
                 timeScore = (currentTimeTemp['hour'] * 60) + currentTimeTemp['minute']
                 for x in a:
