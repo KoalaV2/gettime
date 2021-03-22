@@ -258,21 +258,17 @@ class GetTime:
         except:return {"status":-4,"message":"Response 3 Error","data":response3}
         #endregion
         logger.info("Request 3 finished")
+
+        #Error Checking
+        try:
+            if response3['error'] != None:
+                return {'status':-5,'message':"error was not None","data":response3}
+            if len(response3['validation']) != 0:
+                return {'status':-6,'message':"validation was not empty : " + ','.join([x['message'] for x in response3['validation']]),"data":response3,"validation":response3['validation']}
+        except:
+            return {'status':-8,'message':f"An error occured when trying to check for other errors! Here is the traceback : {traceback.format_exc()}","data":response3}
+
         return {"status":0,"message":"OK","data":response3}
-    def CheckIfIDIsValid(self):
-        response = self.getData()
-
-        if response['status'] < 0:
-            return response
-
-        if response['data']['error'] != None:
-            # Error -1 : 'error' was not empty
-            return {'status':-5,'message':"data/error was not None","data":response['data']}
-        if len(response['data']['validation']) != 0:
-            # Error -2 : 'validation' was not empty
-            return {'status':-6,'message':"len of data/validation was not 0","data":response['data']}
-        # If nothing seems to be wrong, it returns code 0 and the response
-        return response
     def fetch(self):
         """
             Fetches and formats data into <lesson> objects.
@@ -284,7 +280,7 @@ class GetTime:
         """
         logger = FunctionLogger(functionName='GetTime.fetch')
         toReturn = []
-        response = self.CheckIfIDIsValid()
+        response = self.getData()
         if response['status'] < 0:
             logger.info('ERROR!',response)
             return response

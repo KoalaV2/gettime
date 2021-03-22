@@ -5,6 +5,7 @@ import json
 import logging
 import discord
 import traceback
+from requests import get
 from subprocess import run
 from main import GetTime
 from main import SetLogging
@@ -23,7 +24,10 @@ with open("settings.json") as f:
 
 logFileName = "discord_logfile.log"
 logFileLocation = configfile['logFileLocation']
-SetLogging(path=logFileLocation,filename=logFileName)
+if configfile['logToFile']:
+    SetLogging(path=logFileLocation,filename=logFileName)
+else:
+    logging.basicConfig(level=logging.DEBUG, format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s")
 
 # Creates JSON file if it doesnt exist
 if not os.path.isfile("users.json"):
@@ -35,17 +39,28 @@ with open("users.json") as f:
     except:idsToCheck = {}
 
 client = discord.Client()
-messageColor = discord.Colour.from_rgb(138,194,241)
 #endregion
 
-def TinyUrlShortener(urlInput):
-    try:
-        a = run(f'curl "http://tinyurl.com/api-create.php?{urlencode({"url":urlInput})}"',capture_output=1).stdout.decode('utf-8')
-        if a == "Error":
-            return urlInput
-        return a
-    except:
-        return urlInput
+discordColor = discord.Colour.from_rgb(configfile['discordRGB'][0],configfile['discordRGB'][1],configfile['discordRGB'][2])
+
+
+def urlEmbed(text,url):
+    return f"[{text}]({url})"
+class EmbedMessage:
+    def __init__(self,title="",description=""):
+        self.title = title
+        self.description = description
+    def send(self,sendTo):
+        return sendTo.send(
+            embed=discord.Embed(
+                color=discordColor,
+                title=self.title,
+                description=self.description
+            )
+        )
+
+def TinyUrlShortener(url,alias=""):
+    return get(f"https://www.tinyurl.com/api-create.php?{urlencode({'url':url,'alias':alias})}").text
 
 def updateUserFile():
     global idsToCheck
@@ -55,7 +70,7 @@ def updateUserFile():
 @client.event
 async def on_message(message):   
     if message.author == client.user:return # Keeps bot from responding to itself
-    if message.content.lower().startswith("!gt"):
+    if message.content.lower().startswith(configfile['discordPrefix']):
         userMessage = message.content.split(' ')
         
         def GetIdFromUser(messageIndex=2):
@@ -67,22 +82,59 @@ async def on_message(message):
                 else:
                     return None
 
+        
+
+
+        # if userMessage[1].lower() in ('help','?'):
+        #     c = (
+
+        #     )
+
+
+        #     commandsList = (
+        #         {
+        #             "commandName":"help",
+        #             "commandBrief":"Visar detta hjälpmeddelande.",
+        #             "commandExample":None
+        #         },
+        #         {
+        #             "commandName":"schema/today/me",
+        #             "commandBrief":"Visar ditt schema.",
+        #             "commandExample":"19_tek_a"
+        #         }
+        #     )
+
+        #     a = ""
+        #     for x in commandsList:
+        #         a += f"`{configfile['discordPrefix']} {x['commandName']}`\n{x['commandBrief']}\n\n"
+        #         if x['commandExample'] != None:
+        #             a += f"Exempel: `{configfile['discordPrefix']} {x['commandName']} {x['commandExample']}`\n"
+                
+
+        #     embed = discord.Embed(
+        #         color=messageColor,
+        #         title="GetTime Hjälp",
+        #         description=a
+        #     );await message.channel.send(embed=embed)
+
+            
+
         if userMessage[1].lower() in ('reg','notify'):
             idToCheck = GetIdFromUser()
             if idsToCheck == None:
-                await message.channel.send(f"> Fel användning av `!gt {userMessage[1].lower()}` (Inget ID)")
+                await message.channel.send(f"> Fel användning av `{configfile['discordPrefix']} {userMessage[1].lower()}` (Inget ID)")
                 return
 
             try:remindThisManyMinutes = int(userMessage[3])
             except:remindThisManyMinutes = 5 # Default value is 5 minutes
             
             #Tries to fetch the ID to see if its valid
-            checkIDisValid = GetTime(_id=idToCheck).getData()['validation']
-            if len(checkIDisValid) != 0:
-                try:
-                    await message.channel.send(f"> Något gick fel! ({checkIDisValid[0]['message']})")
-                except:
-                    await message.channel.send("> Något gick fel!")
+            checkIDisValid = GetTime(_id=idToCheck).getData()
+            if checkIDisValid['status'] < 0:
+                if checkIDisValid['status'] == -6:
+                    await message.channel.send(f"> Något gick fel! ({checkIDisValid['validation'][0]['message']})")
+                else:
+                    await message.channel.send(f"> Något gick fel! ({checkIDisValid['message']})")
             else:
                 if str(message.author.id) in idsToCheck:
                     idsToCheck[str(message.author.id)] = {
@@ -91,7 +143,7 @@ async def on_message(message):
                         'minutes':remindThisManyMinutes
                     }
                     updateUserFile()
-                    await message.channel.send("> Inställningar sparade!")
+                    await message.channel.send(f"> Dina nya inställningar är sparade! {checkIDisValid}")
                 else:
                     idsToCheck[str(message.author.id)] = {"id":idToCheck,"discordID":message.author.id,"minutes":remindThisManyMinutes}
                     updateUserFile()
@@ -104,45 +156,40 @@ async def on_message(message):
             else:
                 await message.channel.send("> Du har inte registrerat dig!")
         if userMessage[1].lower() in ('schema','today','me'):
-            try:
-                userID = userMessage[2]
-            except:
-                if str(message.author.id) in idsToCheck:
-                    userID = idsToCheck[str(message.author.id)]['id']
-                else:
-                    await message.channel.send(f"> Fel användning av `!gt {userMessage[1].lower()}` (Inget ID)")
-                    return
+            userID = GetIdFromUser()
+            if userID == None:
+                await message.channel.send(f"> Fel användning av `{configfile['discordPrefix']} {userMessage[1].lower()}` (Inget ID)")
             
             currentTimeTemp = CurrentTime()
             myRequest = GetTime(_id=userID,_day=currentTimeTemp['weekday3'],_week=currentTimeTemp['week2'])
 
             getTimeURL = GenerateHiddenURL(configfile['key'],myRequest._id,configfile['mainLink'])[0] #TinyUrlShortener(GenerateHiddenURL(configfile['key'],myRequest._id,configfile['mainLink'])) 
             
-            embed = discord.Embed(
-                color=messageColor,
-                title=f"Här är ditt schema för {currentTimeTemp['dayNames'][myRequest._day-1].capitalize()}, v.{myRequest._week}!\n",
-                description=myRequest.GenerateTextSummary(mode="discord") + f"\n[Öppna schemat online]({getTimeURL})"
-            );await message.channel.send(embed=embed)
-        # if userMessage[1].lower() in ('next'):
-        #     idToCheck = GetIdFromUser()
-        #     if idsToCheck == None:
-        #         await message.channel.send(f"> Fel användning av `!gt {userMessage[1].lower()}` (Inget ID)")
-        #         return
-                    
-        #     a = json.loads(run(f'curl "https://gettime.ga/API/SIMPLE_JSON?{urlencode({"a":1,"id":idToCheck})}"',capture_output=1).stdout.decode('utf-8'))
-            
-        #     currentTimeTemp = CurrentTime()
+            await EmbedMessage(
+                f"Här är ditt schema för {currentTimeTemp['dayNames'][myRequest._day-1].capitalize()}, v.{myRequest._week}!\n",
+                myRequest.GenerateTextSummary(mode="discord") + f"\n{urlEmbed('Öppna schemat online',getTimeURL)}"
+            ).send(message.channel)
 
-        #     timeScore = (currentTimeTemp['hour'] * 60) + currentTimeTemp['minute']
+        if userMessage[1].lower() in ('next'):
+            idToCheck = GetIdFromUser()
+            if idsToCheck == None:
+                await message.channel.send(f"> Fel användning av `{configfile['discordPrefix']} {userMessage[1].lower()}` (Inget ID)")
+            else:
+                currentTimeTemp = CurrentTime()
+                a = GetTime(
+                    _id=idToCheck,
+                    _day=currentTimeTemp['weekday']
+                ).fetch()
 
-        #     for x in a['lessons']:
-        #         temp = x['timeStart'].split(':')
-        #         lessonTimeScore = (int(temp[0]) * 60) + int(temp[1])
-
-        #         if lessonTimeScore > timeScore:
-        #             print(f"Nästa lektion är '{x['lessonName']}' som börjar kl {x['timeStart']} {' i ' + x['classroomName'] if x['classroomName'] != '' else ''}!")
-
-
+                timeScore = (currentTimeTemp['hour'] * 60) + currentTimeTemp['minute']
+                for x in a:
+                    lessonTimeScore = x.GetTimeScore(start=True)
+                    minutesBeforeStart = lessonTimeScore-timeScore
+                    if minutesBeforeStart > 0:
+                        await EmbedMessage(
+                            title=f"Nästa lektion är '{x.lessonName}' som börjar kl {x.timeStart} {' i ' + x.classroomName if x.classroomName != None else ''}!"
+                        ).send(message.channel)
+                        return
 
 @client.event
 async def on_ready():
@@ -200,16 +247,15 @@ async def lessonStart():
                     cachedResponses[str(currentID['discordID'])] = {'data':a,'age':time.time()}
 
                 for x in a:
-                    temp = x.timeStart.split(':')
-                    lessonTimeScore = (int(temp[0]) * 60) + int(temp[1])
+                    lessonTimeScore = x.GetTimeScore(start=True)
                     minutesBeforeStart = lessonTimeScore-timeScore
                     if minutesBeforeStart == currentID['minutes']:
                         userDM = await client.fetch_user(user_id=int(currentID['discordID']))
-
-                        embed = discord.Embed(
-                            color=messageColor,
+                        await EmbedMessage(
                             title=f"'{x.lessonName}' börjar om {minutesBeforeStart} {'minut' if minutesBeforeStart == 1 else 'minuter'}{' i ' + x.classroomName if x.classroomName != '' else ''}!"
-                        );await userDM.send(embed=embed)
+                        ).send(userDM)
+                    else:
+                        logging.error(f"minutesBeforeStart was {minutesBeforeStart}, not {currentID['minutes']}")
 
             logging.error('Waiting for minute to change...')
     except:
