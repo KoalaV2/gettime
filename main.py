@@ -111,6 +111,19 @@ def sha256(hash_string):
     sha_signature = \
         hashlib.sha256(hash_string.encode()).hexdigest()
     return sha_signature
+def arg01_to_bool(args,argName):
+    """
+        This function takes {request.args} and check if the argName is 1 or 2.\n
+        If argName is "1", it returns True.\n
+        If argname is "0", it returns False.\n
+        And if it is anything else, or if it does not exist, it returns False aswell.
+    """
+    if str(argName) in args:
+        if str(args[str(argName)]) == "1":
+            return True
+        if str(args[str(argName)]) == "0":
+            return False
+    return False
 #endregion
 
 #region CLASSES
@@ -486,14 +499,6 @@ if __name__ == "__main__":
         Rule('/script/API_GENERATE_HTML', endpoint='API_GENERATE_HTML'),
         Rule('/api/json', endpoint='API_JSON')
     )]
-
-    def arg01_to_bool(args,argName):
-        if str(argName) in args:
-            if str(args[str(argName)]) == "1":
-                return True
-            if str(args[str(argName)]) == "0":
-                return False
-        return False
 
     # Error handling and cache settings
     @app.after_request # Script to help prevent caching
