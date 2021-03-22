@@ -141,7 +141,7 @@ async def on_message(message):
                         'minutes':remindThisManyMinutes
                     }
                     updateUserFile()
-                    await message.channel.send(f"> Dina nya inställningar är sparade! {checkIDisValid}")
+                    await EmbedMessage(title="Dina nya inställningar är sparade!").send(message.channel)
                 else:
                     idsToCheck[str(message.author.id)] = {"id":idToCheck,"discordID":message.author.id,"minutes":remindThisManyMinutes}
                     updateUserFile()
@@ -165,7 +165,7 @@ async def on_message(message):
             
             await EmbedMessage(
                 f"Här är ditt schema för {currentTimeTemp['dayNames'][myRequest._day-1].capitalize()}, v.{myRequest._week}!\n",
-                myRequest.GenerateTextSummary(mode="discord") + f"\n{urlEmbed('Öppna schemat online',getTimeURL)}"
+                myRequest.GenerateTextSummary(mode="discord") + f"\n{urlEmbed('Öppna schemat online',getTimeURL, allowCache=False)}"
             ).send(message.channel)
         if userMessage[1].lower() in ('next'):
             idToCheck = GetIdFromUser()
@@ -184,7 +184,7 @@ async def on_message(message):
                     minutesBeforeStart = lessonTimeScore-timeScore
                     if minutesBeforeStart > 0:
                         await EmbedMessage(
-                            title=f"Nästa lektion är '{x.lessonName}' som börjar kl {x.timeStart} {' i ' + x.classroomName if x.classroomName != None else ''}!"
+                            title=f"Nästa lektion är '{x.lessonName}' som börjar kl {x.timeStart[:-3]}{' i ' + x.classroomName if x.classroomName != '' else ''}!"
                         ).send(message.channel)
                         return
 
@@ -240,7 +240,7 @@ async def lessonStart():
                     a = GetTime(
                         _id=currentID['id'],
                         _day=currentTimeTemp['weekday']
-                    ).fetch()
+                    ).fetch(allowCache=False)
                     cachedResponses[str(currentID['discordID'])] = {'data':a,'age':time.time()}
 
                 for x in a:
