@@ -182,7 +182,7 @@ class GetTime:
         
         myHash = self.getHash()
         if allowCache and myHash in getDataCache and time.time() - getDataCache[myHash]['age'] < getDataCacheMaxAge:
-            print("Using cache!")
+            logger.info("Using cache!")
             toReturn = getDataCache[myHash]['data']
         else:
             #region Request 1
