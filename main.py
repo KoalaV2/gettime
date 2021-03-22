@@ -20,7 +20,6 @@
 #endregion
 
 #region IMPORT
-from inspect import trace
 import os
 import time
 import json
@@ -47,7 +46,7 @@ from werkzeug.exceptions import NotFound
 #endregion
 
 #region FUNCTIONS
-def SetLogging(path="",filename="log.log",format='%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s'):
+def SetLogging(path="", filename="log.log", format='%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s'):
     """
         Changes logging settings.
     """
@@ -88,6 +87,7 @@ def CurrentTime():
     a['timeScore'] = (a['hour'] * 60) + a['minute']
     return a
 def EncodeString(key, clear):
+    # Code from https://stackoverflow.com/a/16321853
     enc = []
     for i in range(len(clear)):
         key_c = key[i % len(key)]
@@ -95,6 +95,7 @@ def EncodeString(key, clear):
         enc.append(enc_c)
     return base64.urlsafe_b64encode("".join(enc).encode()).decode()
 def DecodeString(key, enc):
+    # Code from https://stackoverflow.com/a/16321853
     dec = []
     enc = base64.urlsafe_b64decode(enc).decode()
     for i in range(len(enc)):
@@ -102,10 +103,11 @@ def DecodeString(key, enc):
         dec_c = chr((256 + ord(enc[i]) - ord(key_c)) % 256)
         dec.append(dec_c)
     return "".join(dec)
-def GenerateHiddenURL(key,idInput,mainLink):
+def GenerateHiddenURL(key, idInput, mainLink):
     a = EncodeString(key,idInput)
     return mainLink + f"?a={a}",a
 def sha256(hash_string):
+    # Code from https://tinyurl.com/2k3ds62p
     sha_signature = \
         hashlib.sha256(hash_string.encode()).hexdigest()
     return sha_signature
@@ -129,7 +131,7 @@ class FunctionLogger:
         message = [str(x) for x in message]
         logging.exception(f"{self.functionName}() : {str(' '.join(message))}")
 class Lesson:
-    def __init__(self,lessonName=None,teacherName=None,classroomName=None,timeStart=None,timeEnd=None,insertDict=None):
+    def __init__(self, lessonName=None, teacherName=None, classroomName=None, timeStart=None, timeEnd=None, insertDict=None):
         if insertDict != None:
             self.lessonName = insertDict['lessonName']
             self.teacherName = insertDict['teacherName']
@@ -142,7 +144,7 @@ class Lesson:
             self.classroomName = classroomName
             self.timeStart = timeStart
             self.timeEnd = timeEnd
-    def GetTimeScore(self,start=True,end=False):
+    def GetTimeScore(self, start=True, end=False):
         if end == True:start = False
         #KNOWN ISSUE: 
         #If time is 23:00, and you try and get timescore for a lesson that starts 01:00 the next day, it will not return 2 hours
@@ -308,7 +310,7 @@ class GetTime:
             toReturn.append(currentLesson)
         toReturn.sort(key=attrgetter('timeStart'))
         return toReturn
-    def handleHTML(self,classes="", privateID=False, allowCache=True):
+    def handleHTML(self, classes="", privateID=False, allowCache=True):
         """
             Fetches and converts the <JSON> data into a SVG (for sending to HTML)
             \n
@@ -385,7 +387,7 @@ class GetTime:
         toReturn.append("</svg>")
 
         return {'html':"\n".join(toReturn)}
-    def GenerateTextSummary(self,mode="normal",lessons=None, allowCache=True):
+    def GenerateTextSummary(self, mode="normal", lessons=None, allowCache=True):
         if lessons == None:lessons = self.fetch(allowCache=allowCache)
         try:
             if lessons[0] < 0:return str(lessons[1])
@@ -394,7 +396,7 @@ class GetTime:
             return "\n".join([(f"{x.lessonName} börjar kl {x.timeStart[:-3]} och slutar kl {x.timeEnd[:-3]}" + f" i sal {x.classroomName}" if x.classroomName != None else "") for x in lessons])
         if mode == "discord":
             return "\n".join([(f"**`{x.lessonName}`** börjar kl {x.timeStart[:-3]} och slutar kl {x.timeEnd[:-3]}" + f" i sal {x.classroomName}" if x.classroomName != None else "") for x in lessons])
-    def GenerateLessonJSON(self,lessons=None, allowCache=True):
+    def GenerateLessonJSON(self, lessons=None, allowCache=True):
         """
             Generates a dict used to create the SIMPLE_JSON API.
             Takes:
@@ -485,6 +487,15 @@ if __name__ == "__main__":
         Rule('/api/json', endpoint='API_JSON')
     )]
 
+    def arg01_to_bool(args,argName):
+        if str(argName) in args:
+            if str(args[str(argName)]) == "1":
+                return True
+            if str(args[str(argName)]) == "0":
+                return False
+        return False
+
+    # Error handling and cache settings
     @app.after_request # Script to help prevent caching
     def after_request(response):
         response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, public, max-age=0"
@@ -509,6 +520,7 @@ if __name__ == "__main__":
         else:
             raise e
 
+    # INDEX
     @app.endpoint('index')
     def index():
         logger = FunctionLogger(functionName='index')
@@ -543,16 +555,9 @@ if __name__ == "__main__":
                 initDay = int(request.args['day'])
                 initDayMode = True # ...day is specified...
             except:pass
-        if 'daymode' in request.args: # ...or daymode is specified in the URL.
-            if str(request.args['daymode']) == "1":
-                initDayMode = True
-            elif str(request.args['daymode']) == "0":
-                initDayMode = False
-        if 'debugmode' in request.args:
-            if str(request.args['debugmode']) == "1":
-                debugmode = True
-            elif str(request.args['debugmode']) == "0":
-                debugmode = False
+        if 'daymode' in request.args: 
+            initDayMode = arg01_to_bool(request.args,"daymode") # ...or daymode is specified in the URL.
+        debugmode = arg01_to_bool(request.args,"debugmode")
 
         return render_template(
             template_name_or_list="sodschema.html",
@@ -592,10 +597,10 @@ if __name__ == "__main__":
             _day = int(request.args['day']),
             _resolution = (int(request.args['width']),int(request.args['height']))
         )
-        if 'classes' in request.args:
-            return jsonify(result=myRequest.handleHTML(classes=request.args['classes'],privateID=True if request.args['privateID'] == "1" else False))
+        if 'classes' in request.args: 
+            return jsonify(result=myRequest.handleHTML(classes=request.args['classes'],privateID=arg01_to_bool(request.args,"privateID")))
         else:
-            return jsonify(result=myRequest.handleHTML(privateID=True if request.args['privateID'] == "1" else False))
+            return jsonify(result=myRequest.handleHTML(privateID=arg01_to_bool(request.args,"privateID")))
         #return jsonify(result=result) #.headers.add('Access-Control-Allow-Origin', '*')  
     @app.endpoint('API_JSON')
     def API_JSON():
@@ -669,10 +674,10 @@ if __name__ == "__main__":
         try:myRequest._day = int(request.args['day'])
         except:myRequest._day = currentTime['weekday3']
 
-        if "text" in request.args and request.args['text'] == "1":
+        
+        if arg01_to_bool(request.args,"text"):
             return myRequest.GenerateTextSummary()
         return jsonify({'result':myRequest.GenerateTextSummary()})
-        
 
     # Logs
     @app.endpoint('logfile')
@@ -709,7 +714,7 @@ if __name__ == "__main__":
         return redirect(configfile['mainLink'])
     #endregion
     
-    def background():
+    def cacheClearer():
         logger = FunctionLogger('cacheClearer')
         while 1:
             try:
@@ -720,15 +725,15 @@ if __name__ == "__main__":
                 for x in toDelete:
                     logger.info(f"Deleting {x} from cache")
                     del getDataCache[x]
-                time.sleep(1)
             except RuntimeError as e:
                 logger.info(e)
                 pass
             except:
                 logger.exception(traceback.format_exc())
                 pass
+            time.sleep(1)
 
-    threading.Thread(target=background, args=(), daemon=True).start()
+    threading.Thread(target=cacheClearer, args=(), daemon=True).start()
     app.run(debug=configfile['DEBUGMODE'], host=configfile['ip'], port=configfile['port']) # Run website
 else:
     logging.info("main.py was imported")
