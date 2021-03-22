@@ -74,16 +74,10 @@ async def on_message(message):
         userMessage = message.content.split(' ')
         
         def GetIdFromUser(messageIndex=2):
-            try:
-                return userMessage[messageIndex]
+            try:return userMessage[messageIndex]
             except:
-                if str(message.author.id) in idsToCheck:
-                    return idsToCheck[str(message.author.id)]['id']
-                else:
-                    return None
-
-        
-
+                if str(message.author.id) in idsToCheck:return idsToCheck[str(message.author.id)]['id']
+                else:return None
 
         # if userMessage[1].lower() in ('help','?'):
         #     c = (
