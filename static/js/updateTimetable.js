@@ -46,7 +46,13 @@ function updateTimetable(){
 		var url = requestURL + 'API/GENERATE_HTML?id=' + idnumber + "&day=" + dayTEMP + "&week=" + week + "&width=" + width + "&height=" + height + "&privateID=" + (privateURL ? "1" : "0")
 
 		// If the schedule is supposed to be blurred, the new request will return with the blur class allready applied
-		try{if (document.getElementById('schedule').classList.contains('menuBgBlur')){url += '&classes=menuBgBlur';}}catch(error){console.error(error);}
+		try{
+			if (document.getElementById('schedule').classList.contains('menuBgBlur')){
+				url += '&classes=menuBgBlur';
+			}
+		}catch(error){
+			console.error(error);
+		}
 
 		if (!privateURL){
 			console.log("Requesting schedule with this url : " + url)

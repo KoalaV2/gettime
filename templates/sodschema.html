@@ -102,8 +102,16 @@
 						<span id="button-text-week">Vecka&nbsp;&nbsp;</span>
 						<input onclick="void(0)" class="input-week label" type="number" name="week" placeholder="XX" min="1" max="53"/>
 					</div> -->
+
+					{% if privateURL %}
+						<!-- Go back to main page -->
+						<a onclick="window.location.href = requestURL" class="foodLink control control-container">
+							<span id="button-text-gotostart">Startsida&nbsp;&nbsp;</span>
+							<i class="far fa-calendar-alt control-right"></i>
+						</a>
+					{% endif %}
 					
-					{% if not privateURL%}
+					{% if not privateURL %}
 						<!-- Show saved timetables button -->
 						<div class="control savebutton saveBox control-container" onclick="showSaved()">
 							<span id="button-text-saved">Sparade länkar&nbsp;&nbsp;</span>
@@ -116,7 +124,6 @@
 						function qrCodeURL(){
 							window.location.href = requestURL + "API/QR_CODE?id=" + (privateURL ? (getShareableURL()['id'] + "&p=1") : ($(".input-idnumber").val() + "&p=0"));
 						}
-						
 					</script>
 					<a onclick="qrCodeURL()" class="foodLink control control-container">
 						<span id="button-text-qr">Skapa QR kod&nbsp;&nbsp;</span>
@@ -154,6 +161,8 @@
 						</label>
 					</label> -->
 
+
+
 					<!-- Day only mode toggle switch -->
 					<label class="dayModeBox toggleBox control-container" for="input-day">
 						<span id="button-text-day">Dag&nbsp;&nbsp;</span>
@@ -163,13 +172,6 @@
 						</label>
 					</label>
 
-					{% if privateURL %}
-						<!-- Go back to main page -->
-						<a onclick="window.location.href = requestURL" class="foodLink control control-container">
-							<span id="button-text-gotostart">Startsida&nbsp;&nbsp;</span>
-							<i class="far fa-calendar-alt control-right"></i>
-						</a>
-					{% endif %}
 
 				</div>
 			</div>

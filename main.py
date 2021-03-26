@@ -30,6 +30,7 @@ import datetime
 import requests
 import traceback
 import threading
+import feedparser
 from urllib.parse import quote as urlsafe
 from operator import attrgetter
 from flask import Flask
@@ -43,6 +44,12 @@ from flask_minify import minify
 from flask_mobility import Mobility
 from werkzeug.routing import Rule
 from werkzeug.exceptions import NotFound
+#endregion
+
+#region CACHE SETTINGS
+getDataMaxAge = 2*60 # Secounds
+getFoodMaxAge = 60*60 # Secounds
+dataCache = {}
 #endregion
 
 #region FUNCTIONS
@@ -124,6 +131,30 @@ def arg01_to_bool(args,argName):
         if str(args[str(argName)]) == "0":
             return False
     return False
+def GetFood(allowCache=True,week=None):
+    t = CurrentTime()
+    week = week if week != None else t['week']
+    myHash = sha256(f"{week}{t['week']}")
+
+    if allowCache and myHash in dataCache and time.time() - dataCache[myHash]['age'] < dataCache[myHash]['maxage']:
+        toReturn = dataCache[myHash]['data']
+    else:
+        NewsFeed = feedparser.parse("https://skolmaten.se/nti-gymnasiet-sodertorn/rss/weeks/?offset=" + str(week - t['week']))
+        
+        toReturn = {"data":{"food":[],"week":week if week != None else t['week']}}
+        
+        for x in range(5):
+            try:
+                post = NewsFeed.entries[x]
+
+                temp = post.summary.split("<br />") # This might break in the future
+                toReturn['data']['food'].append({'regular':temp[0],'veg':temp[1]})
+                toReturn['data']['week'] = int(post.title.split(" ")[3]) # This might break in the future
+            except:pass
+
+    if allowCache:
+        dataCache[myHash] = {'maxage':getFoodMaxAge,'age':time.time(),'data':toReturn}
+    return toReturn
 #endregion
 
 #region CLASSES
@@ -165,8 +196,6 @@ class Lesson:
         
         secounds = sum(x * int(t) for x, t in zip([1, 60, 3600], reversed((self.timeStart if start else self.timeEnd).split(":"))))
         return int(secounds / 60)       
-getDataCacheMaxAge = 2*60 # Secounds
-getDataCache = {}
 class GetTime:
     """
         GetTime Request object
@@ -196,9 +225,9 @@ class GetTime:
             return {"status":-7,"message":"_id was None (No ID specified)","data":None} #If ID is not set then it returns None by default
         
         myHash = self.getHash()
-        if allowCache and myHash in getDataCache and time.time() - getDataCache[myHash]['age'] < getDataCacheMaxAge:
+        if allowCache and myHash in dataCache and time.time() - dataCache[myHash]['age'] < dataCache[myHash]['maxage']:
             logger.info("Using cache!")
-            toReturn = getDataCache[myHash]['data']
+            toReturn = dataCache[myHash]['data']
         else:
             #region Request 1
             logger.info("Request 1")
@@ -275,10 +304,9 @@ class GetTime:
             try:response3 = json.loads(response3.text)
             except:return {"status":-4,"message":"Response 3 Error","data":response3}
             #endregion
-
-            logger.info("Request 3 is finished. Will now check for errors")
-            
             toReturn = {"status":0,"message":"OK","data":response3}
+            
+            logger.info("Request 3 is finished. Will now check for errors")
             #Error Checking
             try:
                 if response3['error'] != None:
@@ -289,7 +317,7 @@ class GetTime:
                 toReturn = {'status':-8,'message':f"An error occured when trying to check for other errors! Here is the traceback : {traceback.format_exc()}","data":response3}
             
             if allowCache:
-                getDataCache[myHash] = {'age':time.time(),'data':toReturn}
+                dataCache[myHash] = {'maxage':getDataMaxAge,'age':time.time(),'data':toReturn}
         return toReturn
     def fetch(self, allowCache=True):
         """
@@ -347,7 +375,7 @@ class GetTime:
          
         #_id="{EncodeString(configfile['key'],self._id)}" _week="{self._week}" _day="{self._day}" _resolution="{self._resolution}" class="{classes}"
         # Start of the SVG 
-        toReturn.append(f"""<svg id="schedule" style="width:{self._resolution[0]}; height:{self._resolution[1]};" viewBox="0 0 {self._resolution[0]} {self._resolution[1]}" shape-rendering="crispEdges">""")
+        toReturn.append(f"""<svg id="schedule" class="{classes}" style="width:{self._resolution[0]}; height:{self._resolution[1]};" viewBox="0 0 {self._resolution[0]} {self._resolution[1]}" shape-rendering="crispEdges">""")
 
         logger.info("Looping through boxList...")
         for current in j['data']['data']['boxList']:
@@ -437,10 +465,12 @@ class GetTime:
                 }for x in lessons
             ]
         }
+    def GetFood(self, allowCache=True):
+        return GetFood(allowCache=allowCache,week=self._week)
 #endregion
 
 if __name__ == "__main__":
-
+    
     #region INIT
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s") # Sets default logging settings (before cfg file has been loaded in)
 
@@ -469,7 +499,7 @@ if __name__ == "__main__":
     Mobility(app) # Mobile features
     CORS(app) # Behövs så att man kan skicka requests till serven (for some reason idk)
     #endregion
-
+    
     #region FLASK ROUTES
     [app.url_map.add(x) for x in (
         #INDEX
@@ -482,6 +512,7 @@ if __name__ == "__main__":
         Rule('/API/JSON', endpoint='API_JSON'),
         Rule('/API/SIMPLE_JSON', endpoint='API_SIMPLE_JSON'),
         Rule('/API/TERMINAL_SCHEDULE', endpoint='API_TERMINAL_SCHEDULE'),
+        Rule('/API/FOOD', endpoint='API_FOOD'),
 
         #Logfiles
         Rule('/logfile', endpoint='logfile'),
@@ -684,6 +715,16 @@ if __name__ == "__main__":
             return myRequest.GenerateTextSummary()
         return jsonify({'result':myRequest.GenerateTextSummary()})
 
+    @app.endpoint('API_FOOD')
+    def API_FOOD():
+        if 'week' in request.args:
+            week = int(request.args['week'])
+        else:
+            week = None
+        
+        return GetFood(week=week)
+
+
     # Logs
     @app.endpoint('logfile')
     def logfile():
@@ -724,12 +765,12 @@ if __name__ == "__main__":
         while 1:
             try:
                 toDelete = []
-                for x in getDataCache:
-                    if time.time() - getDataCache[x]['age'] > getDataCacheMaxAge:
+                for x in dataCache:
+                    if time.time() - dataCache[x]['age'] > dataCache[x]['maxage']:
                         toDelete.append(x)
                 for x in toDelete:
                     logger.info(f"Deleting {x} from cache")
-                    del getDataCache[x]
+                    del dataCache[x]
             except RuntimeError as e:
                 logger.info(e)
                 pass
