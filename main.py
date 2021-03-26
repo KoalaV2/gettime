@@ -531,7 +531,7 @@ if __name__ == "__main__":
         Rule('/api/json', endpoint='API_JSON')
     )]
 
-    # Error handling and cache settings
+    #region Error handling and cache settings
     @app.after_request # Script to help prevent caching
     def after_request(response):
         response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, public, max-age=0"
@@ -555,6 +555,7 @@ if __name__ == "__main__":
             return render_template('error.html',message="\n".join(errorMessage))
         else:
             raise e
+    #endregion
 
     # INDEX
     @app.endpoint('index')
@@ -609,7 +610,7 @@ if __name__ == "__main__":
             initDay=initDay
         )
 
-    # API
+    #region API
     @app.endpoint('API_QR_CODE')
     def API_QR_CODE():
         return render_template(
@@ -714,7 +715,6 @@ if __name__ == "__main__":
         if arg01_to_bool(request.args,"text"):
             return myRequest.GenerateTextSummary()
         return jsonify({'result':myRequest.GenerateTextSummary()})
-
     @app.endpoint('API_FOOD')
     def API_FOOD():
         if 'week' in request.args:
@@ -723,9 +723,9 @@ if __name__ == "__main__":
             week = None
         
         return GetFood(week=week)
+    #endregion
 
-
-    # Logs
+    #region Logs
     @app.endpoint('logfile')
     def logfile():
         #logger = FunctionLogger(functionName='logfile')
@@ -738,7 +738,8 @@ if __name__ == "__main__":
         if request.args['key'] == configfile['key']:
             with open(logFileLocation+'discord_logfile.log',"r") as f:
                 return f"<pre>{logFileLocation+logFileName}</pre><pre>{''.join(f.readlines())}</pre>"
-
+    #endregion
+    
     # Special easter egg URL's for the creators/contributors AND AMOGUS ඞ
     @app.endpoint('TheoCredit')
     def TheoCredit():
