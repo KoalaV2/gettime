@@ -12,6 +12,7 @@
 			var initDayMode = {{"true" if initDayMode else "false"}} // bool
 			var initWeek = {{initWeek}} // int
 			var initDay = {{initDay}} // int
+			var showContactOnLoad = {{"true" if showContactOnLoad else "false"}} // bool
 		</script>
 		
 		<!-- Set title -->
@@ -289,7 +290,7 @@
 
 				<h2>Här kan du kontakta skaparna av GetTime:</h2>
 
-				{% for x in credit %}
+				{% for x in contacts %}
 					<h3>{{x['name']}}</h3>
 					<ul>
 						<li>
