@@ -519,7 +519,6 @@ if __name__ == "__main__":
         Rule('/discord_logfile', endpoint='discord_logfile'),
 
         #Reserved
-        Rule('/contact', endpoint='contact'),
         Rule('/theo', endpoint='TheoCredit'),
         Rule('/pierre', endpoint='PierreCredit'),
         Rule('/ඞ', endpoint='ඞ'),
@@ -573,6 +572,7 @@ if __name__ == "__main__":
         privateURL = False
         saveIdToCookie = True
         mobileRequest = request.MOBILE
+        showContactOnLoad = False
         
         # Check parameters
         if 'id' in request.args:
@@ -597,7 +597,10 @@ if __name__ == "__main__":
             initDayMode = arg01_to_bool(request.args,"daymode") # ...or daymode is specified in the URL.
         debugmode = arg01_to_bool(request.args,"debugmode")
 
-        credit = [
+        if 'contact' in request.args and str(request.args['contact']) == "1":
+            showContactOnLoad = True
+
+        contacts = [
             {
                 'name':'Isak Karlsen (19_tek_a)',
                 'email':'isak@gettime.ga',
@@ -621,7 +624,6 @@ if __name__ == "__main__":
             }
         ]
 
-
         return render_template(
             template_name_or_list="sodschema.html",
             parseCode="",
@@ -634,7 +636,8 @@ if __name__ == "__main__":
             initDayMode=initDayMode,
             initWeek=initWeek,
             initDay=initDay,
-            credit=credit
+            contacts=contacts,
+            showContactOnLoad=showContactOnLoad
         )
 
     #region API

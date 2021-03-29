@@ -252,8 +252,6 @@ $(window).on("load", function(){
 	else{
 		$(".input-idnumber").val(initID);
 	}
-	
-
 
 	//hide saved ids div before load
 	$(".savedIDs").fadeOut(0);
@@ -262,13 +260,16 @@ $(window).on("load", function(){
 	$('#input-day').prop('checked', initDayMode);
 	
 	//get info closed cookie and hide or show info accordingly
-	if(readCookie("infoClosed") == "closed"){
-		$('.info').hide();
-		$('.navbar').removeClass("infoBgBlur");
-	}else{
-		$('.info').fadeIn();
-		$('.navbar').addClass("infoBgBlur");
+	if (!showContactOnLoad || true){
+		if(readCookie("infoClosed") == "closed"){
+			$('.info').hide();
+			$('.navbar').removeClass("infoBgBlur");
+		}else{
+			$('.info').fadeIn();
+			$('.navbar').addClass("infoBgBlur");
+		}
 	}
+
 
 	//get news closed info (deprecated, to be updated and readded.)
 	if(readCookie("newsClosed") == "closed"){
@@ -291,7 +292,7 @@ $(window).on("load", function(){
 	$(".arrow-center").attr("title", ("Current week (" + week + ")"));
 
 	//load timetable after cookie info get
-	console.log("load timetable after cookie info get")
+	console.log("load timetable after cookie info get");
 	updateTimetable();
 	updateMenuButtonsBasedOnSize();
 	checkIfIDTextFits();
@@ -465,6 +466,12 @@ $(window).on("load", function(){
 	$(document).ready(function() {
 		$("#scheduleBox").css("top", $(".navbar").height());
 	});
+
+	if (showContactOnLoad){
+		// infoClose();
+		contactInfoOpen();
+	}
+
 
 	console.log("script.js is loaded");
 
