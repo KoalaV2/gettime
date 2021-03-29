@@ -519,6 +519,7 @@ if __name__ == "__main__":
         Rule('/discord_logfile', endpoint='discord_logfile'),
 
         #Reserved
+        Rule('/contact', endpoint='contact'),
         Rule('/theo', endpoint='TheoCredit'),
         Rule('/pierre', endpoint='PierreCredit'),
         Rule('/ඞ', endpoint='ඞ'),
@@ -596,6 +597,31 @@ if __name__ == "__main__":
             initDayMode = arg01_to_bool(request.args,"daymode") # ...or daymode is specified in the URL.
         debugmode = arg01_to_bool(request.args,"debugmode")
 
+        credit = [
+            {
+                'name':'Isak Karlsen (19_tek_a)',
+                'email':'isak@gettime.ga',
+                'links':[
+                    ('GitHub','https://github.com/TayIsAsleep')
+                ]
+            },
+            {
+                'name':'Theodor Johanson (20_el_a)',
+                'email':'theo@gettime.ga',
+                'links':[
+                    ('GitHub','https://github.com/KoalaV2')
+                ]
+            },
+            {
+                'name':'Pierre Le Fevre',
+                'email':'pierre@gettime.ga',
+                'links':[
+                    ('GitHub','https://github.com/PierreLeFevre')
+                ]
+            }
+        ]
+
+
         return render_template(
             template_name_or_list="sodschema.html",
             parseCode="",
@@ -607,7 +633,8 @@ if __name__ == "__main__":
             initID=initID,
             initDayMode=initDayMode,
             initWeek=initWeek,
-            initDay=initDay
+            initDay=initDay,
+            credit=credit
         )
 
     #region API

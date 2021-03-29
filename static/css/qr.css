@@ -4,18 +4,26 @@ body{
     height: 99vh;
     margin: 0;
 }
-p{
+p, h1{
     text-align: center;
     font-family: 'Rubik', sans-serif;
     color: white;
     text-shadow: 2px 2px 1px rgb(0 0 0 / 25%);
 }
-
+.center{
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
 @page{
     size: A4;
     margin: 0;
 }
 @media screen{
+    .onlyPrint{
+        display: none;
+    }
     #qr-code{
         position: fixed;
         top: 50%;
@@ -31,6 +39,9 @@ p{
     }
 }
 @media print{
+    .noPrint{
+        display: none;
+    }
     html, body{
         width: 210mm;
         height: 297mm;

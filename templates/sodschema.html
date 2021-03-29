@@ -34,8 +34,9 @@
 		<meta name="Description" content="Schemaläsare för elever och personal på NTI-Gymnasiet Södertörn">
 		<meta name="Subject" content="NTI Södertörn Schema">
 		<meta name="Language" content="Swedish">
+
 		<meta property="og:title" content="GetTime">
-		<meta property="og:description" content="Guess who's back 👀">
+		<meta property="og:description" content="GetTime - Simply better then Skola24">
 
 		<!-- To prevent caching -->
 		<meta http-equiv='cache-control' content='no-cache'> 
@@ -89,6 +90,7 @@
 
 				<!-- Menu button -->
 				<div onclick="void(0)" class="menuIcon menuButton fas fa-bars"></div>
+
 			</nav>
 
 			<!-- Menu dropdown container parent -->
@@ -96,6 +98,12 @@
 
 				<!-- Menu dropdown container child -->
 				<div class="controls-container">
+					
+					<!-- Contact button -->
+					<a onclick="contactInfoOpen()" class="foodLink control control-container">
+						<span id="button-text-gotostart">Kontakta oss&nbsp;&nbsp;</span>
+						<i class="far fa-address-book control-right"></i>
+					</a>
 
 					<!-- Week input -->
 					<!-- <div class="control control-container input-week-container">
@@ -161,8 +169,6 @@
 						</label>
 					</label> -->
 
-
-
 					<!-- Day only mode toggle switch -->
 					<label class="dayModeBox toggleBox control-container" for="input-day">
 						<span id="button-text-day">Dag&nbsp;&nbsp;</span>
@@ -171,7 +177,6 @@
 							<span class="slider round control control-right"></span>
 						</label>
 					</label>
-
 
 				</div>
 			</div>
@@ -184,8 +189,8 @@
 
 					<!-- Saved timetables list -->
 					<ul class="savedList"></ul>
-
 				</div>
+
 			</div>
 
 			<!-- Main timetable object -->
@@ -219,9 +224,11 @@
 				<ul>
 					<li>
 						<p>To enable certain functions of the Service</p>
-						
+					</li>
+					<li>
 						<p>We use both session and persistent cookies on the Service and we use different types of cookies to run the Service:</p>
-
+					</li>
+					<li>
 						<p>Essential cookies. We use cookies to remember your information to make your experience seamless.</p>
 					</li>
 				</ul>
@@ -265,6 +272,39 @@
 
 				<!-- Accept policy button -->
 				<span onclick="infoClose()" class="infoClose">Close and accept</span>
+				<br>
+
+			</div>
+
+			<!-- Contact information -->
+			<div class="contact_info">
+				
+				<!-- <a class="foodLink control"><i class="far fa-address-book control-right"></i></a> -->
+				<h1>Kontaktinformation</h1>
+
+				<h2>Hittat en bug?</h2>
+				<p>Skicka gärna buggar och fel som du hittat till <a href="mailto:issues@gettime.ga">issues@gettime.ga</a></p>
+
+				<br>
+
+				<h2>Här kan du kontakta skaparna av GetTime:</h2>
+
+				{% for x in credit %}
+					<h3>{{x['name']}}</h3>
+					<ul>
+						<li>
+							<p><a href="mailto:{{x['email']}}" >{{x['email']}}</a></p>
+						</li>
+						{% for currentLink in x['links'] %}
+							<li>
+								<p><a href="{{currentLink[1]}}" target="_blank">{{currentLink[0]}}</a></p>	
+							</li>
+						{% endfor %}
+					</ul>
+				{% endfor %}
+
+				<!-- Go back button -->
+				<span onclick="contactInfoClose()" class="infoClose">Gå tillbaka</span>
 				<br>
 
 			</div>

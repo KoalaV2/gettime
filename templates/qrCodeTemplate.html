@@ -7,18 +7,23 @@
             var a_or_id = "{{privateID}}" == "True" ? "?a=" : "?id="
         </script>
 
+        <title>GetTime QR code generator</title>
+
         <script src= "https://code.jquery.com/jquery-3.5.1.js"></script>
         <script type="text/javascript" src="/static/js/cookies.js"></script>
         <link rel="stylesheet" type="text/css" href="/static/css/qr.css">
     </head>
     <body>
-        <img id="qr-code" src="" onclick="window.print()"/>
+        <h1 class="center noPrint">Loading QR code...</h1>
+        <img id="qr-code" src="https://raw.githubusercontent.com/Codelessly/FlutterLoadingGIFs/master/packages/cupertino_activity_indicator.gif" onclick="window.print()"/>
 
         {% if not privateID %}
             <p id="maintext" style="font-size: 6rem;"></p>
         {% endif %}
 
         <p id="subtext" style="font-size: 2rem;"></p>
+
+        <!-- <p style="position: absolute; left: 1px; bottom: 1px;" class="onlyPrint">gettime.ga</p> -->
         
         <script type="text/javascript" src="/static/js/qr.js"></script>
     </body>
