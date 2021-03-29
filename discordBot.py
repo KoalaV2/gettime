@@ -159,7 +159,7 @@ async def on_message(message):
             
             await EmbedMessage(
                 f"Här är ditt schema för {currentTimeTemp['dayNames'][myRequest._day-1].capitalize()}, v.{myRequest._week}!\n",
-                myRequest.GenerateTextSummary(mode="discord") + f"\n{urlEmbed('Öppna schemat online',getTimeURL, allowCache=False)}"
+                myRequest.GenerateTextSummary(mode="discord") + f"\n{urlEmbed('Öppna schemat online',getTimeURL)}"
             ).send(message.channel)
         if userMessage[1].lower() in ('next'):
             idToCheck = GetIdFromUser()
