@@ -136,6 +136,21 @@ function infoClose(){
 	$( ".input-idnumber" ).focus();
 };
 
+
+function contactInfoOpen(){
+	hideControls();
+	$('.contact_info').fadeIn();
+	$('.navbar').fadeOut();
+	$('#scheduleBox').fadeOut();
+}
+
+//accept cookie policy
+function contactInfoClose(){
+	$('.contact_info').fadeOut();
+	$('.navbar').fadeIn();
+	$('#scheduleBox').fadeIn();	
+};
+
 //dismiss changelog
 function newsClose(){
 	createCookie("newsClosed", "closed", 360);
@@ -223,7 +238,9 @@ $(window).on("load", function(){
 	if (privateURL){
 		$('#id-input-box').css("display", "none");
 	}
-
+	
+	//hide contact info
+	$('.contact_info').hide();
 
 	//hide controls div before load
 	hideControls();
@@ -236,6 +253,8 @@ $(window).on("load", function(){
 		$(".input-idnumber").val(initID);
 	}
 	
+
+
 	//hide saved ids div before load
 	$(".savedIDs").fadeOut(0);
 

@@ -45,7 +45,7 @@ a{
 }
 
 a:hover{
-	color: inherit; !important;
+	color: inherit !important;
 }
 
 .wrapper{
@@ -104,15 +104,23 @@ a:hover{
 	top: 5px;
 	left: 1rem;
 	text-shadow: 2px 2px 1px rgba(0,0,0,0.25);
-}
 
-.input-idnumber:focus, .input-idnumber:hover{
+	/* Comment this to get back the white fade out thingy */
 	background: white;
 	color: rgba(67,67,178,1);
 	outline: 0;
 	text-shadow: none;
 	box-shadow: 2px 2px 1px rgba(0,0,0,0.25);
 }
+
+/* Uncomment this to get back the white fade out thingy */
+/* .input-idnumber:focus, .input-idnumber:hover{
+	background: white;
+	color: rgba(67,67,178,1);
+	outline: 0;
+	text-shadow: none;
+	box-shadow: 2px 2px 1px rgba(0,0,0,0.25);
+} */
 
 .arrow, .menuButton{
 	box-sizing: border-box;
@@ -312,7 +320,7 @@ a:hover{
 	overflow: hidden;
 }
 
-.info{
+.info, .contact_info{
 	font-family: 'Roboto', sans-serif;
 	font-weight: 300;
 	height: 80vh;
@@ -333,12 +341,13 @@ a:hover{
 	transition: opacity .2s ease-in-out;
 }
 
-.info h2, .info h1{
+.info h2, .info h1, .contact_info h2, .contact_info h1, .contact_info h3, .contact_info h4{
 	font-family: "Rubik", sans-serif;
 	background: rgb(25,21,93);
 	background: linear-gradient(68deg, rgba(25,21,93,1) 0%, rgba(67,67,178,1) 37%, rgba(23,160,188,1) 96%);
 	color: white;
 	padding: .25rem;
+	padding-left: 0;
 	-webkit-background-clip: text;
 	-webkit-text-fill-color: transparent;
 }
@@ -397,4 +406,8 @@ a:hover{
 #id-input-box{
 	font-size: min(24px,24px);
 	--font-size:24px;
+}
+
+.contact_info a{
+	text-decoration: underline !important;
 }
