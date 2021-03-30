@@ -4,7 +4,8 @@
         <script>
             var requestURL = "{{requestURL}}";
             var passedID = "{{passedID}}";
-            var a_or_id = "{{privateID}}" == "True" ? "?a=" : "?id="
+            var privateID = "{{privateID}}" == "True" ? true : false;
+            var a_or_id = privateID ? "?a=" : "?id=";
         </script>
 
         <title>GetTime QR code generator</title>
@@ -15,15 +16,11 @@
     </head>
     <body>
         <h1 class="center noPrint">Loading QR code...</h1>
+
         <img id="qr-code" src="https://raw.githubusercontent.com/Codelessly/FlutterLoadingGIFs/master/packages/cupertino_activity_indicator.gif" onclick="window.print()"/>
-
-        {% if not privateID %}
-            <p id="maintext" style="font-size: 6rem;"></p>
-        {% endif %}
-
+        
+        <p id="maintext" style="font-size: 6rem;"></p>
         <p id="subtext" style="font-size: 2rem;"></p>
-
-        <!-- <p style="position: absolute; left: 1px; bottom: 1px;" class="onlyPrint">gettime.ga</p> -->
         
         <script type="text/javascript" src="/static/js/qr.js"></script>
     </body>
