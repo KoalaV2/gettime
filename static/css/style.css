@@ -339,6 +339,9 @@ a:hover{
     display: none;
 	border-radius: 1rem 1rem;
 	transition: opacity .2s ease-in-out;
+
+	margin-top: 5rem;
+    position: inherit;
 }
 
 .info h2, .info h1, .contact_info h2, .contact_info h1, .contact_info h3, .contact_info h4{

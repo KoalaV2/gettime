@@ -116,10 +116,10 @@
 		display: inherit;
 	}
 
-	.info{
-		height: 90vh;
+	.info, .contact_info{
+		height: 74vh;
 		width: 90vw;
-		top: 5vh;
+		/* top: 5vh; */
 		left: 5vw;
 	}
 
