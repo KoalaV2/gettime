@@ -223,6 +223,7 @@ a:hover{
 	align-items: center;
 	z-index: 49999;
 	opacity: 1;
+	transform: translate3d(0,0,0);
 	-webkit-transform: translate3d(0,0,0);
 	padding: 2rem 2rem 0 2.5rem;
 	box-sizing: border-box;
@@ -257,6 +258,7 @@ a:hover{
 	border-radius: 5rem;
     display: -webkit-flex; /* NEW */
     display: flex;
+	flex-wrap: wrap;
     -webkit-flex-wrap: wrap; /* NEW */
 	justify-content: space-between;
 	align-items: center;	
@@ -348,6 +350,7 @@ a:hover{
 	color: white;
 	padding: .25rem;
 	padding-left: 0;
+	background-clip: text;
 	-webkit-background-clip: text;
 	-webkit-text-fill-color: transparent;
 }
