@@ -7,10 +7,10 @@ import discord
 import traceback
 from requests import get
 from subprocess import run
-from main import GetTime
-from main import SetLogging
-from main import CurrentTime
-from main import GenerateHiddenURL
+from main import GetTime # type: ignore
+from main import SetLogging # type: ignore
+from main import CurrentTime # type: ignore
+from main import GenerateHiddenURL # type: ignore
 from discord.ext import tasks
 from urllib.parse import urlencode
 #endregion

@@ -260,17 +260,14 @@ $(window).on("load", function(){
 	$('#input-day').prop('checked', initDayMode);
 	
 	//get info closed cookie and hide or show info accordingly
-	if (!showContactOnLoad || true){
-		if(readCookie("infoClosed") == "closed"){
-			$('.info').hide();
-			$('.navbar').removeClass("infoBgBlur");
-		}else{
-			$('.info').fadeIn();
-			$('.navbar').addClass("infoBgBlur");
-		}
+	if(readCookie("infoClosed") == "closed"){
+		$('.info').hide();
+		$('.navbar').removeClass("infoBgBlur");
+	}else{
+		$('.info').fadeIn();
+		$('.navbar').addClass("infoBgBlur");
 	}
-
-
+	
 	//get news closed info (deprecated, to be updated and readded.)
 	if(readCookie("newsClosed") == "closed"){
 		$('.news').hide();

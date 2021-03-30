@@ -116,15 +116,16 @@
 		display: inherit;
 	}
 
-	.info{
-		height: 90vh;
+	.info, .contact_info{
+		margin-top: 5rem;
+    	position: inherit;
 		width: 90vw;
-		top: 5vh;
 		left: 5vw;
+		height: 83vh;
 	}
 
 	.infoClose{
-		bottom: 10vh;
-		font-size: 1.5rem;
+		bottom: 5vh;
+		font-size: 1rem;
 	}
 }
