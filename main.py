@@ -616,7 +616,7 @@ if __name__ == "__main__":
                 ]
             },
             {
-                'name':'Pierre Le Fevre',
+                'name':'Pierre Le Fevre (16_tek_cs)',
                 'email':'pierre@gettime.ga',
                 'links':[
                     ('GitHub','https://github.com/PierreLeFevre')

@@ -212,7 +212,7 @@ a:hover{
 	margin: 0;
 	width: 100%;
 	height: 100%;
-	flex-direction: column-reverse;
+	flex-direction: column;
 	align-items: center;
 	justify-content: space-around;
     display: -webkit-flex; /* NEW */
@@ -413,4 +413,9 @@ a:hover{
 
 .contact_info a{
 	text-decoration: underline !important;
+}
+
+#scheduleBox{
+	position: fixed;
+	text-shadow: none;
 }

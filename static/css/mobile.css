@@ -88,9 +88,9 @@
 		margin-bottom: 2rem;
 	}
 
-	.saveBox{
+	/*.saveBox{
 		display: flex;
-	}
+	}*/
 
 	.mobileSaved, .savedItems{
 	    background: -moz-linear-gradient(68deg, rgba(25,21,93,1) 0%, rgba(67,67,178,1) 37%, rgba(23,160,188,1) 96%); /* FF 3.6+ */  
