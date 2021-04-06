@@ -540,9 +540,16 @@ if __name__ == "__main__":
         return response
     @app.errorhandler(NotFound)
     def handle_bad_request_404(e):
+        """
+            404 errors always land here (because it makes more senses)
+        """
         return e,404
     @app.errorhandler(Exception)
     def handle_bad_request(e):
+        """
+            If error is not 404, then it lands here.\n
+            If `enableErrorHandler` is `true` in the config file then it will use the special configfile. 
+        """
         if configfile['enableErrorHandler']:
             logging.exception(f"This is the error : {e}")
             errorMessage = []
