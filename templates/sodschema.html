@@ -99,67 +99,11 @@
 
 				<!-- Menu dropdown container child -->
 				<div class="controls-container">
-					
-					<!-- Contact button -->
-					<a onclick="contactInfoOpen()" class="foodLink control control-container">
-						<span id="button-text-gotostart">Kontakta oss&nbsp;&nbsp;</span>
-						<i class="far fa-address-book control-right"></i>
-					</a>
-
 					<!-- Week input -->
 					<!-- <div class="control control-container input-week-container">
 						<span id="button-text-week">Vecka&nbsp;&nbsp;</span>
 						<input onclick="void(0)" class="input-week label" type="number" name="week" placeholder="XX" min="1" max="53"/>
 					</div> -->
-
-					{% if privateURL %}
-						<!-- Go back to main page -->
-						<a onclick="window.location.href = requestURL" class="foodLink control control-container">
-							<span id="button-text-gotostart">Startsida&nbsp;&nbsp;</span>
-							<i class="far fa-calendar-alt control-right"></i>
-						</a>
-					{% endif %}
-					
-					{% if not privateURL %}
-						<!-- Show saved timetables button -->
-						<div class="control savebutton saveBox control-container" onclick="showSaved()">
-							<span id="button-text-saved">Sparade länkar&nbsp;&nbsp;</span>
-							<i class="far fa-save control-right"></i>
-						</div>
-					{% endif %}
-					
-					<!-- Generate QR code -->
-					<script>
-						function qrCodeURL(){
-							window.location.href = requestURL + "API/QR_CODE?id=" + (privateURL ? (getShareableURL()['id'] + "&p=1") : ($(".input-idnumber").val() + "&p=0"));
-						}
-					</script>
-					<a onclick="qrCodeURL()" class="foodLink control control-container">
-						<span id="button-text-qr">Skapa QR kod&nbsp;&nbsp;</span>
-						<i class="fas fa-qrcode control-right"></i>
-					</a>
-
-
-					{% if privateURL %}
-						<!-- Copy savable link -->
-						<a onclick="updateClipboard(window.location.href)" class="foodLink control control-container">
-							<span id="button-text-copy">Kopiera privat länk&nbsp;&nbsp;</span>
-							<i class="fas fa-user-lock control-right"></i>
-						</a>
-					{% else %}
-						<!-- Generate savable link -->
-						<a onclick="window.location.href = getShareableURL()['url'];" class="foodLink control control-container">
-							<span id="button-text-private">Skapa privat länk&nbsp;&nbsp;</span>
-							<i class="fas fa-user-lock control-right"></i>
-						</a>
-					{% endif %}
-
-
-					<!-- Redirect to school lunch link -->
-					<a href="https://skolmaten.se/nti-gymnasiet-sodertorn" class="foodLink control control-container">
-						<span id="button-text-food">Mat&nbsp;&nbsp;</span>
-						<i class="fas fa-utensils control-right"></i>
-					</a>
 
 					<!-- Rounded mode toggle switch -->
 					<!-- <label class="roundedModeBox mobileOnly toggleBox control-container" for="roundedMode">
@@ -179,6 +123,54 @@
 						</label>
 					</label>
 
+					<!-- Redirect to school lunch link -->
+					<a href="https://skolmaten.se/nti-gymnasiet-sodertorn" class="control control-container">
+						<span id="button-text-food">Mat&nbsp;&nbsp;</span>
+						<i class="fas fa-utensils control-right"></i>
+					</a>
+
+					{% if privateURL %}
+						<!-- Copy savable link -->
+						<a onclick="updateClipboard(window.location.href)" class="control control-container">
+							<span id="button-text-copy">Kopiera privat länk&nbsp;&nbsp;</span>
+							<i class="fas fa-user-lock control-right"></i>
+						</a>
+					{% else %}
+						<!-- Generate savable link -->
+						<a onclick="window.location.href = getShareableURL()['url'];" class="control control-container">
+							<span id="button-text-private">Skapa privat länk&nbsp;&nbsp;</span>
+							<i class="fas fa-user-lock control-right"></i>
+						</a>
+					{% endif %}
+
+					<!-- Generate QR code -->
+					<a onclick="clickOn_QRCODE()" class="control control-container">
+						<span id="button-text-qr">Skapa QR kod&nbsp;&nbsp;</span>
+						<i class="fas fa-qrcode control-right"></i>
+					</a>
+
+					{% if not privateURL %}
+						<!-- Show saved timetables button -->
+						<div onclick="clickOn_SAVEDLINKS()" class="control control-container">
+							<span id="button-text-saved">Sparade länkar&nbsp;&nbsp;</span>
+							<i class="far fa-save control-right"></i>
+						</div>
+					{% endif %}
+
+					{% if privateURL %}
+						<!-- Go back to main page -->
+						<a onclick="window.location.href = requestURL" class="control control-container">
+							<span id="button-text-gotostart">Startsida&nbsp;&nbsp;</span>
+							<i class="far fa-calendar-alt control-right"></i>
+						</a>
+					{% endif %}
+				
+					<!-- Contact button -->
+					<a onclick="contactInfoOpen()" class="control control-container">
+						<span id="button-text-gotostart">Kontakta oss&nbsp;&nbsp;</span>
+						<i class="far fa-address-book control-right"></i>
+					</a>
+
 				</div>
 			</div>
 
@@ -195,7 +187,7 @@
 			</div>
 
 			<!-- Main timetable object -->
-			<div id="scheduleBox" style="position: fixed; text-shadow: none;">
+			<div id="scheduleBox">
 				<svg id="schedule"></svg>
 			</div>
 

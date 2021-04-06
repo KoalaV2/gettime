@@ -216,6 +216,22 @@ function updateMenuButtonsBasedOnSize(){
 	}
 }
 
+
+
+function clickOn_QRCODE(){
+	$("#button-text-qr").text("Laddar...")
+	try {
+		window.location.href = requestURL + "API/QR_CODE?id=" + (privateURL ? (getShareableURL()['id'] + "&p=1") : ($(".input-idnumber").val() + "&p=0"));
+	} catch {
+		$("#button-text-qr").text("ERROR!")
+	}
+}
+
+function clickOn_SAVEDLINKS(){
+	showSaved()
+}
+
+
 //events on load & event triggers.
 $(window).on("load", function(){
 

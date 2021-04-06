@@ -120,7 +120,7 @@ def sha256(hash_string):
     return sha_signature
 def arg01_to_bool(args,argName):
     """
-        This function takes {request.args} and check if the argName is 1 or 2.\n
+        This function takes {request.args} and check if the argName is 1 or 0.\n
         If argName is "1", it returns True.\n
         If argname is "0", it returns False.\n
         And if it is anything else, or if it does not exist, it returns False aswell.
@@ -540,9 +540,16 @@ if __name__ == "__main__":
         return response
     @app.errorhandler(NotFound)
     def handle_bad_request_404(e):
+        """
+            404 errors always land here (because it makes more senses)
+        """
         return e,404
     @app.errorhandler(Exception)
     def handle_bad_request(e):
+        """
+            If error is not 404, then it lands here.\n
+            If `enableErrorHandler` is `true` in the config file then it will use the special configfile. 
+        """
         if configfile['enableErrorHandler']:
             logging.exception(f"This is the error : {e}")
             errorMessage = []
@@ -616,7 +623,7 @@ if __name__ == "__main__":
                 ]
             },
             {
-                'name':'Pierre Le Fevre',
+                'name':'Pierre Le Fevre (16_tek_cs)',
                 'email':'pierre@gettime.ga',
                 'links':[
                     ('GitHub','https://github.com/PierreLeFevre')
@@ -643,11 +650,12 @@ if __name__ == "__main__":
     #region API
     @app.endpoint('API_QR_CODE')
     def API_QR_CODE():
+        
         return render_template(
             'qrCodeTemplate.html',
             requestURL=configfile['mainLink'],
             passedID=None if not 'id' in request.args else request.args['id'],
-            privateID=False if not 'p' in request.args else (True if str(request.args['p']) == "1" else False)
+            privateID=arg01_to_bool(request.args,"p")
         )
     @app.endpoint('API_SHAREABLE_URL')
     def API_SHAREABLE_URL():
