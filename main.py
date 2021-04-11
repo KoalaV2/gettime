@@ -631,6 +631,36 @@ if __name__ == "__main__":
             }
         ]
 
+        #class DropDown_Button:
+        #    def __init__(self, button_text, button_icon, button_URL) -> None:
+        #        self.button_text = button_text
+        #        self.button_icon = button_icon
+        #        self.button_URL = button_URL
+            
+        #    def render(self):
+        #        toReturn = ""
+                
+        #        toReturn += f'<a href="{self.button_URL}" class="control control-container">'
+
+        #        toReturn += f'<span>{self.button_text}&nbsp;&nbsp;</span>'
+        #        toReturn += f'<i class="{self.button_icon} control-right"></i>'
+
+        #        toReturn += '</a>'
+
+        #        return Markup(toReturn)
+
+        #Button_Mat = DropDown_Button(
+        #    button_text="Mat",
+        #    button_icon="fas fa-utensils",
+        #    button_URL='https://skolmaten.se/nti-gymnasiet-sodertorn/'
+        #)
+
+        #Button_CreatePrivateLink = DropDown_Button(
+        #    button_text="Skapa privat länk",
+        #    button_icon="fas fa-user-lock",
+        #    button_URL=GenerateHiddenURL(configfile['key'],request.args['id'],configfile['mainLink'])
+        #)
+
         return render_template(
             template_name_or_list="sodschema.html",
             parseCode="",
