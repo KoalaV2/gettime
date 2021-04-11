@@ -263,7 +263,6 @@ $(window).on("load", function(){
 		},10000);
 	}
 
-
 	if (privateURL){
 		$('#id-input-box').css("display", "none");
 	}
