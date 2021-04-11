@@ -251,6 +251,19 @@ $(window).on("load", function(){
 		};
 	};
 
+	//Code from https://stackoverflow.com/a/15032300
+	if (autoReloadSchedule){
+		var lastRefresh = new Date(); // If the user just loaded the page you don't want to refresh either
+		setInterval(function(){
+			//first, check time, if it is 0 AM, reload the page
+			var now = new Date();
+			if (now.getHours() == 0 && new Date() - lastRefresh > 1000 * 60 * 60 * 1.5) { // If it is between 9 and ten AND the last refresh was longer ago than 1.5 hours refresh the page.
+				location.reload();
+			}
+		},10000);
+	}
+
+
 	if (privateURL){
 		$('#id-input-box').css("display", "none");
 	}

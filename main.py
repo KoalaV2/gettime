@@ -580,6 +580,7 @@ if __name__ == "__main__":
         saveIdToCookie = True
         mobileRequest = request.MOBILE
         showContactOnLoad = False
+        autoReloadSchedule = False
         
         # Check parameters
         if 'id' in request.args:
@@ -601,18 +602,17 @@ if __name__ == "__main__":
                 initDayMode = True # ...day is specified...
             except:pass
         if 'daymode' in request.args: 
-            initDayMode = arg01_to_bool(request.args,"daymode") # ...or daymode is specified in the URL.
+            initDayMode = arg01_to_bool(request.args,"daymode") # ...or daymode is specified in the URL, and is set to 1.
         debugmode = arg01_to_bool(request.args,"debugmode")
-
-        if 'contact' in request.args and str(request.args['contact']) == "1":
-            showContactOnLoad = True
+        showContactOnLoad = arg01_to_bool(request.args,"contact")        
+        autoReloadSchedule = arg01_to_bool(request.args,"rl")
 
         contacts = [
             {
                 'name':'Isak Karlsen (19_tek_a)',
                 'email':'isak@gettime.ga',
                 'links':[
-                    ('GitHub','https://github.com/TayIsAsleep')
+                    ('GitHub','https://github.com/TayIsAsleep') #You can add multiple arrays here with 2 strings, first string is the text you see, and secound string is the URL it should lead too
                 ]
             },
             {
@@ -644,7 +644,8 @@ if __name__ == "__main__":
             initWeek=initWeek,
             initDay=initDay,
             contacts=contacts,
-            showContactOnLoad=showContactOnLoad
+            showContactOnLoad=showContactOnLoad,
+            autoReloadSchedule=autoReloadSchedule
         )
 
     #region API
