@@ -118,7 +118,7 @@ function showSaved(){
 
 	if ($(".savedItems").length == 1){
 		$(".savedList").empty();
-		$(".savedList").append("<li class='savedItems'>You have no saved URL's</li>");
+		$(".savedList").append("<li class='savedItems'>Du har inte sparat något URL</li>");
 	}
 	else{
 		$(".savedList").append('<button class="clearSavedItems mobileSaved control-container" onclick="deleteAllURLCookies();">Ta bort alla</button>');

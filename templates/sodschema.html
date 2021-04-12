@@ -98,93 +98,11 @@
 
 			<!-- Menu dropdown container parent -->
 			<div class="controls">
-
 				<!-- Menu dropdown container child -->
 				<div class="controls-container">
-					<!-- Unused/removed buttons: -->
-					<!-- Week input -->
-					<!-- <div class="control control-container input-week-container">
-						<span id="button-text-week">Vecka&nbsp;&nbsp;</span>
-						<input onclick="void(0)" class="input-week label" type="number" name="week" placeholder="XX" min="1" max="53"/>
-					</div> -->
-
-					<!-- Rounded mode toggle switch -->
-					<!-- <label class="roundedModeBox mobileOnly toggleBox control-container" for="roundedMode">
-						<span id="button-text-rounded">Rounded</span>
-						<label class="switch ">
-							<input id="roundedMode" name="roundedMode" type="checkbox">
-							<span class="slider round control control-right"></span>
-						</label>
-					</label> -->
-
-					<!-- 
-						This code is a mess, but basicly all it does is
-						check if different buttons should be visible on the
-						drop down menu, and if so it shows them.
-						This system "should" be fixed, preferably by a 
-						python code solution, (a "Menu_Button" class in
-						python, and then you just pass in the buttons into
-						the template and it renders them out, allowing for 
-						easier editing)
-					-->
-
-					<!-- Day only mode toggle switch -->
-					<label class="dayModeBox toggleBox control-container" for="input-day">
-						<span id="button-text-day">Dag&nbsp;&nbsp;</span>
-						<label class="switch">
-							<input type="checkbox" name="input-day" id="input-day"/>
-							<span class="slider round control control-right"></span>
-						</label>
-					</label>
-
-					<!-- Redirect to school lunch link -->
-					<a href="https://skolmaten.se/nti-gymnasiet-sodertorn" class="control control-container">
-						<span id="button-text-food">Mat&nbsp;&nbsp;</span>
-						<i class="fas fa-utensils control-right"></i>
-					</a>
-
-					{% if privateURL %}
-						<!-- Copy savable link -->
-						<a onclick="updateClipboard(window.location.href)" class="control control-container">
-							<span id="button-text-copy">Kopiera privat länk&nbsp;&nbsp;</span>
-							<i class="fas fa-user-lock control-right"></i>
-						</a>
-					{% else %}
-						<!-- Generate savable link -->
-						<a onclick="window.location.href = getShareableURL()['url'];" class="control control-container">
-							<span id="button-text-private">Skapa privat länk&nbsp;&nbsp;</span>
-							<i class="fas fa-user-lock control-right"></i>
-						</a>
-					{% endif %}
-
-					<!-- Generate QR code -->
-					<a onclick="clickOn_QRCODE()" class="control control-container">
-						<span id="button-text-qr">Skapa QR kod&nbsp;&nbsp;</span>
-						<i class="fas fa-qrcode control-right"></i>
-					</a>
-
-					{% if not privateURL %}
-						<!-- Show saved timetables button -->
-						<div onclick="clickOn_SAVEDLINKS()" class="control control-container">
-							<span id="button-text-saved">Sparade länkar&nbsp;&nbsp;</span>
-							<i class="far fa-save control-right"></i>
-						</div>
-					{% endif %}
-
-					{% if privateURL %}
-						<!-- Go back to main page -->
-						<a onclick="window.location.href = requestURL" class="control control-container">
-							<span id="button-text-gotostart">Startsida&nbsp;&nbsp;</span>
-							<i class="far fa-calendar-alt control-right"></i>
-						</a>
-					{% endif %}
-				
-					<!-- Contact button -->
-					<a onclick="contactInfoOpen()" class="control control-container">
-						<span id="button-text-gotostart">Kontakta oss&nbsp;&nbsp;</span>
-						<i class="far fa-address-book control-right"></i>
-					</a>
-
+					{% for x in dropDownButtons %}
+						{{x}}
+					{% endfor %}
 				</div>
 			</div>
 

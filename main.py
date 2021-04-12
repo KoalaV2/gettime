@@ -18,7 +18,6 @@
 #                                                                                                   #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #endregion
-
 #region IMPORT
 import os
 import time
@@ -45,13 +44,11 @@ from flask_mobility import Mobility
 from werkzeug.routing import Rule
 from werkzeug.exceptions import NotFound
 #endregion
-
 #region CACHE SETTINGS
 getDataMaxAge = 2*60 # Secounds
 getFoodMaxAge = 60*60 # Secounds
 dataCache = {}
 #endregion
-
 #region FUNCTIONS
 def SetLogging(path="", filename="log.log", format='%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s'):
     """
@@ -156,7 +153,6 @@ def GetFood(allowCache=True,week=None):
         dataCache[myHash] = {'maxage':getFoodMaxAge,'age':time.time(),'data':toReturn}
     return toReturn
 #endregion
-
 #region CLASSES
 class FunctionLogger:
     """
@@ -175,7 +171,7 @@ class FunctionLogger:
         message = [str(x) for x in message]
         logging.exception(f"{self.functionName}() : {str(' '.join(message))}")
 class Lesson:
-    def __init__(self, lessonName=None, teacherName=None, classroomName=None, timeStart=None, timeEnd=None, insertDict=None):
+    def __init__(self, lessonName=None, teacherName=None, classroomName=None, timeStart=None, timeEnd=None, insertDict=None) -> None:
         if insertDict != None:
             self.lessonName = insertDict['lessonName']
             self.teacherName = insertDict['teacherName']
@@ -201,15 +197,15 @@ class GetTime:
         GetTime Request object
     """
     t = CurrentTime()
-    def __init__(self, _id=None, _week=t['week2'], _day=t['weekday2'], _year=t['year'], _resolution=(1280,720)):
+    def __init__(self, _id=None, _week=t['week2'], _day=t['weekday2'], _year=t['year'], _resolution=(1280,720)) -> None:
         self._id = _id
         self._week = _week
         self._day = _day
         self._year = _year
         self._resolution = _resolution
-    def getHash(self):
+    def getHash(self) -> str:
         return sha256("".join([str(x) for x in (self._id,self._week,self._day,self._year,self._resolution)]))
-    def getData(self, allowCache=True):
+    def getData(self, allowCache=True) -> dict:
         """
             This function makes a request to Skola24's servers and returns the schedule data
             \n
@@ -319,7 +315,7 @@ class GetTime:
             if allowCache:
                 dataCache[myHash] = {'maxage':getDataMaxAge,'age':time.time(),'data':toReturn}
         return toReturn
-    def fetch(self, allowCache=True):
+    def fetch(self, allowCache=True) -> list:
         """
             Fetches and formats data into <lesson> objects.
             \n
@@ -351,7 +347,7 @@ class GetTime:
             toReturn.append(currentLesson)
         toReturn.sort(key=attrgetter('timeStart'))
         return toReturn
-    def handleHTML(self, classes="", privateID=False, allowCache=True):
+    def handleHTML(self, classes="", privateID=False, allowCache=True) -> dict:
         """
             Fetches and converts the <JSON> data into a SVG (for sending to HTML)
             \n
@@ -468,9 +464,7 @@ class GetTime:
     def GetFood(self, allowCache=True):
         return GetFood(allowCache=allowCache,week=self._week)
 #endregion
-
 if __name__ == "__main__":
-    
     #region INIT
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s") # Sets default logging settings (before cfg file has been loaded in)
 
@@ -498,9 +492,8 @@ if __name__ == "__main__":
     minify(app=app, html=True, js=False, cssless=True)
     Mobility(app) # Mobile features
     CORS(app) # Behövs så att man kan skicka requests till serven (for some reason idk)
-    #endregion
-    
-    #region FLASK ROUTES
+    #endregion  
+    #region Flask Routes
     [app.url_map.add(x) for x in (
         #INDEX
         Rule('/', endpoint='index'),
@@ -530,7 +523,6 @@ if __name__ == "__main__":
         Rule('/script/API_GENERATE_HTML', endpoint='API_GENERATE_HTML'),
         Rule('/api/json', endpoint='API_JSON')
     )]
-
     #region Error handling and cache settings
     @app.after_request # Script to help prevent caching
     def after_request(response):
@@ -563,13 +555,167 @@ if __name__ == "__main__":
         else:
             raise e
     #endregion
+    #region INDEX
+    class DropDown_Button:
+        def __init__(self, button_text="", button_icon="", button_type="link", button_arguments={}, button_id="") -> None:
+            self.button_text = button_text
+            self.button_icon = button_icon
+            self.button_type = button_type
+            self.button_arguments = button_arguments
+            self.button_id = button_id
+        
+        def render(self):
+            arguments = " ".join([f'{key}="{self.button_arguments[key]}"' for key in self.button_arguments])
 
-    # INDEX
+            types = {
+                'link':f"""
+                <a {arguments} class="control control-container">
+                    <span id="{self.button_id}">{self.button_text}&nbsp;&nbsp;</span>
+                    <i class="{self.button_icon} control-right"></i>
+                </a>
+                """,
+                
+                'switch':f"""
+                    <label class="toggleBox control-container" for="{self.button_id}">
+                        <span id="{self.button_id}-text">Dag&nbsp;&nbsp;</span>
+                        <label class="switch">
+                            <input type="checkbox" {arguments} class="input-switch" name="{self.button_id}" id="{self.button_id}"/>
+                            <span class="slider round control control-right"></span>
+                        </label>
+                    </label>
+                """
+            }
+            return Markup(types[self.button_type])
+    buttons = {
+        # Redirect to school lunch link
+        'food':DropDown_Button(
+            button_text="Mat",
+            button_icon="fas fa-utensils",
+            button_type="link",
+            button_id='button-text-food',
+            button_arguments={
+                'href':'https://skolmaten.se/nti-gymnasiet-sodertorn/'
+            }
+        ),
+
+        # Generate savable link
+        'generateSavableLink':DropDown_Button(
+            button_text="Skapa privat länk",
+            button_icon="fas fa-user-lock",
+            button_type="link",
+            button_id="button-text-private",
+            button_arguments={
+                'onclick':"""window.location.href = getShareableURL()['url'];"""
+            }
+        ),
+
+        # Copy savable link
+        'copySavableLink':DropDown_Button(
+            button_text="Kopiera privat länk",
+            button_icon="fas fa-user-lock",
+            button_type="link",
+            button_id="button-text-copy",
+            button_arguments={
+                'onclick':"""updateClipboard(window.location.href);"""
+            }
+        ),
+
+        # Generate QR code
+        'generateQrCode':DropDown_Button(
+            button_text="Skapa QR kod",
+            button_icon="fas fa-qrcode",
+            button_type="link",
+            button_id="button-text-qr",
+            button_arguments={
+                'onclick':"""clickOn_QRCODE()"""
+            }
+        ),
+        
+        # Go back to main page
+        'mainPage':DropDown_Button(
+            button_text="Startsida",
+            button_icon="far fa-calendar-alt",
+            button_type="link",
+            button_arguments={
+                'onclick':"""window.location.href = requestURL;"""
+            }
+        ),
+
+        # Day only mode toggle switch
+        'dayMode':DropDown_Button(
+            button_text="Dag",
+            button_type="switch",
+            button_id='input-day',
+        ),
+
+        # Contact button
+        'contact':DropDown_Button(
+            button_text="Kontakta oss",
+            button_icon="far fa-address-book",
+            button_type="link",
+            button_id="button-text-gotostart",
+            button_arguments={
+                'onclick':"""contactInfoOpen();"""
+            }
+        ),
+
+        # Show saved timetables button
+        'showSaved':DropDown_Button(
+            button_text="Sparade länkar",
+            button_icon="far fa-save",
+            button_type="link",
+            button_id="button-text-saved",
+            button_arguments={
+                'onclick':"""clickOn_SAVEDLINKS();"""
+            }
+        )
+    }
+    menus = {
+        'normal':(
+            'dayMode',
+            'food',
+            'generateSavableLink',
+            'generateQrCode',
+            'showSaved',
+            'contact'
+        ),
+        'private':(
+            'dayMode',
+            'food',
+            'copySavableLink',
+            'generateQrCode',
+            'mainPage',
+            'contact'
+        )
+    }
+    contacts = [
+        {
+            'name':'Isak Karlsen (19_tek_a)',
+            'email':'isak@gettime.ga',
+            'links':[
+                ('GitHub','https://github.com/TayIsAsleep') #You can add multiple arrays here with 2 strings, first string is the text you see, and secound string is the URL it should lead too
+            ]
+        },
+        {
+            'name':'Theodor Johanson (20_el_a)',
+            'email':'theo@gettime.ga',
+            'links':[
+                ('GitHub','https://github.com/KoalaV2')
+            ]
+        },
+        {
+            'name':'Pierre Le Fevre (16_tek_cs)',
+            'email':'pierre@gettime.ga',
+            'links':[
+                ('GitHub','https://github.com/PierreLeFevre')
+            ]
+        }
+    ]
     @app.endpoint('index')
     def index():
         logger = FunctionLogger(functionName='index')
 
-        # Default values
+        #region Default values
         t = CurrentTime()
         initID = ""
         initDayMode = False
@@ -581,8 +727,9 @@ if __name__ == "__main__":
         mobileRequest = request.MOBILE
         showContactOnLoad = False
         autoReloadSchedule = False
-        
-        # Check parameters
+        dropDownButtons = [buttons[x].render() for x in (menus['private'] if privateURL else menus['normal'])]
+        #endregion
+        #region Check parameters
         if 'id' in request.args:
             initID = request.args['id']
             saveIdToCookie = False
@@ -606,61 +753,8 @@ if __name__ == "__main__":
         debugmode = arg01_to_bool(request.args,"debugmode")
         showContactOnLoad = arg01_to_bool(request.args,"contact")        
         autoReloadSchedule = arg01_to_bool(request.args,"rl")
-
-        contacts = [
-            {
-                'name':'Isak Karlsen (19_tek_a)',
-                'email':'isak@gettime.ga',
-                'links':[
-                    ('GitHub','https://github.com/TayIsAsleep') #You can add multiple arrays here with 2 strings, first string is the text you see, and secound string is the URL it should lead too
-                ]
-            },
-            {
-                'name':'Theodor Johanson (20_el_a)',
-                'email':'theo@gettime.ga',
-                'links':[
-                    ('GitHub','https://github.com/KoalaV2')
-                ]
-            },
-            {
-                'name':'Pierre Le Fevre (16_tek_cs)',
-                'email':'pierre@gettime.ga',
-                'links':[
-                    ('GitHub','https://github.com/PierreLeFevre')
-                ]
-            }
-        ]
-
-        #class DropDown_Button:
-        #    def __init__(self, button_text, button_icon, button_URL) -> None:
-        #        self.button_text = button_text
-        #        self.button_icon = button_icon
-        #        self.button_URL = button_URL
-            
-        #    def render(self):
-        #        toReturn = ""
-                
-        #        toReturn += f'<a href="{self.button_URL}" class="control control-container">'
-
-        #        toReturn += f'<span>{self.button_text}&nbsp;&nbsp;</span>'
-        #        toReturn += f'<i class="{self.button_icon} control-right"></i>'
-
-        #        toReturn += '</a>'
-
-        #        return Markup(toReturn)
-
-        #Button_Mat = DropDown_Button(
-        #    button_text="Mat",
-        #    button_icon="fas fa-utensils",
-        #    button_URL='https://skolmaten.se/nti-gymnasiet-sodertorn/'
-        #)
-
-        #Button_CreatePrivateLink = DropDown_Button(
-        #    button_text="Skapa privat länk",
-        #    button_icon="fas fa-user-lock",
-        #    button_URL=GenerateHiddenURL(configfile['key'],request.args['id'],configfile['mainLink'])
-        #)
-
+        #endregion    
+        
         return render_template(
             template_name_or_list="sodschema.html",
             parseCode="",
@@ -675,9 +769,10 @@ if __name__ == "__main__":
             initDay=initDay,
             contacts=contacts,
             showContactOnLoad=showContactOnLoad,
-            autoReloadSchedule=autoReloadSchedule
+            autoReloadSchedule=autoReloadSchedule,
+            dropDownButtons=dropDownButtons
         )
-
+    #endregion
     #region API
     @app.endpoint('API_QR_CODE')
     def API_QR_CODE():
@@ -793,7 +888,6 @@ if __name__ == "__main__":
         
         return GetFood(week=week)
     #endregion
-
     #region Logs
     @app.endpoint('logfile')
     def logfile():
@@ -808,7 +902,6 @@ if __name__ == "__main__":
             with open(logFileLocation+'discord_logfile.log',"r") as f:
                 return f"<pre>{logFileLocation+logFileName}</pre><pre>{''.join(f.readlines())}</pre>"
     #endregion
-    
     #region Special easter egg URL's for the creators/contributors AND AMOGUS ඞ
     @app.endpoint('TheoCredit')
     def TheoCredit():
@@ -820,7 +913,6 @@ if __name__ == "__main__":
     def ඞ():
         return render_template('AmongUs.html')
     #endregion
-
     #region Redirects (For dead links)
     @app.route("/schema/<a>")
     @app.route("/schema/")
@@ -829,9 +921,9 @@ if __name__ == "__main__":
         logger = FunctionLogger(functionName='routeToIndex')
         logger.info(f"routeToIndex : Request landed in the redirects, sending to mainLink ({configfile['mainLink']})")
         return redirect(configfile['mainLink'])
+    #endregion   
     #endregion
-    #endregion
-    
+
     #NEEDS CLEANUP/REDESIGN
     def cacheClearer():
         logger = FunctionLogger('cacheClearer')
@@ -852,6 +944,7 @@ if __name__ == "__main__":
                 pass
             time.sleep(1)
 
+    #Makes it so that the cacheclearer runs at the same time (probably needs reworking)
     threading.Thread(target=cacheClearer, args=(), daemon=True).start()
     app.run(debug=configfile['DEBUGMODE'], host=configfile['ip'], port=configfile['port']) # Run website
 else:
