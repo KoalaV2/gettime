@@ -809,7 +809,7 @@ if __name__ == "__main__":
                 return f"<pre>{logFileLocation+logFileName}</pre><pre>{''.join(f.readlines())}</pre>"
     #endregion
     
-    # Special easter egg URL's for the creators/contributors AND AMOGUS ඞ
+    #region Special easter egg URL's for the creators/contributors AND AMOGUS ඞ
     @app.endpoint('TheoCredit')
     def TheoCredit():
         return redirect('https://koalathe.dev/')
@@ -819,8 +819,9 @@ if __name__ == "__main__":
     @app.endpoint('ඞ')
     def ඞ():
         return render_template('AmongUs.html')
+    #endregion
 
-    # Redirects (For dead links)
+    #region Redirects (For dead links)
     @app.route("/schema/<a>")
     @app.route("/schema/")
     @app.route("/schema")
@@ -829,7 +830,9 @@ if __name__ == "__main__":
         logger.info(f"routeToIndex : Request landed in the redirects, sending to mainLink ({configfile['mainLink']})")
         return redirect(configfile['mainLink'])
     #endregion
+    #endregion
     
+    #NEEDS CLEANUP/REDESIGN
     def cacheClearer():
         logger = FunctionLogger('cacheClearer')
         while 1:
