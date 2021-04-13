@@ -83,11 +83,8 @@ function updateTimetable(){
 				}catch(error){console.error(error);}
 				
 				// Fade in the Schedule
-				
 				$('#schedule').fadeIn(500);
 				$("#schedule").css({"transform": "none", "opacity": 1});
-				
-				
 				
 				// toUrl['id'] = idnumber;
 				// toUrl['week'] = week;
