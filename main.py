@@ -737,7 +737,7 @@ if __name__ == "__main__":
         showContactOnLoad = False
         autoReloadSchedule = False
         dropDownButtons = []
-        bypassCookiePolicy = False
+        ignorecookiepolicy = False
         #endregion
         #region Check parameters
         if 'id' in request.args:
