@@ -54,6 +54,8 @@ def SetLogging(path="", filename="log.log", format='%(asctime)s %(levelname)s %(
     """
         Changes logging settings.
     """
+    try:os.mkdir(path)
+    except:pass
     open(path+filename, 'w').close() # Clear Logfile
     log = logging.getLogger() # root logger
     for hdlr in log.handlers[:]: # remove all old handlers
@@ -492,7 +494,8 @@ if __name__ == "__main__":
 
     # Setup Flask
     app = Flask(__name__)
-    minify(app=app, html=True, js=False, cssless=True)
+    #minify(app=app, html=True, js=False, cssless=True)
+    minify(app=app, html=True, js=False, cssless=True, passive=True)
     Mobility(app) # Mobile features
     CORS(app) # Behövs så att man kan skicka requests till serven (for some reason idk)
     #endregion  
@@ -698,6 +701,7 @@ if __name__ == "__main__":
     contacts = [
         {
             'name':'Isak Karlsen (19_tek_a)',
+            'info':'GetTime\'s huvudprogrammerare. Konverterade den gamla sodschema koden till en Flask backend.',
             'email':'isak@gettime.ga',
             'links':[
                 ('GitHub','https://github.com/TayIsAsleep') #You can add multiple arrays here with 2 strings, first string is the text you see, and secound string is the URL it should lead too
@@ -705,16 +709,19 @@ if __name__ == "__main__":
         },
         {
             'name':'Theodor Johanson (20_el_a)',
+            'info':'Hostar gettime.ga och skapade den nya fetch koden som gör sidan snabbare än någonsin.',
             'email':'theo@gettime.ga',
             'links':[
-                ('GitHub','https://github.com/KoalaV2')
+                ('GitHub','https://github.com/KoalaV2'),
+                ('Hemsida','https://koalathe.dev/')
             ]
         },
         {
             'name':'Pierre Le Fevre (16_tek_cs)',
+            'info':'Skapade sodschema.ga/schema.sodapps.io, vilket som är grunden till vad GetTime är nu.',
             'email':'pierre@gettime.ga',
             'links':[
-                ('GitHub','https://github.com/PierreLeFevre')
+                ('GitHub','https://github.com/PierreLeFevre') 
             ]
         }
     ]
@@ -738,6 +745,9 @@ if __name__ == "__main__":
         autoReloadSchedule = False
         dropDownButtons = []
         ignorecookiepolicy = False
+        ignorejsmin = False
+        ignorecssmin = False
+        ignorehtmlmin = False
         #endregion
         #region Check parameters
         if 'id' in request.args:
@@ -754,21 +764,29 @@ if __name__ == "__main__":
             except:pass
         initDayMode = mobileRequest # initDayMode is True by default if the request is a mobile request unless...
         if 'day' in request.args:
-            try:
-                initDay = int(request.args['day'])
-                initDayMode = True # ...day is specified...
+            try:initDay,initDayMode = int(request.args['day']),True # ...day is specified...
             except:pass
         if 'daymode' in request.args: 
             initDayMode = arg01_to_bool(request.args,"daymode") # ...or daymode is specified in the URL, and is set to 1.
-        debugmode = arg01_to_bool(request.args,"debugmode")
-        showContactOnLoad = arg01_to_bool(request.args,"contact")        
-        autoReloadSchedule = arg01_to_bool(request.args,"rl")
+        if 'debugmode' in request.args: 
+            debugmode = arg01_to_bool(request.args,"debugmode")
+        if 'contact' in request.args: 
+            showContactOnLoad = arg01_to_bool(request.args,"contact")        
+        if 'rl' in request.args: 
+            autoReloadSchedule = arg01_to_bool(request.args,"rl")
+        if 'ignorecookiepolicy' in request.args: 
+            ignorecookiepolicy = arg01_to_bool(request.args,"ignorecookiepolicy")
+        if 'ignorejsmin' in request.args: 
+            ignorejsmin = arg01_to_bool(request.args,"ignorejsmin")
+        if 'ignorecssmin' in request.args: 
+            ignorecssmin = arg01_to_bool(request.args,"ignorecssmin")
+        if 'ignorehtmlmin' in request.args: 
+            ignorehtmlmin = arg01_to_bool(request.args,"ignorehtmlmin")
         dropDownButtons = [buttons[x].render() for x in (menus['private'] if privateURL else menus['normal'])]
-        ignorecookiepolicy = arg01_to_bool(request.args,"ignorecookiepolicy")
         #endregion    
         
         return render_template(
-            template_name_or_list="sodschema.html",
+            template_name_or_list="sodschema.html" if ignorehtmlmin else "min/sodschema.min.html",
             contacts=contacts,
             parseCode=parseCode,
             requestURL=requestURL,
@@ -783,7 +801,9 @@ if __name__ == "__main__":
             showContactOnLoad=showContactOnLoad,
             autoReloadSchedule=autoReloadSchedule,
             dropDownButtons=dropDownButtons,
-            ignorecookiepolicy=ignorecookiepolicy
+            ignorecookiepolicy=ignorecookiepolicy,
+            ignorejsmin=ignorejsmin,
+            ignorecssmin=ignorecssmin
         )
     #endregion
     #region API

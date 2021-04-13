@@ -62,35 +62,25 @@ function checkIfIDTextFits(){
 		if (inputExceeded()){
 			while(inputExceeded()){
 				var oldSize = parseInt(el.css("--font-size"),10);
-				//console.log(oldSize);
 				var newSize = oldSize - 1;
-				//console.log(newSize);
 				
 				if(newSize < 1){
 					break;
 				}
 	
-				el.css({
-					"font-size":"min(" + newSize + "px,24px)",
-					"--font-size":newSize + "px"
-				});
+				el.css({"font-size":"min(" + newSize + "px,24px)","--font-size":newSize + "px"});
 			}
 		}
 		else{
 			while(!inputExceeded()){
 				var oldSize = parseInt(el.css("--font-size"),10);
-				//console.log(oldSize);
 				var newSize = oldSize + 1;
-				//console.log(newSize);
 				
 				if(newSize > 24){
 					break;
 				}
 	
-				el.css({
-					"font-size":"min(" + newSize + "px,24px)",
-					"--font-size":newSize + "px"
-				});
+				el.css({"font-size":"min(" + newSize + "px,24px)","--font-size":newSize + "px"});
 			}
 		}
 		lastKnownID = el.val();

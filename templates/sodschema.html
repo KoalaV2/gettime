@@ -3,19 +3,18 @@
 	<head>
 		<!-- GetTime -->
 		<script>
-			// This is where some constants and settings are stored
-			var requestURL = "{{requestURL}}", // string
-				privateURL = {{"true" if privateURL else "false"}}, // bool
-				saveIdToCookie = {{"true" if saveIdToCookie else "false"}}, // bool
-				mobileRequest = {{"true" if mobileRequest else "false"}}, // bool
-				initID = "{{initID}}", // string
-				initDayMode = {{"true" if initDayMode else "false"}}, // bool
-				initWeek = {{initWeek}}, // int
-				initDay = {{initDay}}, // int
-				showContactOnLoad = {{"true" if showContactOnLoad else "false"}}, // bool
-				autoReloadSchedule = {{"true" if autoReloadSchedule else "false"}}, // bool
-				ignorecookiepolicy = {{"true" if ignorecookiepolicy else "false"}}; // bool
-			
+			/* This is where some constants and settings are stored */
+			var requestURL = "{{requestURL}}",
+				privateURL = {{"true" if privateURL else "false"}},
+				saveIdToCookie = {{"true" if saveIdToCookie else "false"}},
+				mobileRequest = {{"true" if mobileRequest else "false"}},
+				initID = "{{initID}}",
+				initDayMode = {{"true" if initDayMode else "false"}},
+				initWeek = {{initWeek}},
+				initDay = {{initDay}},
+				showContactOnLoad = {{"true" if showContactOnLoad else "false"}},
+				autoReloadSchedule = {{"true" if autoReloadSchedule else "false"}},
+				ignorecookiepolicy = {{"true" if ignorecookiepolicy else "false"}};
 		</script>
 		
 		<!-- Set title -->
@@ -24,12 +23,20 @@
 		<!-- JS Libraries -->
 		<script type="text/javascript" src="/static/js/jquery-3.6.0.min.js"></script>
 		<script type="text/javascript" src="/static/js/jquery.touchSwipe.min.js"></script>
-		<script type="text/javascript" src="/static/js/cookies.js"></script>
-		<script type="text/javascript" src="/static/js/touchEvents.js"></script>
-		<script type="text/javascript" src="/static/js/script.js"></script>
-		<script type="text/javascript" src="/static/js/updateTimetable.js"></script>
-		<script type="text/javascript" src="/static/js/saveurl.js"></script>
-		
+		{% if ignorejsmin %}
+			<script type="text/javascript" src="/static/js/cookies.js"></script>
+			<script type="text/javascript" src="/static/js/touchEvents.js"></script>
+			<script type="text/javascript" src="/static/js/script.js"></script>
+			<script type="text/javascript" src="/static/js/updateTimetable.js"></script>
+			<script type="text/javascript" src="/static/js/saveurl.js"></script>
+		{% else %}
+			<script type="text/javascript" src="/static/js/min/cookies.min.js"></script>
+			<script type="text/javascript" src="/static/js/min/touchEvents.min.js"></script>
+			<script type="text/javascript" src="/static/js/min/script.min.js"></script>
+			<script type="text/javascript" src="/static/js/min/updateTimetable.min.js"></script>
+			<script type="text/javascript" src="/static/js/min/saveurl.min.js"></script>
+		{% endif %}
+
 		<!-- Basic meta tags -->
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no">
@@ -68,10 +75,21 @@
 		<!-- Import CSS Libraries -->
 		<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:100,300|Rubik">
 		<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
-		<link rel="stylesheet" type="text/css" href="/static/css/style.css">
-		<link rel="stylesheet" type="text/css" href="/static/css/mobile.css">
-		<link rel="stylesheet" type="text/css" href="/static/css/toggle.css">
-		<link rel="stylesheet" type="text/css" href="/static/css/roller.css">
+		{% if ignorecssmin %}
+			<link rel="stylesheet" type="text/css" href="/static/css/style.css">
+			{% if mobileRequest %}
+				<link rel="stylesheet" type="text/css" href="/static/css/mobile.css">
+			{% endif %}
+			<link rel="stylesheet" type="text/css" href="/static/css/toggle.css">
+			<link rel="stylesheet" type="text/css" href="/static/css/roller.css">
+		{% else %}
+			<link rel="stylesheet" type="text/css" href="/static/css/min/style.min.css">
+			{% if mobileRequest %}
+				<link rel="stylesheet" type="text/css" href="/static/css/min/mobile.min.css">
+			{% endif %}
+			<link rel="stylesheet" type="text/css" href="/static/css/min/toggle.min.css">
+			<link rel="stylesheet" type="text/css" href="/static/css/min/roller.min.css">
+		{% endif %}
 	</head>
 	<body>
 		<!-- Wrapper div for overflow hiding on mobile devices -->
@@ -85,12 +103,13 @@
 				
 				{% if privateURL %}
 					<!-- 
+						Temporary input box, only shows up when a private ID is active, and if changed then it will overwrite the ID 
+						
 						This is mostly a temporary solution, because all of the code 
 						depends on ".input-idnumber" instead of a global variable, so
 						all that this does is take the values you put in this one, and
 						puts it in the hidden original input.
 					-->
-					<!-- Temporary input box, only shows up when a private ID is active, and if changed then it will overwrite the ID -->
 					<input id="id-input-box2" onclick="void(0)" class="input-idnumber control" type="text" placeholder="Privat ID"/>
 				{% endif %}
 				
@@ -227,6 +246,9 @@
 
 				{% for x in contacts %}
 					<h3>{{x['name']}}</h3>
+					{% if x['info'] != "" and x['info'] != None %}
+						<p>{{x['info']}}</p>
+					{% endif %}
 					<ul>
 						<li>
 							<p><a href="mailto:{{x['email']}}" >{{x['email']}}</a></p>
@@ -270,7 +292,7 @@
 		{% if debugmode %}
 			<!-- This code is for debugging and testing! !! DO NOT REMOVE !! -->
 			<script>
-				// Code from https://tinyurl.com/4ectw2cz
+				/* Code from https://tinyurl.com/4ectw2cz */
 				const origConsoleLog = console.log;
 				const logArr = [];
 				console.log = (...args) => {
@@ -281,22 +303,16 @@
 					origConsoleLog.call(console, logArr.join('\n'));
 				};
 				
-				// Code from https://tinyurl.com/ybvdtuv7
+				/* Code from https://tinyurl.com/ybvdtuv7 */
 				window.onerror = function(msg, url, line, col, error) {
-					// Note that col & error are new to the HTML 5 spec and may not be 
-					// supported in every browser.  It worked for me in Chrome.
+					/* Note that col & error are new to the HTML 5 spec and may not be supported in every browser.  It worked for me in Chrome. */
 					var extra = !col ? '' : '\ncolumn: ' + col;
 					extra += !error ? '' : '\nerror: ' + error;
-
-					// You can view the information in an alert to see things working like this:
+					/* You can view the information in an alert to see things working like this: */
 					alert("Error: " + msg + "\nurl: " + url + "\nline: " + line + extra);
-
-					// TODO: Report this error via ajax so you can keep track
-					//       of what pages have JS issues
-
+					/* TODO: Report this error via ajax so you can keep track of what pages have JS issues */
 					var suppressErrorAlert = true;
-					// If you return true, then error alerts (like in older versions of 
-					// Internet Explorer) will be suppressed.
+					/* If you return true, then error alerts (like in older versions of Internet Explorer) will be suppressed. */
 					return suppressErrorAlert;
 				};
 
