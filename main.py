@@ -764,20 +764,25 @@ if __name__ == "__main__":
             except:pass
         initDayMode = mobileRequest # initDayMode is True by default if the request is a mobile request unless...
         if 'day' in request.args:
-            try:
-                initDay = int(request.args['day'])
-                initDayMode = True # ...day is specified...
+            try:initDay,initDayMode = int(request.args['day']),True # ...day is specified...
             except:pass
         if 'daymode' in request.args: 
             initDayMode = arg01_to_bool(request.args,"daymode") # ...or daymode is specified in the URL, and is set to 1.
-        debugmode = arg01_to_bool(request.args,"debugmode")
-        showContactOnLoad = arg01_to_bool(request.args,"contact")        
-        autoReloadSchedule = arg01_to_bool(request.args,"rl")
+        if 'debugmode' in request.args: 
+            debugmode = arg01_to_bool(request.args,"debugmode")
+        if 'contact' in request.args: 
+            showContactOnLoad = arg01_to_bool(request.args,"contact")        
+        if 'rl' in request.args: 
+            autoReloadSchedule = arg01_to_bool(request.args,"rl")
+        if 'ignorecookiepolicy' in request.args: 
+            ignorecookiepolicy = arg01_to_bool(request.args,"ignorecookiepolicy")
+        if 'ignorejsmin' in request.args: 
+            ignorejsmin = arg01_to_bool(request.args,"ignorejsmin")
+        if 'ignorecssmin' in request.args: 
+            ignorecssmin = arg01_to_bool(request.args,"ignorecssmin")
+        if 'ignorehtmlmin' in request.args: 
+            ignorehtmlmin = arg01_to_bool(request.args,"ignorehtmlmin")
         dropDownButtons = [buttons[x].render() for x in (menus['private'] if privateURL else menus['normal'])]
-        ignorecookiepolicy = arg01_to_bool(request.args,"ignorecookiepolicy")
-        ignorejsmin = arg01_to_bool(request.args,"ignorejsmin")
-        ignorecssmin = arg01_to_bool(request.args,"ignorecssmin")
-        ignorehtmlmin = arg01_to_bool(request.args,"ignorehtmlmin")
         #endregion    
         
         return render_template(
