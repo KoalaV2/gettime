@@ -698,6 +698,7 @@ if __name__ == "__main__":
     contacts = [
         {
             'name':'Isak Karlsen (19_tek_a)',
+            'info':'GetTime\'s huvudprogrammerare. Konverterade den gamla sodschema koden till en Flask backend.',
             'email':'isak@gettime.ga',
             'links':[
                 ('GitHub','https://github.com/TayIsAsleep') #You can add multiple arrays here with 2 strings, first string is the text you see, and secound string is the URL it should lead too
@@ -705,16 +706,19 @@ if __name__ == "__main__":
         },
         {
             'name':'Theodor Johanson (20_el_a)',
+            'info':'Hostar gettime.ga och skapade den nya fetch koden som gör sidan snabbare än någonsin.',
             'email':'theo@gettime.ga',
             'links':[
-                ('GitHub','https://github.com/KoalaV2')
+                ('GitHub','https://github.com/KoalaV2'),
+                ('Hemsida','https://koalathe.dev/')
             ]
         },
         {
             'name':'Pierre Le Fevre (16_tek_cs)',
+            'info':'Skapade sodschema.ga/schema.sodapps.io, vilket som är grunden till vad GetTime är nu.',
             'email':'pierre@gettime.ga',
             'links':[
-                ('GitHub','https://github.com/PierreLeFevre')
+                ('GitHub','https://github.com/PierreLeFevre') 
             ]
         }
     ]
