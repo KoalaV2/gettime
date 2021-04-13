@@ -4,15 +4,17 @@
 		<!-- GetTime -->
 		<script>
 			// This is where some constants and settings are stored
-			var requestURL = "{{requestURL}}"; // string
-			var privateURL = {{"true" if privateURL else "false"}}; // bool
-			var saveIdToCookie = {{"true" if saveIdToCookie else "false"}}; // bool
-			var mobileRequest = {{"true" if mobileRequest else "false"}}; // bool
-			var initID = "{{initID}}" // string
-			var initDayMode = {{"true" if initDayMode else "false"}} // bool
-			var initWeek = {{initWeek}} // int
-			var initDay = {{initDay}} // int
-			var showContactOnLoad = {{"true" if showContactOnLoad else "false"}} // bool
+			var requestURL = "{{requestURL}}", // string
+				privateURL = {{"true" if privateURL else "false"}}, // bool
+				saveIdToCookie = {{"true" if saveIdToCookie else "false"}}, // bool
+				mobileRequest = {{"true" if mobileRequest else "false"}}, // bool
+				initID = "{{initID}}", // string
+				initDayMode = {{"true" if initDayMode else "false"}}, // bool
+				initWeek = {{initWeek}}, // int
+				initDay = {{initDay}}, // int
+				showContactOnLoad = {{"true" if showContactOnLoad else "false"}}, // bool
+				autoReloadSchedule = {{"true" if autoReloadSchedule else "false"}}; // bool
+			
 		</script>
 		
 		<!-- Set title -->
@@ -79,7 +81,18 @@
 
 			<!-- Top navbar -->
 			<nav class="navbar">
-
+				
+				{% if privateURL %}
+					<!-- 
+						This is mostly a temporary solution, because all of the code 
+						depends on ".input-idnumber" instead of a global variable, so
+						all that this does is take the values you put in this one, and
+						puts it in the hidden original input.
+					-->
+					<!-- Temporary input box, only shows up when a private ID is active, and if changed then it will overwrite the ID -->
+					<input id="id-input-box2" onclick="void(0)" class="input-idnumber control" type="text" placeholder="Privat ID"/>
+				{% endif %}
+				
 				<!-- Main input, personal id, class etc -->
 				<input id="id-input-box" onclick="void(0)" class="input-idnumber control" type="text" name="idnumber" placeholder="PERSONNR/KLASS"/>
 
@@ -96,81 +109,11 @@
 
 			<!-- Menu dropdown container parent -->
 			<div class="controls">
-
 				<!-- Menu dropdown container child -->
 				<div class="controls-container">
-					<!-- Week input -->
-					<!-- <div class="control control-container input-week-container">
-						<span id="button-text-week">Vecka&nbsp;&nbsp;</span>
-						<input onclick="void(0)" class="input-week label" type="number" name="week" placeholder="XX" min="1" max="53"/>
-					</div> -->
-
-					<!-- Rounded mode toggle switch -->
-					<!-- <label class="roundedModeBox mobileOnly toggleBox control-container" for="roundedMode">
-						<span id="button-text-rounded">Rounded</span>
-						<label class="switch ">
-							<input id="roundedMode" name="roundedMode" type="checkbox">
-							<span class="slider round control control-right"></span>
-						</label>
-					</label> -->
-
-					<!-- Day only mode toggle switch -->
-					<label class="dayModeBox toggleBox control-container" for="input-day">
-						<span id="button-text-day">Dag&nbsp;&nbsp;</span>
-						<label class="switch ">
-							<input type="checkbox" name="input-day" id="input-day"/>
-							<span class="slider round control control-right"></span>
-						</label>
-					</label>
-
-					<!-- Redirect to school lunch link -->
-					<a href="https://skolmaten.se/nti-gymnasiet-sodertorn" class="control control-container">
-						<span id="button-text-food">Mat&nbsp;&nbsp;</span>
-						<i class="fas fa-utensils control-right"></i>
-					</a>
-
-					{% if privateURL %}
-						<!-- Copy savable link -->
-						<a onclick="updateClipboard(window.location.href)" class="control control-container">
-							<span id="button-text-copy">Kopiera privat länk&nbsp;&nbsp;</span>
-							<i class="fas fa-user-lock control-right"></i>
-						</a>
-					{% else %}
-						<!-- Generate savable link -->
-						<a onclick="window.location.href = getShareableURL()['url'];" class="control control-container">
-							<span id="button-text-private">Skapa privat länk&nbsp;&nbsp;</span>
-							<i class="fas fa-user-lock control-right"></i>
-						</a>
-					{% endif %}
-
-					<!-- Generate QR code -->
-					<a onclick="clickOn_QRCODE()" class="control control-container">
-						<span id="button-text-qr">Skapa QR kod&nbsp;&nbsp;</span>
-						<i class="fas fa-qrcode control-right"></i>
-					</a>
-
-					{% if not privateURL %}
-						<!-- Show saved timetables button -->
-						<div onclick="clickOn_SAVEDLINKS()" class="control control-container">
-							<span id="button-text-saved">Sparade länkar&nbsp;&nbsp;</span>
-							<i class="far fa-save control-right"></i>
-						</div>
-					{% endif %}
-
-					{% if privateURL %}
-						<!-- Go back to main page -->
-						<a onclick="window.location.href = requestURL" class="control control-container">
-							<span id="button-text-gotostart">Startsida&nbsp;&nbsp;</span>
-							<i class="far fa-calendar-alt control-right"></i>
-						</a>
-					{% endif %}
-				
-					<!-- Contact button -->
-					<a onclick="contactInfoOpen()" class="control control-container">
-						<span id="button-text-gotostart">Kontakta oss&nbsp;&nbsp;</span>
-						<i class="far fa-address-book control-right"></i>
-					</a>
-
+					{% for x in dropDownButtons %}
+						{{x}}
+					{% endfor %}
 				</div>
 			</div>
 
@@ -192,7 +135,7 @@
 			</div>
 
 			<!-- GDPR and cookies info div -->
-			<div class="info">
+			<div id="text_cookies_info" class="text_box">
 				<h1>GetTime Cookie Policy</h1>
 				<h2>TLDR;<br>If you use GetTime, we store cookies on your device for you to be able to save timetables.</h2>
 
@@ -264,15 +207,14 @@
 				</ul>
 
 				<!-- Accept policy button -->
-				<span onclick="infoClose()" class="infoClose">Close and accept</span>
+				<span onclick="createCookie('infoClosed', 'closed', 360);updateTimetable();textBoxClose('#text_cookies_info')" class="text_box_close">Close and accept</span>
 				<br>
 
 			</div>
 
 			<!-- Contact information -->
-			<div class="contact_info">
+			<div id="text_contact_info" class="text_box contact_info">
 				
-				<!-- <a class="foodLink control"><i class="far fa-address-book control-right"></i></a> -->
 				<h1>Kontaktinformation</h1>
 
 				<h2>Hittat en bug?</h2>
@@ -297,7 +239,20 @@
 				{% endfor %}
 
 				<!-- Go back button -->
-				<span onclick="contactInfoClose()" class="infoClose">Gå tillbaka</span>
+				<span onclick="textBoxClose('#text_contact_info')" class="text_box_close">Gå tillbaka</span>
+				<br>
+
+			</div>
+
+			<!-- Contact information TEST -->
+			<div id="text_test" class="text_box">
+	
+				<h1>test</h1>
+
+				<p>test 2</p>
+
+				<!-- Go back button -->
+				<span onclick="textBoxClose('#text_test')" class="text_box_close">Stäng</span>
 				<br>
 
 			</div>

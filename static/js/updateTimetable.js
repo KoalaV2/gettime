@@ -1,8 +1,7 @@
-//update timetable image
-
 function updateTimetable(){
+	console.log("updateTimetable was excecuted.");
 
-	idnumber = $(".input-idnumber").val();
+	idnumber = $("#id-input-box").val();
 	checkIfIDTextFits();
 	width = $(window).width() + 6;
 	height = (window.innerHeight - $(".navbar").height() + 1); // Sets height of schedule to the full screen size, minus the navigation bar at the top
@@ -57,31 +56,35 @@ function updateTimetable(){
 		if (!privateURL){
 			console.log("Requesting schedule with this url : " + url)
 		}
+		else{
+			console.log("Requesting schedule...")
+		}
 
 		/* This code asks the server to generate a new schedule for you */
 		$.getJSON(url, function(data) {
 
-			if (data['result']['html'] != "None" && saveIdToCookie && !SUSSY){
+			if (!data['result']['html'].startsWith("<!-- ERROR -->") && saveIdToCookie && !SUSSY){
 				createCookie("idnumber", idnumber, 360);
 				console.log("Saved ID to cookie");
 			}
-			if (data['result']['html'] != "None"){
+
+			if (!data['result']['html'].startsWith("<!-- ERROR -->")){
+
 				// Replaces the SVG with the new SVG data
 				var tdElement = document.getElementById('schedule');
 				var trElement = tdElement.parentNode;
 				trElement.removeChild(tdElement);
 				trElement.innerHTML = data['result']['html'] + trElement.innerHTML;
+
+				$('#schedule').fadeOut(0);
 				
 				// Run the URL scripts
 				try{eval($('#scheduleScript').attr('script'));
 				}catch(error){console.error(error);}
 				
 				// Fade in the Schedule
-				
 				$('#schedule').fadeIn(500);
 				$("#schedule").css({"transform": "none", "opacity": 1});
-				
-				
 				
 				// toUrl['id'] = idnumber;
 				// toUrl['week'] = week;
@@ -89,9 +92,6 @@ function updateTimetable(){
 				// if (!privateURL){
 				// 	UpdateEntryInUrlArguments('id',idnumber);
 				// }
-				
-
-
 				// window.history.pushState("", "", $.param(toUrl));
 			}
 

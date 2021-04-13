@@ -62,9 +62,9 @@ function checkIfIDTextFits(){
 		if (inputExceeded()){
 			while(inputExceeded()){
 				var oldSize = parseInt(el.css("--font-size"),10);
-				console.log(oldSize);
+				//console.log(oldSize);
 				var newSize = oldSize - 1;
-				console.log(newSize);
+				//console.log(newSize);
 				
 				if(newSize < 1){
 					break;
@@ -79,9 +79,9 @@ function checkIfIDTextFits(){
 		else{
 			while(!inputExceeded()){
 				var oldSize = parseInt(el.css("--font-size"),10);
-				console.log(oldSize);
+				//console.log(oldSize);
 				var newSize = oldSize + 1;
-				console.log(newSize);
+				//console.log(newSize);
 				
 				if(newSize > 24){
 					break;
@@ -118,7 +118,7 @@ function showSaved(){
 
 	if ($(".savedItems").length == 1){
 		$(".savedList").empty();
-		$(".savedList").append("<li class='savedItems'>You have no saved URL's</li>");
+		$(".savedList").append("<li class='savedItems'>Du har inte sparat något URL</li>");
 	}
 	else{
 		$(".savedList").append('<button class="clearSavedItems mobileSaved control-container" onclick="deleteAllURLCookies();">Ta bort alla</button>');
@@ -128,39 +128,24 @@ function showSaved(){
 
 };
 
-//accept cookie policy
-function infoClose(){
-	createCookie("infoClosed", "closed", 360);
-	$('.navbar').removeClass("infoBgBlur");
-	$('.info').fadeOut("fast");
-	$( ".input-idnumber" ).focus();
-};
-
-
-function contactInfoOpen(){
+//open textBox
+function textBoxOpen(idToOpen){
 	hideControls();
-	$('.contact_info').fadeIn();
+	$(idToOpen).fadeIn();
 	$('.navbar').fadeOut();
 	$('#scheduleBox').fadeOut();
 }
 
-//accept cookie policy
-function contactInfoClose(){
-	$('.contact_info').fadeOut();
+//close textBox
+function textBoxClose(idToClose){
+	$(idToClose).fadeOut();
 	$('.navbar').fadeIn();
 	$('#scheduleBox').fadeIn();	
 };
 
-//dismiss changelog
-function newsClose(){
-	createCookie("newsClosed", "closed", 360);
-	$('.news').hide();
-	$( ".input-idnumber" ).focus();	
-};
-
 //save inputed item in box
 function savedItemClicked(item){
-	$(".input-idnumber").val(item.text());
+	$("#id-input-box").val(item.text());
 	$(".savedIDs").fadeOut("fast");
 	console.log('save inputed item in box');
 	updateTimetable();
@@ -194,7 +179,7 @@ function updateClipboard(newClip) {
 //Gets the shareable link
 function getShareableURL(){
 	var value= $.ajax({ 
-	   url: requestURL + 'API/SHAREABLE_URL?id=' + $(".input-idnumber").val(), 
+	   url: requestURL + 'API/SHAREABLE_URL?id=' + $("#id-input-box").val(), 
 	   async: false
 	}).responseJSON;
 	return value['result'];
@@ -216,26 +201,24 @@ function updateMenuButtonsBasedOnSize(){
 	}
 }
 
-
-
 function clickOn_QRCODE(){
-	$("#button-text-qr").text("Laddar...")
+	$("#button-text-qr").text("Laddar...");
 	try {
-		window.location.href = requestURL + "API/QR_CODE?id=" + (privateURL ? (getShareableURL()['id'] + "&p=1") : ($(".input-idnumber").val() + "&p=0"));
+		window.location.href = requestURL + "API/QR_CODE?id=" + (privateURL ? (getShareableURL()['id'] + "&p=1") : ($("#id-input-box").val() + "&p=0"));
 	} catch {
-		$("#button-text-qr").text("ERROR!")
+		$("#button-text-qr").text("ERROR!");
 	}
 }
 
 function clickOn_SAVEDLINKS(){
-	showSaved()
+	showSaved();
 }
-
 
 //events on load & event triggers.
 $(window).on("load", function(){
 
 	// debounce
+	//Code from https://tinyurl.com/ttd83xe6
 	function debounce(func, wait, immediate) {
 		var timeout;
 		return function() {
@@ -251,51 +234,49 @@ $(window).on("load", function(){
 		};
 	};
 
+	//Code from https://stackoverflow.com/a/15032300
+	if (autoReloadSchedule){
+		var lastRefresh = new Date(); // If the user just loaded the page you don't want to refresh either
+		setInterval(function(){
+			//first, check time, if it is 0 AM, reload the page
+			var now = new Date();
+			if (now.getHours() == 0 && new Date() - lastRefresh > 1000 * 60 * 60 * 1.5) { // If it is between 9 and ten AND the last refresh was longer ago than 1.5 hours refresh the page.
+				location.reload();
+			}
+		},10000);
+	}
+
+	//Hides the main input if the URL is private
 	if (privateURL){
 		$('#id-input-box').css("display", "none");
 	}
 	
-	//hide contact info
-	$('.contact_info').hide();
+	//hide all textboxes
+	$('.text_box').hide();
 
 	//hide controls div before load
 	hideControls();
-
-	//get idnumber cookie and input data
-	if (initID == ""){
-		$(".input-idnumber").val(readCookie("idnumber"));
-	}
-	else{
-		$(".input-idnumber").val(initID);
-	}
 
 	//hide saved ids div before load
 	$(".savedIDs").fadeOut(0);
 
 	//enable day mode by default for mobile devices
 	$('#input-day').prop('checked', initDayMode);
-	
-	//get info closed cookie and hide or show info accordingly
-	if(readCookie("infoClosed") == "closed"){
-		$('.info').hide();
-		$('.navbar').removeClass("infoBgBlur");
-	}else{
-		$('.info').fadeIn();
-		$('.navbar').addClass("infoBgBlur");
+
+	//get idnumber from cookie or input data
+	if (initID == ""){
+		$("#id-input-box").val(readCookie("idnumber"));
 	}
-	
-	//get news closed info (deprecated, to be updated and readded.)
-	if(readCookie("newsClosed") == "closed"){
-		$('.news').hide();
-	}else{
-		$('.news').show();
+	else{
+		$("#id-input-box").val(initID);
 	}
 
-	//get rounded mode cookie for rounded screen devices
-	if(readCookie("roundedMode") == "rounded"){
-		$('#roundedMode').prop('checked', true);
-	}else{
-		$('#roundedMode').prop('checked', false);
+	//get info closed cookie and hide or show info accordingly
+	if(readCookie("infoClosed") == "closed") {
+		textBoxClose('#text_cookies_info')
+	}
+	else{
+		textBoxOpen('#text_cookies_info')
 	}
 
 	//get and set current week
@@ -305,18 +286,19 @@ $(window).on("load", function(){
 	$(".arrow-center").attr("title", ("Current week (" + week + ")"));
 
 	//load timetable after cookie info get
-	console.log("load timetable after cookie info get");
-	updateTimetable();
+	if (readCookie("infoClosed") == "closed"){
+		console.log("load timetable after cookie info get");
+		updateTimetable();	
+	}
+
 	updateMenuButtonsBasedOnSize();
 	checkIfIDTextFits();
-
-	// Page finished loading, slide up loader screen
-	$(".loader-main").slideToggle();
 
 	// TRIGGERS
 	// update timetable to fit new window size
 	var update_timetable_to_fit_new_window_size = debounce(function() {
 		console.log("update timetable to fit new window size");
+		$("#schedule").fadeOut(500);
 		checkIfIDTextFits();
 		updateMenuButtonsBasedOnSize();
 		updateTimetable();
@@ -382,10 +364,31 @@ $(window).on("load", function(){
 
 	//update timetable on related input
 	var update_timetable_on_related_input = debounce(function() {
-		console.log('update timetable on related input (AFTER DEBOUNCE)');
-		updateTimetable();
+		$("#schedule").fadeOut(500, function(){
+			console.log('update timetable on related input (AFTER DEBOUNCE)');
+			updateTimetable();
+		});
 	}, 350);
-	$('.input-idnumber').on('input', update_timetable_on_related_input)
+	$('#id-input-box').on('input', update_timetable_on_related_input)
+
+	//If private ID, then this textbox shows up, so that the user can change the ID
+	var update_timetable_on_related_input = debounce(function() {
+		$("#schedule").fadeOut(500, function(){
+			$('#id-input-box').val($('#id-input-box2').val());
+
+			//Sets value back to the private ID if input is empty
+			if ($('#id-input-box').val() == ""){
+				if (initID == ""){
+					$("#id-input-box").val(readCookie("idnumber"));
+				}
+				else{
+					$("#id-input-box").val(initID);
+				}
+			}
+			updateTimetable();
+		});
+	}, 350);
+	$('#id-input-box2').on('input', update_timetable_on_related_input)
 
 	//unreliable fix, need more investigation on why input week arrows dont work.
 	$(".input-week-container").on("click", function(){
@@ -458,7 +461,6 @@ $(window).on("load", function(){
 		};
 	});
 
-
 	// hide controls when save button is clicked
 	$('.savebutton').on("click", function(){
 		hideControls();
@@ -481,11 +483,12 @@ $(window).on("load", function(){
 	});
 
 	if (showContactOnLoad){
-		// infoClose();
-		contactInfoOpen();
+		textBoxOpen('#text_contact_info');
+		//contacttextBoxOpen('#text_cookies_info');
 	}
 
+	// Page finished loading, slide up loader screen
+	$(".loader-main").slideToggle();
 
 	console.log("script.js is loaded");
-
 });
