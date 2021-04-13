@@ -128,14 +128,25 @@ function showSaved(){
 
 };
 
-//accept cookie policy
-function infoClose(){
-	createCookie("infoClosed", "closed", 360);
-	$('.navbar').removeClass("infoBgBlur");
-	$('.info').fadeOut("fast");
-	$( ".input-idnumber" ).focus();
+
+//open cookie policy
+function infoOpen(){
+	hideControls();
+	$('.info').fadeIn();
+	$('.navbar').fadeOut();
+	$('#scheduleBox').fadeOut();
 };
 
+//close cookie policy
+function infoClose(){
+	createCookie("infoClosed", "closed", 360);
+	updateTimetable();
+	$('.info').fadeOut();
+	$('.navbar').fadeIn();
+	$('#scheduleBox').fadeIn();
+};
+
+//open contact info
 function contactInfoOpen(){
 	hideControls();
 	$('.contact_info').fadeIn();
@@ -143,18 +154,11 @@ function contactInfoOpen(){
 	$('#scheduleBox').fadeOut();
 }
 
-//accept cookie policy
+//close contact info
 function contactInfoClose(){
 	$('.contact_info').fadeOut();
 	$('.navbar').fadeIn();
 	$('#scheduleBox').fadeIn();	
-};
-
-//dismiss changelog
-function newsClose(){
-	createCookie("newsClosed", "closed", 360);
-	$('.news').hide();
-	$( ".input-idnumber" ).focus();	
 };
 
 //save inputed item in box
@@ -259,6 +263,7 @@ $(window).on("load", function(){
 		},10000);
 	}
 
+	//Hides the main input if the URL is private
 	if (privateURL){
 		$('#id-input-box').css("display", "none");
 	}
@@ -269,41 +274,26 @@ $(window).on("load", function(){
 	//hide controls div before load
 	hideControls();
 
-	//get idnumber cookie and input data
-	if (initID == ""){
-		$("#id-input-box").val(readCookie("idnumber"));
-	}
-	else{
-		$("#id-input-box").val(initID);
-	}
-
 	//hide saved ids div before load
 	$(".savedIDs").fadeOut(0);
 
 	//enable day mode by default for mobile devices
 	$('#input-day').prop('checked', initDayMode);
-	
-	//get info closed cookie and hide or show info accordingly
-	if(readCookie("infoClosed") == "closed"){
-		$('.info').hide();
-		$('.navbar').removeClass("infoBgBlur");
-	}else{
-		$('.info').fadeIn();
-		$('.navbar').addClass("infoBgBlur");
+
+	//get idnumber from cookie or input data
+	if (initID == ""){
+		$("#id-input-box").val(readCookie("idnumber"));
 	}
-	
-	//get news closed info (deprecated, to be updated and readded.)
-	if(readCookie("newsClosed") == "closed"){
-		$('.news').hide();
-	}else{
-		$('.news').show();
+	else {
+		$("#id-input-box").val(initID);
 	}
 
-	//get rounded mode cookie for rounded screen devices
-	if(readCookie("roundedMode") == "rounded"){
-		$('#roundedMode').prop('checked', true);
-	}else{
-		$('#roundedMode').prop('checked', false);
+	//get info closed cookie and hide or show info accordingly
+	if(readCookie("infoClosed") == "closed") {
+		infoClose()
+	}
+	else {
+		infoOpen()
 	}
 
 	//get and set current week
@@ -313,13 +303,13 @@ $(window).on("load", function(){
 	$(".arrow-center").attr("title", ("Current week (" + week + ")"));
 
 	//load timetable after cookie info get
-	console.log("load timetable after cookie info get");
-	updateTimetable();
+	if (readCookie("infoClosed") == "closed"){
+		console.log("load timetable after cookie info get");
+		updateTimetable();	
+	}
+
 	updateMenuButtonsBasedOnSize();
 	checkIfIDTextFits();
-
-	// Page finished loading, slide up loader screen
-	$(".loader-main").slideToggle();
 
 	// TRIGGERS
 	// update timetable to fit new window size
@@ -488,7 +478,6 @@ $(window).on("load", function(){
 		};
 	});
 
-
 	// hide controls when save button is clicked
 	$('.savebutton').on("click", function(){
 		hideControls();
@@ -511,11 +500,11 @@ $(window).on("load", function(){
 	});
 
 	if (showContactOnLoad){
-		// infoClose();
 		contactInfoOpen();
 	}
 
+	// Page finished loading, slide up loader screen
+	$(".loader-main").slideToggle();
 
 	console.log("script.js is loaded");
-
 });
