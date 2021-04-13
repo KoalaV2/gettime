@@ -271,12 +271,11 @@ $(window).on("load", function(){
 		$("#id-input-box").val(initID);
 	}
 
-	//get info closed cookie and hide or show info accordingly
-	if(readCookie("infoClosed") == "closed") {
-		textBoxClose('#text_cookies_info')
-	}
-	else{
-		textBoxOpen('#text_cookies_info')
+	if (!ignorecookiepolicy){
+		//get info closed cookie and hide or show info accordingly
+		if(readCookie("infoClosed") != "closed") {
+			textBoxOpen('#text_cookies_info')
+		}
 	}
 
 	//get and set current week
@@ -286,7 +285,7 @@ $(window).on("load", function(){
 	$(".arrow-center").attr("title", ("Current week (" + week + ")"));
 
 	//load timetable after cookie info get
-	if (readCookie("infoClosed") == "closed"){
+	if (readCookie("infoClosed") == "closed" || ignorecookiepolicy){
 		console.log("load timetable after cookie info get");
 		updateTimetable();	
 	}

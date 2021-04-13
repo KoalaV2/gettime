@@ -737,6 +737,7 @@ if __name__ == "__main__":
         showContactOnLoad = False
         autoReloadSchedule = False
         dropDownButtons = []
+        bypassCookiePolicy = False
         #endregion
         #region Check parameters
         if 'id' in request.args:
@@ -763,6 +764,7 @@ if __name__ == "__main__":
         showContactOnLoad = arg01_to_bool(request.args,"contact")        
         autoReloadSchedule = arg01_to_bool(request.args,"rl")
         dropDownButtons = [buttons[x].render() for x in (menus['private'] if privateURL else menus['normal'])]
+        ignorecookiepolicy = arg01_to_bool(request.args,"ignorecookiepolicy")
         #endregion    
         
         return render_template(
@@ -780,7 +782,8 @@ if __name__ == "__main__":
             mobileRequest=mobileRequest,
             showContactOnLoad=showContactOnLoad,
             autoReloadSchedule=autoReloadSchedule,
-            dropDownButtons=dropDownButtons
+            dropDownButtons=dropDownButtons,
+            ignorecookiepolicy=ignorecookiepolicy
         )
     #endregion
     #region API
