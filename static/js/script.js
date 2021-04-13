@@ -271,8 +271,8 @@ $(window).on("load", function(){
 		$("#id-input-box").val(initID);
 	}
 
+	//get info closed cookie and hide or show info accordingly
 	if (!ignorecookiepolicy){
-		//get info closed cookie and hide or show info accordingly
 		if(readCookie("infoClosed") != "closed") {
 			textBoxOpen('#text_cookies_info')
 		}
@@ -294,7 +294,7 @@ $(window).on("load", function(){
 	checkIfIDTextFits();
 
 	// TRIGGERS
-	// update timetable to fit new window size
+	//update timetable to fit new window size
 	var update_timetable_to_fit_new_window_size = debounce(function() {
 		console.log("update timetable to fit new window size");
 		$("#schedule").fadeOut(500);
