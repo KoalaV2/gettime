@@ -98,7 +98,9 @@ function updateTimetable(){
 		})
 
 		$('.arrow').removeClass('arrow-loading');
-		$("#background-roller").fadeOut("fast");
+
+		//This needs to be timed so that it happens AFTER the schedule fades in
+		//$("#background-roller").fadeOut("fast");
 		$(".arrow-center-text").text(week);
 
 	}
