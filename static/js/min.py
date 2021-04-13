@@ -1,19 +1,24 @@
-import os
-import requests
+# Uses https://javascript-minifier.com/api to minify all JS files in the directory.
+# It then places the files in a subfolder called "min".
 
-directory = os.path.dirname(__file__)
-print(directory)
+from os import listdir
+from os.path import dirname
+from requests import post
 
+directory = dirname(__file__)
+fileType = ".js"
 
-for filename in os.listdir(directory):
-    if filename.endswith(".js"):
-        print(filename)
+urlLookupTable = {
+    '.js':'https://javascript-minifier.com/raw'
+}
+
+for filename in listdir(directory):
+    if filename.endswith(fileType):
+        print("Minifying",filename)
+
         with open(f"{directory}\\{filename}","r") as f:
-            a = requests.post(url='https://javascript-minifier.com/raw',data={'input':f.read()})
-
-        with open(f'{directory}\\min\\{filename[:-3]}.min.js',"w") as f:
-            f.write(a.text)
+            a = post(url=urlLookupTable[fileType],data={'input':f.read()})
         
-
-# for fileName in ():
-#     
+        with open(f'{directory}\\min\\{filename[:-len(fileType)]}.min{fileType}',"w") as f:
+            f.write(a.text)
+input("\nDone!\nPress Enter to exit!\n")
