@@ -307,7 +307,7 @@ class GetTime:
             try:
                 if response3['error'] != None:
                     toReturn = {'status':-5,'message':"error was not None","data":response3}
-                if len(response3['validation']) != 0:
+                if len(response3['validation']) > 0:
                     toReturn = {'status':-6,'message':"validation was not empty : " + ','.join([x['message'] for x in response3['validation']]),"data":response3,"validation":response3['validation']}
             except:
                 toReturn = {'status':-8,'message':f"An error occured when trying to check for other errors! Here is the traceback : {traceback.format_exc()}","data":response3}
@@ -361,9 +361,12 @@ class GetTime:
         toReturn = []
         timeTakenToFetchData = time.time()
         j = self.getData(allowCache=allowCache)
-        
+
         if j['status'] < 0:
-            return {'html':"""<div id="schedule" style="all: initial;*{all:unset;}">""" + f"""<p style="color:white">{j['message']}</p>""" + j['data'].text + "</div>"}
+            try:
+                return {'html':"""<!-- ERROR --> <div id="schedule" style="all: initial;*{all:unset;}">""" + f"""<p style="color:white">{j['message']}</p>""" + j['data'].text + "</div>"}
+            except AttributeError:
+                return {'html':"""<!-- ERROR --> <div id="schedule" style="all: initial;*{all:unset;}">""" + f"""<p style="color:white">{j['message']}</p>{j['data']}</div>"""}
 
         timeTakenToFetchData = time.time()-timeTakenToFetchData
         
@@ -682,7 +685,7 @@ if __name__ == "__main__":
         'private':(
             'dayMode',
             'food',
-            'copySavableLink',
+            'generateSavableLink', #'copySavableLink',
             'generateQrCode',
             'mainPage',
             'contact'
@@ -717,6 +720,8 @@ if __name__ == "__main__":
 
         #region Default values
         t = CurrentTime()
+        parseCode = ""
+        requestURL = configfile['mainLink']
         initID = ""
         initDayMode = False
         initWeek = t['week2']
@@ -727,7 +732,7 @@ if __name__ == "__main__":
         mobileRequest = request.MOBILE
         showContactOnLoad = False
         autoReloadSchedule = False
-        dropDownButtons = [buttons[x].render() for x in (menus['private'] if privateURL else menus['normal'])]
+        dropDownButtons = []
         #endregion
         #region Check parameters
         if 'id' in request.args:
@@ -753,21 +758,22 @@ if __name__ == "__main__":
         debugmode = arg01_to_bool(request.args,"debugmode")
         showContactOnLoad = arg01_to_bool(request.args,"contact")        
         autoReloadSchedule = arg01_to_bool(request.args,"rl")
+        dropDownButtons = [buttons[x].render() for x in (menus['private'] if privateURL else menus['normal'])]
         #endregion    
         
         return render_template(
             template_name_or_list="sodschema.html",
-            parseCode="",
-            requestURL=configfile['mainLink'],
-            privateURL=privateURL,
-            saveIdToCookie=saveIdToCookie,
-            mobileRequest=mobileRequest,
-            debugmode=debugmode,
+            contacts=contacts,
+            parseCode=parseCode,
+            requestURL=requestURL,
             initID=initID,
             initDayMode=initDayMode,
             initWeek=initWeek,
             initDay=initDay,
-            contacts=contacts,
+            debugmode=debugmode,
+            privateURL=privateURL,
+            saveIdToCookie=saveIdToCookie,
+            mobileRequest=mobileRequest,
             showContactOnLoad=showContactOnLoad,
             autoReloadSchedule=autoReloadSchedule,
             dropDownButtons=dropDownButtons

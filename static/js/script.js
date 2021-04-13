@@ -62,9 +62,9 @@ function checkIfIDTextFits(){
 		if (inputExceeded()){
 			while(inputExceeded()){
 				var oldSize = parseInt(el.css("--font-size"),10);
-				console.log(oldSize);
+				//console.log(oldSize);
 				var newSize = oldSize - 1;
-				console.log(newSize);
+				//console.log(newSize);
 				
 				if(newSize < 1){
 					break;
@@ -79,9 +79,9 @@ function checkIfIDTextFits(){
 		else{
 			while(!inputExceeded()){
 				var oldSize = parseInt(el.css("--font-size"),10);
-				console.log(oldSize);
+				//console.log(oldSize);
 				var newSize = oldSize + 1;
-				console.log(newSize);
+				//console.log(newSize);
 				
 				if(newSize > 24){
 					break;
@@ -136,7 +136,6 @@ function infoClose(){
 	$( ".input-idnumber" ).focus();
 };
 
-
 function contactInfoOpen(){
 	hideControls();
 	$('.contact_info').fadeIn();
@@ -160,7 +159,7 @@ function newsClose(){
 
 //save inputed item in box
 function savedItemClicked(item){
-	$(".input-idnumber").val(item.text());
+	$("#id-input-box").val(item.text());
 	$(".savedIDs").fadeOut("fast");
 	console.log('save inputed item in box');
 	updateTimetable();
@@ -194,7 +193,7 @@ function updateClipboard(newClip) {
 //Gets the shareable link
 function getShareableURL(){
 	var value= $.ajax({ 
-	   url: requestURL + 'API/SHAREABLE_URL?id=' + $(".input-idnumber").val(), 
+	   url: requestURL + 'API/SHAREABLE_URL?id=' + $("#id-input-box").val(), 
 	   async: false
 	}).responseJSON;
 	return value['result'];
@@ -216,12 +215,10 @@ function updateMenuButtonsBasedOnSize(){
 	}
 }
 
-
-
 function clickOn_QRCODE(){
 	$("#button-text-qr").text("Laddar...")
 	try {
-		window.location.href = requestURL + "API/QR_CODE?id=" + (privateURL ? (getShareableURL()['id'] + "&p=1") : ($(".input-idnumber").val() + "&p=0"));
+		window.location.href = requestURL + "API/QR_CODE?id=" + (privateURL ? (getShareableURL()['id'] + "&p=1") : ($("#id-input-box").val() + "&p=0"));
 	} catch {
 		$("#button-text-qr").text("ERROR!")
 	}
@@ -230,7 +227,6 @@ function clickOn_QRCODE(){
 function clickOn_SAVEDLINKS(){
 	showSaved()
 }
-
 
 //events on load & event triggers.
 $(window).on("load", function(){
@@ -275,10 +271,10 @@ $(window).on("load", function(){
 
 	//get idnumber cookie and input data
 	if (initID == ""){
-		$(".input-idnumber").val(readCookie("idnumber"));
+		$("#id-input-box").val(readCookie("idnumber"));
 	}
 	else{
-		$(".input-idnumber").val(initID);
+		$("#id-input-box").val(initID);
 	}
 
 	//hide saved ids div before load
@@ -329,6 +325,7 @@ $(window).on("load", function(){
 	// update timetable to fit new window size
 	var update_timetable_to_fit_new_window_size = debounce(function() {
 		console.log("update timetable to fit new window size");
+		$("#schedule").fadeOut(500);
 		checkIfIDTextFits();
 		updateMenuButtonsBasedOnSize();
 		updateTimetable();
@@ -394,10 +391,31 @@ $(window).on("load", function(){
 
 	//update timetable on related input
 	var update_timetable_on_related_input = debounce(function() {
-		console.log('update timetable on related input (AFTER DEBOUNCE)');
-		updateTimetable();
+		$("#schedule").fadeOut(500, function(){
+			console.log('update timetable on related input (AFTER DEBOUNCE)');
+			updateTimetable();
+		});
 	}, 350);
-	$('.input-idnumber').on('input', update_timetable_on_related_input)
+	$('#id-input-box').on('input', update_timetable_on_related_input)
+
+	//If private ID, then this textbox shows up, so that the user can change the ID
+	var update_timetable_on_related_input = debounce(function() {
+		$("#schedule").fadeOut(500, function(){
+			$('#id-input-box').val($('#id-input-box2').val());
+
+			//Sets value back to the private ID if input is empty
+			if ($('#id-input-box').val() == ""){
+				if (initID == ""){
+					$("#id-input-box").val(readCookie("idnumber"));
+				}
+				else{
+					$("#id-input-box").val(initID);
+				}
+			}
+			updateTimetable();
+		});
+	}, 350);
+	$('#id-input-box2').on('input', update_timetable_on_related_input)
 
 	//unreliable fix, need more investigation on why input week arrows dont work.
 	$(".input-week-container").on("click", function(){

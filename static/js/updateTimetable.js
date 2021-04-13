@@ -2,7 +2,7 @@
 
 function updateTimetable(){
 
-	idnumber = $(".input-idnumber").val();
+	idnumber = $("#id-input-box").val();
 	checkIfIDTextFits();
 	width = $(window).width() + 6;
 	height = (window.innerHeight - $(".navbar").height() + 1); // Sets height of schedule to the full screen size, minus the navigation bar at the top
@@ -60,17 +60,22 @@ function updateTimetable(){
 
 		/* This code asks the server to generate a new schedule for you */
 		$.getJSON(url, function(data) {
+			console.log("here:")
+			console.log("bruh : " + data['result']['html']);
 
-			if (data['result']['html'] != "None" && saveIdToCookie && !SUSSY){
+			if (!data['result']['html'].startsWith("<!-- ERROR -->") && saveIdToCookie && !SUSSY){
 				createCookie("idnumber", idnumber, 360);
 				console.log("Saved ID to cookie");
 			}
-			if (data['result']['html'] != "None"){
+
+			if (!data['result']['html'].startsWith("<!-- ERROR -->")){
 				// Replaces the SVG with the new SVG data
 				var tdElement = document.getElementById('schedule');
 				var trElement = tdElement.parentNode;
 				trElement.removeChild(tdElement);
 				trElement.innerHTML = data['result']['html'] + trElement.innerHTML;
+
+				$('#schedule').fadeOut(0);
 				
 				// Run the URL scripts
 				try{eval($('#scheduleScript').attr('script'));
@@ -93,6 +98,9 @@ function updateTimetable(){
 
 
 				// window.history.pushState("", "", $.param(toUrl));
+			}
+			else{
+				console.log("bruhhh");
 			}
 
 		})

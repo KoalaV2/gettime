@@ -39,12 +39,11 @@ with open("users.json") as f:
     except:idsToCheck = {}
 
 client = discord.Client()
-#endregion
 
 discordColor = discord.Colour.from_rgb(configfile['discordRGB'][0],configfile['discordRGB'][1],configfile['discordRGB'][2])
+#endregion
 
-
-def urlEmbed(text,url):
+def urlEmbed(text,url) -> str: 
     return f"[{text}]({url})"
 class EmbedMessage:
     def __init__(self,title="",description=""):
@@ -58,10 +57,8 @@ class EmbedMessage:
                 description=self.description
             )
         )
-
-def TinyUrlShortener(url,alias=""):
+def TinyUrlShortener(url,alias="") -> str:
     return get(f"https://www.tinyurl.com/api-create.php?{urlencode({'url':url,'alias':alias})}").text
-
 def updateUserFile():
     global idsToCheck
     with open("users.json", "w") as outfile: 
@@ -69,7 +66,7 @@ def updateUserFile():
 
 @client.event
 async def on_message(message):   
-    if message.author == client.user:return # Keeps bot from responding to itself
+    if message.author==client.user:return # Keeps bot from responding to itself
     if message.content.lower().startswith(configfile['discordPrefix']):
         userMessage = message.content.split(' ')
         
@@ -153,10 +150,14 @@ async def on_message(message):
                 await message.channel.send(f"> Fel användning av `{configfile['discordPrefix']} {userMessage[1].lower()}` (Inget ID)")
             
             currentTimeTemp = CurrentTime()
-            myRequest = GetTime(_id=userID,_day=currentTimeTemp['weekday3'],_week=currentTimeTemp['week2'])
+            myRequest = GetTime(
+                _id=userID,
+                _day=currentTimeTemp['weekday3'],
+                _week=currentTimeTemp['week2']
+            )
 
-            getTimeURL = GenerateHiddenURL(configfile['key'],myRequest._id,configfile['mainLink'])[0] #TinyUrlShortener(GenerateHiddenURL(configfile['key'],myRequest._id,configfile['mainLink'])) 
-            
+            getTimeURL = GenerateHiddenURL(configfile['key'], myRequest._id, configfile['mainLink'])[0] + f"&week={myRequest._week}&day={myRequest._day}"
+
             await EmbedMessage(
                 f"Här är ditt schema för {currentTimeTemp['dayNames'][myRequest._day-1].capitalize()}, v.{myRequest._week}!\n",
                 myRequest.GenerateTextSummary(mode="discord") + f"\n{urlEmbed('Öppna schemat online',getTimeURL)}"
