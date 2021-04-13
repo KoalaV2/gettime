@@ -103,12 +103,13 @@
 				
 				{% if privateURL %}
 					<!-- 
+						Temporary input box, only shows up when a private ID is active, and if changed then it will overwrite the ID 
+						
 						This is mostly a temporary solution, because all of the code 
 						depends on ".input-idnumber" instead of a global variable, so
 						all that this does is take the values you put in this one, and
 						puts it in the hidden original input.
 					-->
-					<!-- Temporary input box, only shows up when a private ID is active, and if changed then it will overwrite the ID -->
 					<input id="id-input-box2" onclick="void(0)" class="input-idnumber control" type="text" placeholder="Privat ID"/>
 				{% endif %}
 				
