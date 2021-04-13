@@ -128,35 +128,17 @@ function showSaved(){
 
 };
 
-
-//open cookie policy
-function infoOpen(){
+//open textBox
+function textBoxOpen(idToOpen){
 	hideControls();
-	$('.info').fadeIn();
-	$('.navbar').fadeOut();
-	$('#scheduleBox').fadeOut();
-};
-
-//close cookie policy
-function infoClose(){
-	createCookie("infoClosed", "closed", 360);
-	updateTimetable();
-	$('.info').fadeOut();
-	$('.navbar').fadeIn();
-	$('#scheduleBox').fadeIn();
-};
-
-//open contact info
-function contactInfoOpen(){
-	hideControls();
-	$('.contact_info').fadeIn();
+	$(idToOpen).fadeIn();
 	$('.navbar').fadeOut();
 	$('#scheduleBox').fadeOut();
 }
 
-//close contact info
-function contactInfoClose(){
-	$('.contact_info').fadeOut();
+//close textBox
+function textBoxClose(idToClose){
+	$(idToClose).fadeOut();
 	$('.navbar').fadeIn();
 	$('#scheduleBox').fadeIn();	
 };
@@ -220,22 +202,23 @@ function updateMenuButtonsBasedOnSize(){
 }
 
 function clickOn_QRCODE(){
-	$("#button-text-qr").text("Laddar...")
+	$("#button-text-qr").text("Laddar...");
 	try {
 		window.location.href = requestURL + "API/QR_CODE?id=" + (privateURL ? (getShareableURL()['id'] + "&p=1") : ($("#id-input-box").val() + "&p=0"));
 	} catch {
-		$("#button-text-qr").text("ERROR!")
+		$("#button-text-qr").text("ERROR!");
 	}
 }
 
 function clickOn_SAVEDLINKS(){
-	showSaved()
+	showSaved();
 }
 
 //events on load & event triggers.
 $(window).on("load", function(){
 
 	// debounce
+	//Code from https://tinyurl.com/ttd83xe6
 	function debounce(func, wait, immediate) {
 		var timeout;
 		return function() {
@@ -290,10 +273,10 @@ $(window).on("load", function(){
 
 	//get info closed cookie and hide or show info accordingly
 	if(readCookie("infoClosed") == "closed") {
-		infoClose()
+		textBoxClose('#text_cookies_info')
 	}
 	else {
-		infoOpen()
+		textBoxOpen('#text_cookies_info')
 	}
 
 	//get and set current week
@@ -500,7 +483,8 @@ $(window).on("load", function(){
 	});
 
 	if (showContactOnLoad){
-		contactInfoOpen();
+		textBoxOpen('#text_contact_info');
+		//contacttextBoxOpen('#text_cookies_info');
 	}
 
 	// Page finished loading, slide up loader screen

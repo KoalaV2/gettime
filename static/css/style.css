@@ -326,7 +326,7 @@ a:hover{
 	overflow: hidden;
 }
 
-.info, .contact_info{
+.text_box{
 	font-family: 'Roboto', sans-serif;
 	font-weight: 300;
 	height: 80vh;
@@ -347,7 +347,7 @@ a:hover{
 	transition: opacity .2s ease-in-out;
 }
 
-.info h2, .info h1, .contact_info h2, .contact_info h1, .contact_info h3, .contact_info h4{
+.text_box h2, .text_box h1, .text_box h3, .text_box h4{
 	font-family: "Rubik", sans-serif;
 	background: rgb(25,21,93);
 	background: linear-gradient(68deg, rgba(25,21,93,1) 0%, rgba(67,67,178,1) 37%, rgba(23,160,188,1) 96%);
@@ -364,7 +364,7 @@ a:hover{
 	cursor: pointer;
 }
 
-.infoClose{
+.infoClose, .text_box_close{
 	font-size: 2rem;
 	position: fixed;
 	bottom: 15vh;

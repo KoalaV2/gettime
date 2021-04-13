@@ -60,8 +60,6 @@ function updateTimetable(){
 
 		/* This code asks the server to generate a new schedule for you */
 		$.getJSON(url, function(data) {
-			console.log("here:")
-			console.log("bruh : " + data['result']['html']);
 
 			if (!data['result']['html'].startsWith("<!-- ERROR -->") && saveIdToCookie && !SUSSY){
 				createCookie("idnumber", idnumber, 360);
@@ -69,6 +67,7 @@ function updateTimetable(){
 			}
 
 			if (!data['result']['html'].startsWith("<!-- ERROR -->")){
+
 				// Replaces the SVG with the new SVG data
 				var tdElement = document.getElementById('schedule');
 				var trElement = tdElement.parentNode;
@@ -94,13 +93,7 @@ function updateTimetable(){
 				// if (!privateURL){
 				// 	UpdateEntryInUrlArguments('id',idnumber);
 				// }
-				
-
-
 				// window.history.pushState("", "", $.param(toUrl));
-			}
-			else{
-				console.log("bruhhh");
 			}
 
 		})

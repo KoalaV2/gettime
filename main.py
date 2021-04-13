@@ -658,7 +658,7 @@ if __name__ == "__main__":
             button_type="link",
             button_id="button-text-gotostart",
             button_arguments={
-                'onclick':"""contactInfoOpen();"""
+                'onclick':"""textBoxOpen('#text_contact_info');"""
             }
         ),
 

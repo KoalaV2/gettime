@@ -135,7 +135,7 @@
 			</div>
 
 			<!-- GDPR and cookies info div -->
-			<div class="info">
+			<div id="text_cookies_info" class="text_box">
 				<h1>GetTime Cookie Policy</h1>
 				<h2>TLDR;<br>If you use GetTime, we store cookies on your device for you to be able to save timetables.</h2>
 
@@ -207,13 +207,13 @@
 				</ul>
 
 				<!-- Accept policy button -->
-				<span onclick="infoClose()" class="infoClose">Close and accept</span>
+				<span onclick="createCookie('infoClosed', 'closed', 360);updateTimetable();textBoxClose('#text_cookies_info')" class="text_box_close">Close and accept</span>
 				<br>
 
 			</div>
 
 			<!-- Contact information -->
-			<div class="contact_info">
+			<div id="text_contact_info" class="text_box contact_info">
 				
 				<h1>Kontaktinformation</h1>
 
@@ -239,7 +239,20 @@
 				{% endfor %}
 
 				<!-- Go back button -->
-				<span onclick="contactInfoClose()" class="infoClose">Gå tillbaka</span>
+				<span onclick="textBoxClose('#text_contact_info')" class="text_box_close">Gå tillbaka</span>
+				<br>
+
+			</div>
+
+			<!-- Contact information TEST -->
+			<div id="text_test" class="text_box">
+	
+				<h1>test</h1>
+
+				<p>test 2</p>
+
+				<!-- Go back button -->
+				<span onclick="textBoxClose('#text_test')" class="text_box_close">Stäng</span>
 				<br>
 
 			</div>
