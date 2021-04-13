@@ -529,6 +529,10 @@ if __name__ == "__main__":
     #region Error handling and cache settings
     @app.after_request # Script to help prevent caching
     def after_request(response):
+        response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        response.headers['X-Frame-Options'] = 'SAMEORIGIN 2'
+        response.headers['X-XSS-Protection'] = '1; mode=block'
         response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, public, max-age=0"
         response.headers["Expires"] = 0
         response.headers["Pragma"] = "no-cache"
@@ -733,6 +737,7 @@ if __name__ == "__main__":
         showContactOnLoad = False
         autoReloadSchedule = False
         dropDownButtons = []
+        ignorecookiepolicy = False
         #endregion
         #region Check parameters
         if 'id' in request.args:
@@ -759,6 +764,7 @@ if __name__ == "__main__":
         showContactOnLoad = arg01_to_bool(request.args,"contact")        
         autoReloadSchedule = arg01_to_bool(request.args,"rl")
         dropDownButtons = [buttons[x].render() for x in (menus['private'] if privateURL else menus['normal'])]
+        ignorecookiepolicy = arg01_to_bool(request.args,"ignorecookiepolicy")
         #endregion    
         
         return render_template(
@@ -776,7 +782,8 @@ if __name__ == "__main__":
             mobileRequest=mobileRequest,
             showContactOnLoad=showContactOnLoad,
             autoReloadSchedule=autoReloadSchedule,
-            dropDownButtons=dropDownButtons
+            dropDownButtons=dropDownButtons,
+            ignorecookiepolicy=ignorecookiepolicy
         )
     #endregion
     #region API
