@@ -1,5 +1,4 @@
-# Uses https://javascript-minifier.com/api to minify all JS files in the directory.
-# It then places the files in a subfolder called "min".
+# Minifies all files in the directory, then places the files in a subfolder called "min".
 
 from os import listdir
 from os import getcwd
