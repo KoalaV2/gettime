@@ -6,7 +6,7 @@ from os.path import dirname
 from requests import post
 
 directory = dirname(__file__)
-fileType = ".js"
+fileType = ".js" #.js is the only one implomented at this time.
 
 urlLookupTable = {
     '.js':'https://javascript-minifier.com/raw'
