@@ -54,6 +54,8 @@ def SetLogging(path="", filename="log.log", format='%(asctime)s %(levelname)s %(
     """
         Changes logging settings.
     """
+    try:os.mkdir(path)
+    except:pass
     open(path+filename, 'w').close() # Clear Logfile
     log = logging.getLogger() # root logger
     for hdlr in log.handlers[:]: # remove all old handlers
