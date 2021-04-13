@@ -22,17 +22,15 @@
 		<title>GetTime</title>
 
 		<!-- JS Libraries -->
-		{% if ignorejsmin%}
-			<script type="text/javascript" src="/static/js/jquery-3.6.0.min.js"></script>
-			<script type="text/javascript" src="/static/js/jquery.touchSwipe.min.js"></script>
+		<script type="text/javascript" src="/static/js/jquery-3.6.0.min.js"></script>
+		<script type="text/javascript" src="/static/js/jquery.touchSwipe.min.js"></script>
+		{% if ignorejsmin %}
 			<script type="text/javascript" src="/static/js/cookies.js"></script>
 			<script type="text/javascript" src="/static/js/touchEvents.js"></script>
 			<script type="text/javascript" src="/static/js/script.js"></script>
 			<script type="text/javascript" src="/static/js/updateTimetable.js"></script>
 			<script type="text/javascript" src="/static/js/saveurl.js"></script>
 		{% else %}
-			<script type="text/javascript" src="/static/js/min/jquery-3.6.0.min.js"></script>
-			<script type="text/javascript" src="/static/js/min/jquery.touchSwipe.min.js"></script>
 			<script type="text/javascript" src="/static/js/min/cookies.min.js"></script>
 			<script type="text/javascript" src="/static/js/min/touchEvents.min.js"></script>
 			<script type="text/javascript" src="/static/js/min/script.min.js"></script>
@@ -78,12 +76,21 @@
 		<!-- Import CSS Libraries -->
 		<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:100,300|Rubik">
 		<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
-		<link rel="stylesheet" type="text/css" href="/static/css/style.css">
-		{% if mobileRequest %}
-			<link rel="stylesheet" type="text/css" href="/static/css/mobile.css">
+		{% if ignorecssmin %}
+			<link rel="stylesheet" type="text/css" href="/static/css/style.css">
+			{% if mobileRequest %}
+				<link rel="stylesheet" type="text/css" href="/static/css/mobile.css">
+			{% endif %}
+			<link rel="stylesheet" type="text/css" href="/static/css/toggle.css">
+			<link rel="stylesheet" type="text/css" href="/static/css/roller.css">
+		{% else %}
+			<link rel="stylesheet" type="text/css" href="/static/css/min/style.min.css">
+			{% if mobileRequest %}
+				<link rel="stylesheet" type="text/css" href="/static/css/min/mobile.min.css">
+			{% endif %}
+			<link rel="stylesheet" type="text/css" href="/static/css/min/toggle.min.css">
+			<link rel="stylesheet" type="text/css" href="/static/css/min/roller.min.css">
 		{% endif %}
-		<link rel="stylesheet" type="text/css" href="/static/css/toggle.css">
-		<link rel="stylesheet" type="text/css" href="/static/css/roller.css">
 	</head>
 	<body>
 		<!-- Wrapper div for overflow hiding on mobile devices -->

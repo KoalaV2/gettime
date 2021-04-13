@@ -744,6 +744,8 @@ if __name__ == "__main__":
         dropDownButtons = []
         ignorecookiepolicy = False
         ignorejsmin = False
+        ignorecssmin = False
+        ignorehtmlmin = False
         #endregion
         #region Check parameters
         if 'id' in request.args:
@@ -772,10 +774,12 @@ if __name__ == "__main__":
         dropDownButtons = [buttons[x].render() for x in (menus['private'] if privateURL else menus['normal'])]
         ignorecookiepolicy = arg01_to_bool(request.args,"ignorecookiepolicy")
         ignorejsmin = arg01_to_bool(request.args,"ignorejsmin")
+        ignorecssmin = arg01_to_bool(request.args,"ignorecssmin")
+        ignorehtmlmin = arg01_to_bool(request.args,"ignorehtmlmin")
         #endregion    
         
         return render_template(
-            template_name_or_list="sodschema.html",
+            template_name_or_list="sodschema.html" if ignorehtmlmin else "min/sodschema.min.html",
             contacts=contacts,
             parseCode=parseCode,
             requestURL=requestURL,
@@ -791,7 +795,8 @@ if __name__ == "__main__":
             autoReloadSchedule=autoReloadSchedule,
             dropDownButtons=dropDownButtons,
             ignorecookiepolicy=ignorecookiepolicy,
-            ignorejsmin=ignorejsmin
+            ignorejsmin=ignorejsmin,
+            ignorecssmin=ignorecssmin
         )
     #endregion
     #region API
