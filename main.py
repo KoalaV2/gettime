@@ -492,7 +492,8 @@ if __name__ == "__main__":
 
     # Setup Flask
     app = Flask(__name__)
-    minify(app=app, html=True, js=False, cssless=True)
+    #minify(app=app, html=True, js=False, cssless=True)
+    minify(app=app, html=True, js=False, cssless=True, passive=True)
     Mobility(app) # Mobile features
     CORS(app) # Behövs så att man kan skicka requests till serven (for some reason idk)
     #endregion  
