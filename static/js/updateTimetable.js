@@ -1,6 +1,5 @@
-//update timetable image
-
 function updateTimetable(){
+	console.log("updateTimetable was excecuted.");
 
 	idnumber = $("#id-input-box").val();
 	checkIfIDTextFits();
@@ -56,6 +55,9 @@ function updateTimetable(){
 
 		if (!privateURL){
 			console.log("Requesting schedule with this url : " + url)
+		}
+		else{
+			console.log("Requesting schedule...")
 		}
 
 		/* This code asks the server to generate a new schedule for you */

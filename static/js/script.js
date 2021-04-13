@@ -251,8 +251,8 @@ $(window).on("load", function(){
 		$('#id-input-box').css("display", "none");
 	}
 	
-	//hide contact info
-	$('.contact_info').hide();
+	//hide all textboxes
+	$('.text_box').hide();
 
 	//hide controls div before load
 	hideControls();
@@ -267,7 +267,7 @@ $(window).on("load", function(){
 	if (initID == ""){
 		$("#id-input-box").val(readCookie("idnumber"));
 	}
-	else {
+	else{
 		$("#id-input-box").val(initID);
 	}
 
@@ -275,7 +275,7 @@ $(window).on("load", function(){
 	if(readCookie("infoClosed") == "closed") {
 		textBoxClose('#text_cookies_info')
 	}
-	else {
+	else{
 		textBoxOpen('#text_cookies_info')
 	}
 
