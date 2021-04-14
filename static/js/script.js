@@ -14,7 +14,7 @@ function sleep(milliseconds,_callback){
 }
   
 // Idea from https://tinyurl.com/yhsukrs9
-function toggleDarkMode(disableAnimation=false){
+function toggleDarkMode(disableAnimation=false,saveToCookie=true){
 	function doTheThing(){
 		var theme = document.getElementById('darkmode');
 
@@ -38,8 +38,6 @@ function toggleDarkMode(disableAnimation=false){
 				darkmode = true;
 			}
 		}
-
-		createCookie('darkmode',(darkmode ? "1" : "0"),365)
 	}
 	
 	if (disableAnimation){
@@ -55,7 +53,10 @@ function toggleDarkMode(disableAnimation=false){
 		//Needs better timing (its to fast rn)
 		$(".loader-main").slideToggle(500);
 	}
-
+	if (saveToCookie){
+		createCookie('darkmode',(darkmode ? "1" : "0"),365);
+	}
+	
 }
 
 //get week number function
