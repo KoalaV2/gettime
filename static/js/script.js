@@ -14,32 +14,34 @@ function sleep(milliseconds,_callback){
 }
   
 // Idea from https://tinyurl.com/yhsukrs9
-function toggleDarkMode(disableAnimation=false){
+function toggleDarkMode(disableAnimation=false,saveToCookie=true){
+	
+	//Set the dark mode switch first
+	darkmode = $('#input-darkmode').prop('checked')
+
+	if (saveToCookie){
+		createCookie('darkmode',(darkmode ? "1" : "0"),365);
+	}
+
 	function doTheThing(){
 		var theme = document.getElementById('darkmode');
 
 		if (theme.getAttribute('href').endsWith('.min.css')){
-			if (theme.getAttribute('href') == '/static/css/min/darkmode.min.css'){
-				theme.setAttribute('href', 'darkmodeOff.min.css');
-				darkmode = false;
+			if (darkmode){
+				theme.setAttribute('href', '/static/css/min/darkmode.min.css');
 			}
 			else{
-				theme.setAttribute('href', '/static/css/min/darkmode.min.css');
-				darkmode = true;
+				theme.setAttribute('href', 'darkmodeOff.min.css');
 			}
 		}
 		else{
-			if (theme.getAttribute('href') == '/static/css/darkmode.css'){
-				theme.setAttribute('href', 'darkmodeOff.css');
-				darkmode = false;
+			if (darkmode){
+				theme.setAttribute('href', '/static/css/darkmode.css');
 			}
 			else{
-				theme.setAttribute('href', '/static/css/darkmode.css');
-				darkmode = true;
+				theme.setAttribute('href', 'darkmodeOff.css');
 			}
 		}
-
-		createCookie('darkmode',(darkmode ? "1" : "0"),365)
 	}
 	
 	if (disableAnimation){
@@ -292,16 +294,18 @@ $(window).on("load", function(){
 		},10000);
 	}
 
-	if (darkmode == null){
-		if (readCookie('darkmode') != null){
-			darkmode = readCookie('darkmode') == "1" ? true : false;
-		}
-		else{
+	//Dark mode
+	if (initDarkMode == null){
+		if (readCookie('darkmode') == null){
 			darkmode = false;
 		}
+		else{
+			darkmode = readCookie('darkmode') == "1" ? true : false;
+		}
 	}
-	if (!darkmode){
-		toggleDarkMode(disableAnimation=true);
+	//Dark mode is true by "default", so this will turn it off if dark mode SHOULD be off (confusing as hell but ok)
+	if (darkmode == false){
+		toggleDarkMode(disableAnimation=true,saveToCookie=false);
 	}
 	$('#input-darkmode').prop('checked', darkmode);
 
@@ -322,8 +326,6 @@ $(window).on("load", function(){
 	//enable day mode by default for mobile devices
 	$('#input-day').prop('checked', initDayMode);
 
-
-
 	//get idnumber from cookie or input data
 	if (initID == ""){
 		$("#id-input-box").val(readCookie("idnumber"));
@@ -334,7 +336,7 @@ $(window).on("load", function(){
 
 	//get info closed cookie and hide or show info accordingly
 	if (!ignorecookiepolicy){
-		if(readCookie("infoClosed") != "closed") {
+		if (readCookie("infoClosed") != "closed") {
 			textBoxOpen('#text_cookies_info')
 		}
 	}
@@ -359,9 +361,9 @@ $(window).on("load", function(){
 	var update_timetable_to_fit_new_window_size = debounce(function() {
 		console.log("update timetable to fit new window size");
 		$("#schedule").fadeOut(500);
-		checkIfIDTextFits();
 		updateMenuButtonsBasedOnSize();
 		updateTimetable();
+		checkIfIDTextFits();
 	}, 250);
 	window.addEventListener('resize', update_timetable_to_fit_new_window_size);
 

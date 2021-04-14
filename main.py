@@ -349,7 +349,7 @@ class GetTime:
             toReturn.append(currentLesson)
         toReturn.sort(key=attrgetter('timeStart'))
         return toReturn
-    def handleHTML(self, classes="", privateID=False, allowCache=True, darkMode=False) -> dict:
+    def handleHTML(self, classes="", privateID=False, allowCache=True, darkMode=False, darkModeSetting=1) -> dict:
         """
             Fetches and converts the <JSON> data into a SVG (for sending to HTML)
             \n
@@ -384,9 +384,8 @@ class GetTime:
             bColor = current['bColor']
             if darkMode:
                 if current['type'] == "Lesson":
-                    # Make every lessonblock the same color:
-                    #bColor = "#525252"
-                    pass
+                    if darkModeSetting == 2:
+                        bColor = "#525252"
                 else:
                     if bColor == "#FFFFFF":
                         bColor = "#282828"
@@ -405,9 +404,8 @@ class GetTime:
             fColor = current['fColor']
             if darkMode:
                 if current['type'] == "Lesson":
-                    # Make every lessontext the same color:
-                    #fColor = "#FFFFFF"
-                    pass
+                    if darkModeSetting == 2:
+                        fColor = "#FFFFFF"
                 else:
                     if fColor == "#000000":
                         fColor = "#FFFFFF"
@@ -609,14 +607,14 @@ if __name__ == "__main__":
             types = {
                 'link':f"""
                 <a {arguments} class="control control-container">
-                    <span id="{self.button_id}">{self.button_text}&nbsp;&nbsp;</span>
+                    <span id="{self.button_id}" class="menu-option-text">{self.button_text}&nbsp;&nbsp;</span>
                     <i class="{self.button_icon} control-right"></i>
                 </a>
                 """,
                 
                 'switch':f"""
                     <label class="toggleBox control-container" for="{self.button_id}">
-                        <span id="{self.button_id}-text">{self.button_text}&nbsp;&nbsp;</span>
+                        <span id="{self.button_id}-text" class="menu-option-text">{self.button_text}&nbsp;&nbsp;</span>
                         <label class="switch">
                             <input type="checkbox" {arguments} class="input-switch" name="{self.button_id}" id="{self.button_id}"/>
                             <span class="slider round control control-right"></span>
