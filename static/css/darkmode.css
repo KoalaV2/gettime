@@ -1,0 +1,27 @@
+.wrapper{
+    background: #373737 !important;
+}
+
+.controls-container, .saved-container{
+    background: #525252 !important;
+}
+
+.control-container, .savedItems{
+    background: #282828 !important;
+}
+input:checked + .slider{
+    background: #282828 !important;
+}
+.arrow-center-text{
+    color: #282828 !important;
+}
+.loader-main{
+    background: #282828 !important;
+}
+.infoClose, .text_box_close{
+    background: #282828 !important;
+}
+.input-idnumber{
+    background: #525252 !important;
+    color: white !important;
+}

@@ -1,6 +1,62 @@
 var urlArguments = {};
 var week;
 var day = initDay;
+var darkmode = initDarkMode;
+
+// Code from https://tinyurl.com/j7axshp7
+function sleep(milliseconds,_callback){
+	const date = Date.now();
+	let currentDate = null;
+	do{
+	  	currentDate = Date.now();
+	}while (currentDate - date < milliseconds);
+	try{_callback();}catch{}
+}
+  
+// Idea from https://tinyurl.com/yhsukrs9
+function toggleDarkMode(disableAnimation=false){
+	function doTheThing(){
+		var theme = document.getElementById('darkmode');
+
+		if (theme.getAttribute('href').endsWith('.min.css')){
+			if (theme.getAttribute('href') == '/static/css/min/darkmode.min.css'){
+				theme.setAttribute('href', 'darkmodeOff.min.css');
+				darkmode = false;
+			}
+			else{
+				theme.setAttribute('href', '/static/css/min/darkmode.min.css');
+				darkmode = true;
+			}
+		}
+		else{
+			if (theme.getAttribute('href') == '/static/css/darkmode.css'){
+				theme.setAttribute('href', 'darkmodeOff.css');
+				darkmode = false;
+			}
+			else{
+				theme.setAttribute('href', '/static/css/darkmode.css');
+				darkmode = true;
+			}
+		}
+
+		createCookie('darkmode',(darkmode ? "1" : "0"),365)
+	}
+	
+	if (disableAnimation){
+		doTheThing();
+		updateTimetable();
+	}
+	else{
+		$(".loader-main").slideToggle(500,function(){
+			doTheThing();
+			updateTimetable();
+		});
+			
+		//Needs better timing (its to fast rn)
+		$(".loader-main").slideToggle(500);
+	}
+
+}
 
 //get week number function
 Date.prototype.getWeek = function(){
@@ -236,6 +292,19 @@ $(window).on("load", function(){
 		},10000);
 	}
 
+	if (darkmode == null){
+		if (readCookie('darkmode') != null){
+			darkmode = readCookie('darkmode') == "1" ? true : false;
+		}
+		else{
+			darkmode = false;
+		}
+	}
+	if (!darkmode){
+		toggleDarkMode(disableAnimation=true);
+	}
+	$('#input-darkmode').prop('checked', darkmode);
+
 	//Hides the main input if the URL is private
 	if (privateURL){
 		$('#id-input-box').css("display", "none");
@@ -252,6 +321,8 @@ $(window).on("load", function(){
 
 	//enable day mode by default for mobile devices
 	$('#input-day').prop('checked', initDayMode);
+
+
 
 	//get idnumber from cookie or input data
 	if (initID == ""){
