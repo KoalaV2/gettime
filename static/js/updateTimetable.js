@@ -1,4 +1,4 @@
-function updateTimetable(){
+function updateTimetable(_callback){
 	console.log("updateTimetable was excecuted.");
 
 	idnumber = $("#id-input-box").val();
@@ -42,7 +42,7 @@ function updateTimetable(){
 
 	if (idnumber.length > 0){
 		
-		var url = requestURL + 'API/GENERATE_HTML?id=' + idnumber + "&day=" + dayTEMP + "&week=" + week + "&width=" + width + "&height=" + height + "&privateID=" + (privateURL ? "1" : "0")
+		var url = requestURL + 'API/GENERATE_HTML?id=' + idnumber + "&day=" + dayTEMP + "&week=" + week + "&width=" + width + "&height=" + height + "&privateID=" + (privateURL ? "1" : "0") + "&darkmode=" + (darkmode ? "1" : "0");
 
 		// If the schedule is supposed to be blurred, the new request will return with the blur class allready applied
 		try{
@@ -104,5 +104,6 @@ function updateTimetable(){
 		$(".arrow-center-text").text(week);
 
 	}
-	
+
+	try{_callback();}catch{}
 };

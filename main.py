@@ -349,7 +349,7 @@ class GetTime:
             toReturn.append(currentLesson)
         toReturn.sort(key=attrgetter('timeStart'))
         return toReturn
-    def handleHTML(self, classes="", privateID=False, allowCache=True) -> dict:
+    def handleHTML(self, classes="", privateID=False, allowCache=True, darkMode=False) -> dict:
         """
             Fetches and converts the <JSON> data into a SVG (for sending to HTML)
             \n
@@ -380,14 +380,38 @@ class GetTime:
 
         logger.info("Looping through boxList...")
         for current in j['data']['data']['boxList']:
+            # Saves the color in a seperate variable so that we can modify it
+            bColor = current['bColor']
+            if darkMode:
+                if current['type'] == "Lesson":
+                    # Make every lessonblock the same color:
+                    #bColor = "#525252"
+                    pass
+                else:
+                    if bColor == "#FFFFFF":
+                        bColor = "#282828"
+                    if bColor == "#CCCCCC":
+                        bColor = "#373737"
+ 
             if current['type'].startswith("ClockFrame"):
-                toReturn.append(f"""<rect x="{current['x']}" y="{current['y']}" width="{current['width']}" height="{current['height']}" style="fill:{current['bColor']};"></rect>""")
+                toReturn.append(f"""<rect x="{current['x']}" y="{current['y']}" width="{current['width']}" height="{current['height']}" style="fill:{bColor};"></rect>""")
             else:
-                toReturn.append(f"""<rect id="{current['id']}" x="{current['x']}" y="{current['y']}" width="{current['width']}" height="{current['height']}" style="fill:{current['bColor']};stroke:black;stroke-width:1;"></rect>""")
+                toReturn.append(f"""<rect id="{current['id']}" x="{current['x']}" y="{current['y']}" width="{current['width']}" height="{current['height']}" style="fill:{bColor};stroke:{"#525252" if darkMode else "black"};stroke-width:1;"></rect>""")
 
         scriptBuilder = {}
         logger.info("Looping through textList...")
         for current in j['data']['data']['textList']:
+            # Saves the color in a seperate variable so that we can modify it
+            fColor = current['fColor']
+            if darkMode:
+                if current['type'] == "Lesson":
+                    # Make every lessontext the same color:
+                    #fColor = "#FFFFFF"
+                    pass
+                else:
+                    if fColor == "#000000":
+                        fColor = "#FFFFFF"
+            
             if current['text'] != "":
                 # If the text is of a Lession type, that means that it sits ontop of a block that the user should be able to click to set a URL.
                 # This only happens if privateID is false, because if the ID is private, it doesnt add the scripts anyways, so why bother generating them in the first place?
@@ -402,14 +426,19 @@ class GetTime:
                         scriptBuilder[current['parentId']].append(str(current['text'])) 
                 
                 # Adds text object to list
-                toReturn.append(f"""<text x="{current['x']}" y="{current['y']+12}" style="font-size:{int(current['fontsize'])}px;fill:{current['fColor']};">{current['text']}</text>""")
+                toReturn.append(f"""<text x="{current['x']}" y="{current['y']+12}" style="font-size:{int(current['fontsize'])}px;fill:{fColor};">{current['text']}</text>""")
 
         logger.info("Looping through lineList...")
         for current in j['data']['data']['lineList']:
+            color = current['color']
+            if darkMode:
+                if color == "#000000":
+                    color = "#525252"
+            #print(current)
             x1,x2=current['p1x'],current['p2x']
             # Checks delta lenght and skips those smalled then 10px
             if int(x1-x2 if x1>x2 else x2-x1) > 10:
-                toReturn.append(f"""<line x1="{current['p1x']}" y1="{current['p1y']}" x2="{current['p2x']}" y2="{current['p2y']}" stroke="{current['color']}"></line>""")
+                toReturn.append(f"""<line x1="{current['p1x']}" y1="{current['p1y']}" x2="{current['p2x']}" y2="{current['p2y']}" stroke="{color}"></line>""")
         
         # Add the scripts to a rect so that they can be ran after the schedule has loaded (Skips this when ID is hidden)
         if privateID == False:
@@ -587,7 +616,7 @@ if __name__ == "__main__":
                 
                 'switch':f"""
                     <label class="toggleBox control-container" for="{self.button_id}">
-                        <span id="{self.button_id}-text">Dag&nbsp;&nbsp;</span>
+                        <span id="{self.button_id}-text">{self.button_text}&nbsp;&nbsp;</span>
                         <label class="switch">
                             <input type="checkbox" {arguments} class="input-switch" name="{self.button_id}" id="{self.button_id}"/>
                             <span class="slider round control control-right"></span>
@@ -655,7 +684,7 @@ if __name__ == "__main__":
         'dayMode':DropDown_Button(
             button_text="Dag",
             button_type="switch",
-            button_id='input-day',
+            button_id='input-day'
         ),
 
         # Contact button
@@ -678,6 +707,16 @@ if __name__ == "__main__":
             button_arguments={
                 'onclick':"""clickOn_SAVEDLINKS();"""
             }
+        ),
+
+        # Toggle Dark mode
+        'darkmode':DropDown_Button(
+            button_text="Dark Mode",
+            button_type="switch",
+            button_id='input-darkmode',
+            button_arguments={
+                'onclick':"""toggleDarkMode();"""
+            }
         )
     }
     menus = {
@@ -687,7 +726,8 @@ if __name__ == "__main__":
             'generateSavableLink',
             'generateQrCode',
             'showSaved',
-            'contact'
+            'contact',
+            'darkmode'
         ),
         'private':(
             'dayMode',
@@ -695,7 +735,8 @@ if __name__ == "__main__":
             'generateSavableLink', #'copySavableLink',
             'generateQrCode',
             'mainPage',
-            'contact'
+            'contact',
+            'darkmode'
         )
     }
     contacts = [
@@ -737,6 +778,7 @@ if __name__ == "__main__":
         initDayMode = False
         initWeek = t['week2']
         initDay = t['weekday3']
+        initDarkMode = "null"
         debugmode = False
         privateURL = False
         saveIdToCookie = True
@@ -782,6 +824,8 @@ if __name__ == "__main__":
             ignorecssmin = arg01_to_bool(request.args,"ignorecssmin")
         if 'ignorehtmlmin' in request.args: 
             ignorehtmlmin = arg01_to_bool(request.args,"ignorehtmlmin")
+        if 'darkmode' in request.args: 
+            initDarkMode = str(arg01_to_bool(request.args,"darkmode")).lower()
         dropDownButtons = [buttons[x].render() for x in (menus['private'] if privateURL else menus['normal'])]
         #endregion    
         
@@ -794,6 +838,7 @@ if __name__ == "__main__":
             initDayMode=initDayMode,
             initWeek=initWeek,
             initDay=initDay,
+            initDarkMode=initDarkMode,
             debugmode=debugmode,
             privateURL=privateURL,
             saveIdToCookie=saveIdToCookie,
@@ -809,7 +854,6 @@ if __name__ == "__main__":
     #region API
     @app.endpoint('API_QR_CODE')
     def API_QR_CODE():
-        
         return render_template(
             'qrCodeTemplate.html',
             requestURL=configfile['mainLink'],
@@ -832,10 +876,9 @@ if __name__ == "__main__":
             _resolution = (int(request.args['width']),int(request.args['height']))
         )
         if 'classes' in request.args: 
-            return jsonify(result=myRequest.handleHTML(classes=request.args['classes'],privateID=arg01_to_bool(request.args,"privateID")))
+            return jsonify(result=myRequest.handleHTML(classes=request.args['classes'], privateID=arg01_to_bool(request.args,"privateID"), darkMode=arg01_to_bool(request.args,"darkmode")))
         else:
-            return jsonify(result=myRequest.handleHTML(privateID=arg01_to_bool(request.args,"privateID")))
-        #return jsonify(result=result) #.headers.add('Access-Control-Allow-Origin', '*')  
+            return jsonify(result=myRequest.handleHTML(privateID=arg01_to_bool(request.args,"privateID"), darkMode=arg01_to_bool(request.args,"darkmode")))  
     @app.endpoint('API_JSON')
     def API_JSON():
         #logger = FunctionLogger(functionName='API_JSON')
