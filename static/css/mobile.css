@@ -47,7 +47,9 @@
 		border: 0;
 		padding: 4rem 0 4rem 0;
 		height: calc(100vh - 50px);
-		margin-top: -3rem;
+		/* margin-top: -3rem; */
+		padding-top: 1rem;
+		padding-bottom: 7rem;
 	}
 
 	.control-container{
@@ -56,6 +58,7 @@
 		margin: 0;
 		background: white;
 		color: rgba(48,126,182,1);
+		padding: 0.5rem 2rem !important;
 	}
 
 	.control-container span{
