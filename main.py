@@ -31,7 +31,7 @@ import traceback
 import threading
 import feedparser
 from urllib.parse import quote as urlsafe
-from operator import attrgetter, truediv
+from operator import attrgetter
 from flask import Flask
 from flask import Markup
 from flask import jsonify
