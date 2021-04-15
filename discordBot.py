@@ -204,13 +204,18 @@ async def on_ready():
 # Still needs alot of optimazation!
 cacheAgeMax = 5*60 #Secounds
 cachedResponses = {}
+backup_cachedResponses = {}
 @tasks.loop(seconds=6)
 async def lessonStart():
     try:
-        global timeNow, cachedResponses, timeScore
+        global timeNow, cachedResponses, backup_cachedResponses, timeScore
         currentTimeTemp = CurrentTime()
 
-        #Checks if its monday - friday
+        #Checks if time is after 8PM or before 6AM, and then skips it
+        if currentTimeTemp['hour'] > 20 or currentTimeTemp['hour'] < 6:
+            return
+
+        #Checks if its monday - friday OR if debugmode is on
         if currentTimeTemp['weekday'] in (1,2,3,4,5) or configfile['DEBUGMODE'] == True:
 
             #Checks if the minute has changed
@@ -227,6 +232,7 @@ async def lessonStart():
                 logging.error(f"Checking id: {currentID}...")           
                 
                 a = None
+                # Check if there is data cached...
                 if str(currentID['discordID']) in cachedResponses:
                     logging.error(str(currentID['discordID']) + ' was cached, checking age...')
 
@@ -240,23 +246,37 @@ async def lessonStart():
                     logging.error(str(currentID['discordID']) + ' was NOT cached')
 
                 if a == None:
-                    logging.error("Running request")
+                    logging.error("Running request...")
                     try:
                         a = GetTime(
                             _id=currentID['id'],
                             _day=currentTimeTemp['weekday'],
                             _week=currentTimeTemp['week']
                         ).fetch()
+                        cachedResponses[str(currentID['discordID'])] = {'data':a,'age':time.time()}
                     except MaxRetryError:
                         userDM = await client.fetch_user(user_id=int(currentID['discordID']))
                         await userDM.send(f"> Försök igen senare! (MaxRetryError)")
                         return
-                    cachedResponses[str(currentID['discordID'])] = {'data':a,'age':time.time()}
+
+                # if 'status' in a and a['status'] < 0:
+                #     if str(currentID['discordID']) in cachedResponses:
+                #         a = backup_cachedResponses[str(currentID['discordID'])]['data']
+                #     else:
+                #         userDM = await client.fetch_user(user_id=int(currentID['discordID']))
+                #         await EmbedMessage(
+                #             title=f"Could not fetch your next lession! (Sorry!)"
+                #         ).send(userDM)
+
+                # #Backup to backup_cachedResponses
+                # if not str(currentID['discordID']) in backup_cachedResponses:
+                #     logging.error(f"Had to use backup_cachedResponses! Fine for now, but schedule could be outdated.")
+                #     backup_cachedResponses[str(currentID['discordID'])] = {'data':a}
 
                 for x in a:
                     lessonTimeScore = x.GetTimeScore(start=True)
                     minutesBeforeStart = lessonTimeScore-timeScore
-                    if minutesBeforeStart == currentID['minutes']:
+                    if minutesBeforeStart == currentID['minutes'] or currentID['minutes'] == "always":
                         userDM = await client.fetch_user(user_id=int(currentID['discordID']))
                         await EmbedMessage(
                             title=f"'{x.lessonName}' börjar om {minutesBeforeStart} {'minut' if minutesBeforeStart == 1 else 'minuter'}{' i ' + x.classroomName if x.classroomName != '' else ''}!"
