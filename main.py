@@ -638,6 +638,7 @@ if __name__ == "__main__":
         Rule('/discord_logfile', endpoint='discord_logfile'),
 
         #Reserved
+        Rule('/s/tay', endpoint='schedule_Tay'),
         Rule('/theo', endpoint='TheoCredit'),
         Rule('/pierre', endpoint='PierreCredit'),
         Rule('/ඞ', endpoint='ඞ'),
@@ -1120,6 +1121,9 @@ if __name__ == "__main__":
                 return f"<pre>{logFileLocation+logFileName}</pre><pre>{''.join(f.readlines())}</pre>"
     #endregion
     #region Special easter egg URL's for the creators/contributors AND AMOGUS ඞ
+    @app.endpoint('schedule_Tay')
+    def schedule_Tay():
+        return redirect(f'{configfile["mainLink"]}?a=ZGbCmXrCgcKiwqFocsKdwqlk&darkmode=1&ignorecookiepolicy=1&fullscreen&filter=flat')
     @app.endpoint('TheoCredit')
     def TheoCredit():
         return redirect('https://koalathe.dev/')
