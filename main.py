@@ -454,20 +454,23 @@ class GetTime:
         for current in j['data']['data']['boxList']:
             # Saves the color in a seperate variable so that we can modify it
             bColor = current['bColor']
-            if darkMode:
-                if current['type'] == "Lesson":
-                    if darkModeSetting == 2:
-                        bColor = "#525252"
-                    elif darkModeSetting == 3:
-                        bColor = grayscale(bColor)
-                    elif darkModeSetting == 4:
-                        bColor = invertColor(bColor)
-                else:
+            
+            if current['type'] == "Lesson":
+
+                if darkModeSetting == 2:
+                    bColor = "#525252"
+                elif darkModeSetting == 3:
+                    bColor = grayscale(bColor)
+                elif darkModeSetting == 4:
+                    bColor = invertColor(bColor)
+            else:
+                if darkMode:
                     if bColor == "#FFFFFF":
                         bColor = "#282828"
                     if bColor == "#CCCCCC":
                         bColor = "#373737"
- 
+
+
             if current['type'].startswith("ClockFrame"):
                 toReturn.append(f"""<rect x="{current['x']}" y="{current['y']}" width="{current['width']}" height="{current['height']}" class="schedule-rect schedule-rect-{current['type'].replace(" ","-")}" style="fill:{bColor};"></rect>""")
             else:
@@ -479,15 +482,18 @@ class GetTime:
         for current in j['data']['data']['textList']:
             # Saves the color in a seperate variable so that we can modify it
             fColor = current['fColor']
-            if darkMode:
-                if current['type'] == "Lesson":
-                    if darkModeSetting == 2:
-                        fColor = "#FFFFFF"
-                    elif darkModeSetting == 4:
-                        fColor = invertColor(fColor)
-                else:
+            
+            if current['type'] == "Lesson":
+                
+                if darkModeSetting == 2:
+                    fColor = "#FFFFFF"
+                elif darkModeSetting == 4:
+                    fColor = invertColor(fColor)
+            else:
+                if darkMode:
                     if fColor == "#000000":
                         fColor = "#FFFFFF"
+
             
             if current['text'] != "":
                 # If the text is of a Lession type, that means that it sits ontop of a block that the user should be able to click to set a URL.
@@ -914,12 +920,13 @@ if __name__ == "__main__":
         if 'darkmode' in request.args: 
             initDarkMode = str(arg01_to_bool(request.args,"darkmode")).lower()
         
-        if 'flat' in request.args:
-            darkModeSetting = 2
-        if 'grayscale' in request.args:
-            darkModeSetting = 3
-        if 'invert' in request.args:
-            darkModeSetting = 4
+        if 'filter' in request.args:
+            if request.args['filter'] == 'flat':
+                darkModeSetting = 2
+            if request.args['filter'] == 'grayscale':
+                darkModeSetting = 3
+            if request.args['filter'] == 'invert':
+                darkModeSetting = 4
         
         dropDownButtons = [buttons[x].render() for x in (menus['private'] if privateURL else menus['normal'])]
 
@@ -1000,7 +1007,7 @@ if __name__ == "__main__":
             classes = request.args['classes']
         else:
             classes = ""
-            
+
         return jsonify(result=myRequest.handleHTML(
             classes=classes,
             privateID=arg01_to_bool(request.args,"privateID"),
