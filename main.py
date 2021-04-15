@@ -20,6 +20,7 @@
 #endregion
 #region IMPORT
 import os
+from re import M
 import time
 import json
 import base64
@@ -30,7 +31,7 @@ import requests
 import traceback
 import threading
 import feedparser
-from urllib.parse import quote as urlsafe
+from urllib.parse import urlencode
 from operator import attrgetter
 from flask import Flask
 from flask import Markup
@@ -92,6 +93,8 @@ def CurrentTime():
     a['week2'] = a['week'] + (1 if isSundayOrSaturday else 0)
     a['timeScore'] = (a['hour'] * 60) + a['minute']
     return a
+def TinyUrlShortener(url, alias="") -> str:
+    return requests.get(f"https://www.tinyurl.com/api-create.php?{urlencode({'url':url,'alias':alias})}").text
 def EncodeString(key, clear):
     # Code from https://stackoverflow.com/a/16321853
     enc = []
@@ -114,10 +117,8 @@ def GenerateHiddenURL(key, idInput, mainLink):
     return mainLink + f"?a={a}",a
 def sha256(hash_string):
     # Code from https://tinyurl.com/2k3ds62p
-    sha_signature = \
-        hashlib.sha256(hash_string.encode()).hexdigest()
-    return sha_signature
-def arg01_to_bool(args,argName):
+    return hashlib.sha256(hash_string.encode()).hexdigest()
+def arg01_to_bool(args, argName):
     """
         This function takes {request.args} and check if the argName is 1 or 0.\n
         If argName is "1", it returns True.\n
@@ -130,7 +131,7 @@ def arg01_to_bool(args,argName):
         if str(args[str(argName)]) == "0":
             return False
     return False
-def GetFood(allowCache=True,week=None):
+def GetFood(allowCache=True, week=None):
     t = CurrentTime()
     week = week if week != None else t['week']
     myHash = sha256(f"{week}{t['week']}")
@@ -163,13 +164,13 @@ class FunctionLogger:
         with "functionName" set to whatever name the function is.\n
         Then you log like normal, but instead of using logging.info(), you use FunctionLogger.info()
     """
-    def __init__(self,functionName):
+    def __init__(self, functionName):
         self.functionName = functionName
         logging.info(f"{self.functionName} : FunctionLogger Object created.")
-    def info(self,*message):
+    def info(self, *message):
         message = [str(x) for x in message]
         logging.info(f"{self.functionName}() : {str(' '.join(message))}")
-    def exception(self,*message):
+    def exception(self, *message):
         message = [str(x) for x in message]
         logging.exception(f"{self.functionName}() : {str(' '.join(message))}")
 class Lesson:
@@ -349,7 +350,7 @@ class GetTime:
             toReturn.append(currentLesson)
         toReturn.sort(key=attrgetter('timeStart'))
         return toReturn
-    def handleHTML(self, classes="", privateID=False, allowCache=True, darkMode=False, darkModeSetting=1) -> dict:
+    def handleHTML(self, classes="", privateID=False, allowCache=True, darkMode=False, darkModeSetting=1, isMobile=False) -> dict:
         """
             Fetches and converts the <JSON> data into a SVG (for sending to HTML)
             \n
@@ -393,9 +394,9 @@ class GetTime:
                         bColor = "#373737"
  
             if current['type'].startswith("ClockFrame"):
-                toReturn.append(f"""<rect x="{current['x']}" y="{current['y']}" width="{current['width']}" height="{current['height']}" style="fill:{bColor};"></rect>""")
+                toReturn.append(f"""<rect x="{current['x']}" y="{current['y']}" width="{current['width']}" height="{current['height']}" class="schedule-rect schedule-rect-{current['type'].replace(" ","-")}" style="fill:{bColor};"></rect>""")
             else:
-                toReturn.append(f"""<rect id="{current['id']}" x="{current['x']}" y="{current['y']}" width="{current['width']}" height="{current['height']}" style="fill:{bColor};stroke:{"#525252" if darkMode else "black"};stroke-width:1;"></rect>""")
+                toReturn.append(f"""<rect id="{current['id']}" x="{current['x']}" y="{current['y']}" width="{current['width']}" height="{current['height']}" class="schedule-rect schedule-rect-{current['type'].replace(" ","-")}" style="fill:{bColor};stroke:{"#525252" if darkMode else "black"};stroke-width:1;"></rect>""")
 
         scriptBuilder = {}
         logger.info("Looping through textList...")
@@ -424,7 +425,13 @@ class GetTime:
                         scriptBuilder[current['parentId']].append(str(current['text'])) 
                 
                 # Adds text object to list
-                toReturn.append(f"""<text x="{current['x']}" y="{current['y']+12}" style="font-size:{int(current['fontsize'])}px;fill:{fColor};">{current['text']}</text>""")
+                y_offset = 12
+                if current['type'] in ('HeadingDay','ClockAxisBox'):
+                    y_offset += 5
+                if isMobile and current['type'] in ('ClockFrameStart','ClockFrameEnd'):
+                    y_offset -= 4
+
+                toReturn.append(f"""<text x="{current['x']}" y="{current['y']+y_offset}" class="schedule-text schedule-text-{current['type'].replace(" ","-")}" style="font-size:{int(current['fontsize'])-2}px;fill:{fColor};">{current['text']}</text>""")
 
         logger.info("Looping through lineList...")
         for current in j['data']['data']['lineList']:
@@ -436,7 +443,7 @@ class GetTime:
             x1,x2=current['p1x'],current['p2x']
             # Checks delta lenght and skips those smalled then 10px
             if int(x1-x2 if x1>x2 else x2-x1) > 10:
-                toReturn.append(f"""<line x1="{current['p1x']}" y1="{current['p1y']}" x2="{current['p2x']}" y2="{current['p2y']}" stroke="{color}"></line>""")
+                toReturn.append(f"""<line x1="{current['p1x']}" y1="{current['p1y']}" x2="{current['p2x']}" y2="{current['p2y']}" stroke="{color}" class="schedule-line schedule-line-{current['type'].replace(" ","-")}"></line>""")
         
         # Add the scripts to a rect so that they can be ran after the schedule has loaded (Skips this when ID is hidden)
         if privateID == False:
@@ -788,6 +795,7 @@ if __name__ == "__main__":
         ignorejsmin = False
         ignorecssmin = False
         ignorehtmlmin = False
+        cssToInclude = []
         #endregion
         #region Check parameters
         if 'id' in request.args:
@@ -825,6 +833,27 @@ if __name__ == "__main__":
         if 'darkmode' in request.args: 
             initDarkMode = str(arg01_to_bool(request.args,"darkmode")).lower()
         dropDownButtons = [buttons[x].render() for x in (menus['private'] if privateURL else menus['normal'])]
+
+        #CSS
+        cssToInclude.append({'name':"style.css",'id':''})
+        cssToInclude.append({'name':"roller.css",'id':''})
+        cssToInclude.append({'name':"toggle.css",'id':''})
+        cssToInclude.append({'name':"darkmode-all.css",'id':'darkmodeAll'})
+
+        if mobileRequest:
+            cssToInclude.append({'name':"mobile.css",'id':''})
+            cssToInclude.append({'name':"darkmode-mobile.css",'id':'darkmode'})
+        else:
+            cssToInclude.append({'name':"darkmode-desktop.css",'id':'darkmode'})
+
+        #garbage code, but it does the job for now
+        cssToInclude = [
+            {
+                'name':(x['name'] if (ignorecssmin or 'ignore' in x) else f"min/{x['name'][:-4]}.min.css"),
+                'id':(f'''id={x['id']}''' if x['id'] != "" else "")
+            }
+        for x in cssToInclude]
+        cssToInclude = [Markup(f"""<link {x['id']} rel="stylesheet" type="text/css" href="/static/css/{x['name']}">""") for x in cssToInclude]
         #endregion    
         
         return render_template(
@@ -846,7 +875,8 @@ if __name__ == "__main__":
             dropDownButtons=dropDownButtons,
             ignorecookiepolicy=ignorecookiepolicy,
             ignorejsmin=ignorejsmin,
-            ignorecssmin=ignorecssmin
+            ignorecssmin=ignorecssmin,
+            cssToInclude=cssToInclude
         )
     #endregion
     #region API
@@ -874,9 +904,9 @@ if __name__ == "__main__":
             _resolution = (int(request.args['width']),int(request.args['height']))
         )
         if 'classes' in request.args: 
-            return jsonify(result=myRequest.handleHTML(classes=request.args['classes'], privateID=arg01_to_bool(request.args,"privateID"), darkMode=arg01_to_bool(request.args,"darkmode")))
+            return jsonify(result=myRequest.handleHTML(classes=request.args['classes'], privateID=arg01_to_bool(request.args,"privateID"), darkMode=arg01_to_bool(request.args,"darkmode"), isMobile=arg01_to_bool(request.args,"isMobile")))
         else:
-            return jsonify(result=myRequest.handleHTML(privateID=arg01_to_bool(request.args,"privateID"), darkMode=arg01_to_bool(request.args,"darkmode")))  
+            return jsonify(result=myRequest.handleHTML(privateID=arg01_to_bool(request.args,"privateID"), darkMode=arg01_to_bool(request.args,"darkmode"), isMobile=arg01_to_bool(request.args,"isMobile")))  
     @app.endpoint('API_JSON')
     def API_JSON():
         #logger = FunctionLogger(functionName='API_JSON')
