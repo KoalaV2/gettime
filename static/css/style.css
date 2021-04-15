@@ -423,3 +423,15 @@ a:hover{
 	position: fixed;
 	text-shadow: none;
 }
+
+
+.schedule-text{
+	font-family: 'JetBrains Mono', monospace;
+}
+
+.schedule-text-ClockAxisBox, .schedule-text-HeadingDay{
+	filter: drop-shadow(0px 0px 3px white);
+}
+.schedule-text-ClockFrameStart, .schedule-text-ClockFrameEnd{
+	filter: drop-shadow(0px 0px 3px black);
+}

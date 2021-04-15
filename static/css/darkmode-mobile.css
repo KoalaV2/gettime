@@ -1,0 +1,6 @@
+.controls-container, .saved-container{
+    background: rgba(255,255,255,0.1)!important;
+}
+.savedIDs{
+    background: linear-gradient(68deg, rgba(0,0,0,1) 0%, rgba(67,67,67,1) 37%, rgba(0,0,0,1) 96%) !important;
+}

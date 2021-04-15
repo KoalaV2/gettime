@@ -14,33 +14,51 @@ function sleep(milliseconds,_callback){
 }
   
 // Idea from https://tinyurl.com/yhsukrs9
+var toggleDarkMode_on = '';
+var toggleDarkModeAll_on = '';
+var toggleDarkMode_off = 'off';
+if (ignorecssmin){
+
+	toggleDarkModeAll_on = '/static/css/darkmode-all.css';
+
+	if (mobileRequest){
+		toggleDarkMode_on = '/static/css/darkmode-mobile.css';}
+	else{
+		toggleDarkMode_on = '/static/css/darkmode-desktop.css';
+	}
+}
+else{
+
+	toggleDarkModeAll_on = '/static/css/min/darkmode-all.min.css';
+
+	if (mobileRequest){
+		toggleDarkMode_on = '/static/css/min/darkmode-mobile.min.css';
+	}
+	else{
+		toggleDarkMode_on = '/static/css/min/darkmode-desktop.min.css';
+	}	
+}
 function toggleDarkMode(disableAnimation=false,saveToCookie=true){
 	
 	//Set the dark mode switch first
 	darkmode = $('#input-darkmode').prop('checked')
 
+	//Save dark mode option to cookie
 	if (saveToCookie){
 		createCookie('darkmode',(darkmode ? "1" : "0"),365);
 	}
 
 	function doTheThing(){
 		var theme = document.getElementById('darkmode');
+		var theme2 = document.getElementById('darkmodeAll');
 
-		if (theme.getAttribute('href').endsWith('.min.css')){
-			if (darkmode){
-				theme.setAttribute('href', '/static/css/min/darkmode.min.css');
-			}
-			else{
-				theme.setAttribute('href', 'darkmodeOff.min.css');
-			}
+		if (theme.getAttribute('href') == toggleDarkMode_off){
+			theme.setAttribute('href', toggleDarkMode_on);
+			theme2.setAttribute('href', toggleDarkModeAll_on);
 		}
 		else{
-			if (darkmode){
-				theme.setAttribute('href', '/static/css/darkmode.css');
-			}
-			else{
-				theme.setAttribute('href', 'darkmodeOff.css');
-			}
+			theme.setAttribute('href', toggleDarkMode_off);
+			theme2.setAttribute('href', toggleDarkMode_off);
 		}
 	}
 	
@@ -53,11 +71,10 @@ function toggleDarkMode(disableAnimation=false,saveToCookie=true){
 			doTheThing();
 			updateTimetable();
 		});
-			
+
 		//Needs better timing (its to fast rn)
 		$(".loader-main").slideToggle(500);
 	}
-
 }
 
 //get week number function
@@ -260,6 +277,7 @@ function clickOn_QRCODE(){
 
 function clickOn_SAVEDLINKS(){
 	showSaved();
+	$('.controls-container').fadeOut(0);
 }
 
 //events on load & event triggers.
@@ -486,7 +504,8 @@ $(window).on("load", function(){
 
 	//handles menu button clicking
 	$('.menuButton').on('click', function(){
-		$('.controls').slideToggle('fast', function() {
+		$('.controls').slideToggle('fast', function(){
+			$('.controls-container').fadeIn(0);
 			if ($(this).is(':visible')){
 				$(this).css('display','flex');
 				$('#schedule').addClass("menuBgBlur");

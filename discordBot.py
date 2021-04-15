@@ -5,14 +5,13 @@ import json
 import logging
 import discord
 import traceback
-from requests import get
-from subprocess import run
+from discord.ext import tasks
 from main import GetTime # type: ignore
 from main import SetLogging # type: ignore
 from main import CurrentTime # type: ignore
 from main import GenerateHiddenURL # type: ignore
-from discord.ext import tasks
-from urllib.parse import urlencode
+from main import TinyUrlShortener # type: ignore
+from urllib3.exceptions import MaxRetryError
 #endregion
 
 #region INIT
@@ -57,8 +56,6 @@ class EmbedMessage:
                 description=self.description
             )
         )
-def TinyUrlShortener(url,alias="") -> str:
-    return get(f"https://www.tinyurl.com/api-create.php?{urlencode({'url':url,'alias':alias})}").text
 def updateUserFile():
     global idsToCheck
     with open("users.json", "w") as outfile: 
@@ -118,7 +115,12 @@ async def on_message(message):
             except:remindThisManyMinutes = 5 # Default value is 5 minutes
             
             #Tries to fetch the ID to see if its valid
-            checkIDisValid = GetTime(_id=idToCheck).getData(allowCache=False)
+            try:
+                checkIDisValid = GetTime(_id=idToCheck).getData(allowCache=False)
+            except MaxRetryError:
+                await message.channel.send(f"> Försök igen senare! (MaxRetryError)")
+                return
+            
             if checkIDisValid['status'] < 0:
                 if checkIDisValid['status'] == -6:
                     await message.channel.send(f"> Något gick fel! ({checkIDisValid['validation'][0]['message']})")
@@ -157,21 +159,28 @@ async def on_message(message):
             )
 
             getTimeURL = GenerateHiddenURL(configfile['key'], myRequest._id, configfile['mainLink'])[0] + f"&week={myRequest._week}&day={myRequest._day}"
-
-            await EmbedMessage(
-                f"Här är ditt schema för {currentTimeTemp['dayNames'][myRequest._day-1].capitalize()}, v.{myRequest._week}!\n",
-                myRequest.GenerateTextSummary(mode="discord") + f"\n{urlEmbed('Öppna schemat online',getTimeURL)}"
-            ).send(message.channel)
+            try:
+                await EmbedMessage(
+                    f"Här är ditt schema för {currentTimeTemp['dayNames'][myRequest._day-1].capitalize()}, v.{myRequest._week}!\n",
+                    myRequest.GenerateTextSummary(mode="discord") + f"\n{urlEmbed('Öppna schemat online',getTimeURL)}"
+                ).send(message.channel)
+            except MaxRetryError:
+                await message.channel.send(f"> Försök igen senare! (MaxRetryError)")
+                return
         if userMessage[1].lower() in ('next'):
             idToCheck = GetIdFromUser()
             if idsToCheck == None:
                 await message.channel.send(f"> Fel användning av `{configfile['discordPrefix']} {userMessage[1].lower()}` (Inget ID)")
             else:
                 currentTimeTemp = CurrentTime()
-                a = GetTime(
-                    _id=idToCheck,
-                    _day=currentTimeTemp['weekday']
-                ).fetch(allowCache=False)
+                try:
+                    a = GetTime(
+                        _id=idToCheck,
+                        _day=currentTimeTemp['weekday']
+                    ).fetch(allowCache=False)
+                except MaxRetryError:
+                    await message.channel.send(f"> Försök igen senare! (MaxRetryError)")
+                    return
 
                 timeScore = (currentTimeTemp['hour'] * 60) + currentTimeTemp['minute']
                 for x in a:
@@ -232,11 +241,16 @@ async def lessonStart():
 
                 if a == None:
                     logging.error("Running request")
-                    a = GetTime(
-                        _id=currentID['id'],
-                        _day=currentTimeTemp['weekday'],
-                        _week=currentTimeTemp['week']
-                    ).fetch()
+                    try:
+                        a = GetTime(
+                            _id=currentID['id'],
+                            _day=currentTimeTemp['weekday'],
+                            _week=currentTimeTemp['week']
+                        ).fetch()
+                    except MaxRetryError:
+                        userDM = await client.fetch_user(user_id=int(currentID['discordID']))
+                        await userDM.send(f"> Försök igen senare! (MaxRetryError)")
+                        return
                     cachedResponses[str(currentID['discordID'])] = {'data':a,'age':time.time()}
 
                 for x in a:
@@ -248,7 +262,8 @@ async def lessonStart():
                             title=f"'{x.lessonName}' börjar om {minutesBeforeStart} {'minut' if minutesBeforeStart == 1 else 'minuter'}{' i ' + x.classroomName if x.classroomName != '' else ''}!"
                         ).send(userDM)
                     else:
-                        logging.error(f"minutesBeforeStart was {minutesBeforeStart}, not {currentID['minutes']}")
+                        pass
+                        #logging.error(f"minutesBeforeStart was {minutesBeforeStart}, not {currentID['minutes']}")
 
             logging.error('Waiting for minute to change...')
     except:
