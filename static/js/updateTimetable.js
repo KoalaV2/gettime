@@ -7,7 +7,11 @@ function updateTimetable(_callback){
 	idnumber = $("#id-input-box").val();
 	checkIfIDTextFits();
 	width = $(window).width() + 6;
-	height = (window.innerHeight - $(".navbar").height() + 1); // Sets height of schedule to the full screen size, minus the navigation bar at the top
+	height = window.innerHeight + 1; // Sets height of schedule to the full screen size...
+
+	if (hideNavbar){
+		height -= $(".navbar").height() //...minus the navigation bar at the top
+	}
 
 	dayOnly = $("#input-day").is(':checked');
 
