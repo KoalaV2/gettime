@@ -403,7 +403,7 @@ class GetTime:
             toReturn.append(currentLesson)
         toReturn.sort(key=attrgetter('timeStart'))
         return toReturn
-    def handleHTML(self, classes="", privateID=False, allowCache=True, darkMode=False, darkModeSetting=3, isMobile=False) -> dict:
+    def handleHTML(self, classes="", privateID=False, allowCache=True, darkMode=False, darkModeSetting=1, isMobile=False) -> dict:
         """
             Fetches and converts the <JSON> data into a SVG (for sending to HTML)
             \n
