@@ -198,6 +198,23 @@ def grayscale(color):
     elif typeToReturn == "hex":
         # Code from https://stackoverflow.com/a/3380739
         return '#%02x%02x%02x' % color
+def invertColor(color):
+    if type(color) == str:
+        # Code from https://stackoverflow.com/a/29643643
+        if color.startswith("#"):
+            color = color.lstrip('#')
+        color = tuple(int(color[i:i+2], 16) for i in (0, 2, 4))
+        typeToReturn = "hex"
+    else:
+        typeToReturn = "rgb"
+    
+    color = (255-color[0],255-color[1],255-color[2])
+
+    if typeToReturn == "rgb":
+        return color
+    elif typeToReturn == "hex":
+        # Code from https://stackoverflow.com/a/3380739
+        return '#%02x%02x%02x' % color
 #endregion
 #region CLASSES
 class FunctionLogger:
@@ -443,6 +460,8 @@ class GetTime:
                         bColor = "#525252"
                     elif darkModeSetting == 3:
                         bColor = grayscale(bColor)
+                    elif darkModeSetting == 4:
+                        bColor = invertColor(bColor)
                 else:
                     if bColor == "#FFFFFF":
                         bColor = "#282828"
@@ -464,6 +483,8 @@ class GetTime:
                 if current['type'] == "Lesson":
                     if darkModeSetting == 2:
                         fColor = "#FFFFFF"
+                    elif darkModeSetting == 4:
+                        fColor = invertColor(fColor)
                 else:
                     if fColor == "#000000":
                         fColor = "#FFFFFF"
@@ -843,6 +864,7 @@ if __name__ == "__main__":
         initWeek = t['week2']
         initDay = t['weekday3']
         initDarkMode = "null"
+        darkModeSetting = 1
         debugmode = False
         privateURL = False
         saveIdToCookie = True
@@ -891,6 +913,14 @@ if __name__ == "__main__":
             ignorehtmlmin = arg01_to_bool(request.args,"ignorehtmlmin")
         if 'darkmode' in request.args: 
             initDarkMode = str(arg01_to_bool(request.args,"darkmode")).lower()
+        
+        if 'flat' in request.args:
+            darkModeSetting = 2
+        if 'grayscale' in request.args:
+            darkModeSetting = 3
+        if 'invert' in request.args:
+            darkModeSetting = 4
+        
         dropDownButtons = [buttons[x].render() for x in (menus['private'] if privateURL else menus['normal'])]
 
         #CSS
@@ -935,7 +965,8 @@ if __name__ == "__main__":
             ignorecookiepolicy=ignorecookiepolicy,
             ignorejsmin=ignorejsmin,
             ignorecssmin=ignorecssmin,
-            cssToInclude=cssToInclude
+            cssToInclude=cssToInclude,
+            darkModeSetting=darkModeSetting
         )
     #endregion
     #region API
@@ -954,8 +985,11 @@ if __name__ == "__main__":
         return jsonify(result={'url':a[0],'id':a[1]})
     @app.endpoint('API_GENERATE_HTML')
     def API_GENERATE_HTML():
+        """
+            This function generates the finished HTML code for the schedule (Used by the website to generate the image you see)
+        """
         #logger = FunctionLogger(functionName='API_GENERATE_HTML')
-        # This function generates the finished HTML code for the schedule (Used by the website to generate the image you see)
+        
         myRequest = GetTime(
             _id = request.args['id'],
             _week = int(request.args['week']),
@@ -963,9 +997,17 @@ if __name__ == "__main__":
             _resolution = (int(request.args['width']),int(request.args['height']))
         )
         if 'classes' in request.args: 
-            return jsonify(result=myRequest.handleHTML(classes=request.args['classes'], privateID=arg01_to_bool(request.args,"privateID"), darkMode=arg01_to_bool(request.args,"darkmode"), isMobile=arg01_to_bool(request.args,"isMobile")))
+            classes = request.args['classes']
         else:
-            return jsonify(result=myRequest.handleHTML(privateID=arg01_to_bool(request.args,"privateID"), darkMode=arg01_to_bool(request.args,"darkmode"), isMobile=arg01_to_bool(request.args,"isMobile")))  
+            classes = ""
+            
+        return jsonify(result=myRequest.handleHTML(
+            classes=classes,
+            privateID=arg01_to_bool(request.args,"privateID"),
+            darkMode=arg01_to_bool(request.args,"darkmode"),
+            isMobile=arg01_to_bool(request.args,"isMobile"),
+            darkModeSetting=int(request.args["darkmodesetting"])
+        ))
     @app.endpoint('API_JSON')
     def API_JSON():
         #logger = FunctionLogger(functionName='API_JSON')

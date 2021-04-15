@@ -54,7 +54,7 @@ function updateTimetable(_callback){
 			"&height=" + height + 
 			"&privateID=" + (privateURL ? "1" : "0") + 
 			"&darkmode=" + (darkmode ? "1" : "0") + 
-			"&darkmodesetting=1" + 
+			"&darkmodesetting=" + darkModeSetting + 
 			"&isMobile=" + (mobileRequest ? "1" : "0")
 		][0]
 
