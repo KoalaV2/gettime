@@ -4,7 +4,7 @@
 		<!-- GetTime -->
 		<script>
 			/* This is where some constants and settings are stored */
-			var requestURL = "{{requestURL}}",
+			const requestURL = "{{requestURL}}",
 				privateURL = {{"true" if privateURL else "false"}},
 				saveIdToCookie = {{"true" if saveIdToCookie else "false"}},
 				mobileRequest = {{"true" if mobileRequest else "false"}},
@@ -20,7 +20,6 @@
 				ignorejsmin = {{"true" if ignorejsmin else "false"}},
 				darkModeSetting = {{darkModeSetting}},
 				hideNavbar = {{"true" if hideNavbar else "false"}};
-				
 		</script>
 		
 		<!-- Set title -->
@@ -267,14 +266,39 @@
 			</div>
 
 			<!-- Contact information TEST -->
-			<div id="text_test" class="text_box">
-	
-				<h1>test</h1>
+			<div id="text_tricks" class="text_box">
+				<style>
+					#text_tricks a{
+						text-decoration: underline !important;
+					}
+				</style>
 
-				<p>test 2</p>
+				<h1>🧙⚔️</h1>
+
+				<h2>Hey look, you found me!</h2>
+				<p>
+					I guess you could call me the "cheat menu" of GetTime!
+					Here you can find some cheat secret modes and URL parameters that you can use!
+				</p>
+
+				<br>
+
+				<h3>Filters:</h3>
+				<p>You can click on these to turn the effect on/off</p>
+				<ul>
+					<li>
+						<p><a onclick="addURLArgument('filter','grayscale');">&filter=grayscale</a></p>
+					</li>
+					<li>
+						<p><a onclick="addURLArgument('filter','invert');">&filter=invert</a></p>
+					</li>
+					<li>
+						<p><a onclick="addURLArgument('filter','flat');">&filter=flat</a></p>
+					</li> 
+				</ul>
 
 				<!-- Go back button -->
-				<span onclick="textBoxClose('#text_test')" class="text_box_close">Stäng</span>
+				<span onclick="$('#id-input-box').val('');textBoxClose('#text_tricks')" class="text_box_close">Stäng</span>
 				<br>
 
 			</div>

@@ -3,6 +3,91 @@ var week;
 var day = initDay;
 var darkmode = initDarkMode;
 
+// Code from https://stackoverflow.com/a/1431113
+String.prototype.replaceAt = function(index, replacement) {
+	return this.substr(0, index) + replacement + this.substr(index + replacement.length);
+}
+
+//get week number function
+Date.prototype.getWeek = function(){
+	var onejan = new Date(this.getFullYear(), 0, 1);
+	return Math.ceil((((this - onejan) / 86400000) + onejan.getDay() + 1) / 7);
+}
+
+function fixURLArgumentIcons(urlInput){
+	let newURL = urlInput;
+	if (newURL.length >= requestURL.length){
+		newURL = newURL.replaceAt(requestURL.length,"?");
+	}
+	return newURL;
+}
+
+function readURLArgumentValueFromKey(key,urlInput=null){	
+	if (urlInput==null){urlInput = window.location.href;}
+
+	let a = urlInput.split(key + "=")[1] //Contains what is AFTER "key="
+	if (a == undefined){
+		return null;
+	}
+	if (a.includes("&")){
+		a = a.split("&")[0]; //Now contains what "value" is for "key"
+	}
+	return a;
+}
+
+function removeURLArgument(key,urlInput=null){
+	if (urlInput==null){urlInput = window.location.href;}
+
+	let currentURL = urlInput;
+	let keyIcon = currentURL[currentURL.indexOf(key)-1]; //Contains what is before the key (& or ?)
+	let a = readURLArgumentValueFromKey(key);
+
+	if (currentURL.includes(keyIcon+key+"="+a)){
+		currentURL = currentURL.replace(keyIcon+key+"="+a,"");
+	}
+	else if (currentURL.includes(keyIcon+key)){
+		currentURL = currentURL.replace(keyIcon+key,"");
+	}
+	
+	currentURL = fixURLArgumentIcons(currentURL);
+
+	return currentURL;
+}
+
+//takes list with 2 strings, and changes the url to match
+function addURLArgument(key,value=""){
+	let currentURL = window.location.href;
+	let newURL = currentURL;
+	let argument = key + ((value != "") ? ("=" + value) : ("")); //Contains "key=value" (or just "key" if no value was passed)
+
+	// If includes the key, with the same value.
+	if (currentURL.includes(argument)){
+		newURL = newURL.replace(newURL[newURL.indexOf(argument)-1] + argument,'');
+		newURL = fixURLArgumentIcons(newURL);
+	}
+	// If includes the key, but not the same value.
+	else if (currentURL.includes(key) && value != ""){
+		let a = currentURL.split(key + "=")[1]
+		if (a.includes("&")){
+			a = a.split("&")[0];
+		}
+		
+		newURL = newURL.replace(key + "=" + a, key + "=" + value);
+		console.log(a);
+	}
+	// If does not include key or value.
+	else{
+		let argIcon = currentURL.includes(requestURL + "?") ? "&" : "?";
+		newURL += argIcon + argument;
+	}
+
+	if (decodeURIComponent(readURLArgumentValueFromKey("id",urlInput=newURL)) == 'its dangerous to go alone'){
+		newURL = removeURLArgument('id',urlInput=newURL);
+	}
+
+	window.location.href = newURL;
+}
+
 // Code from https://tinyurl.com/j7axshp7
 function sleep(milliseconds,_callback){
 	const date = Date.now();
@@ -75,12 +160,6 @@ function toggleDarkMode(disableAnimation=false,saveToCookie=true){
 		//Needs better timing (its to fast rn)
 		$(".loader-main").slideToggle(500);
 	}
-}
-
-//get week number function
-Date.prototype.getWeek = function(){
-	var onejan = new Date(this.getFullYear(), 0, 1);
-	return Math.ceil((((this - onejan) / 86400000) + onejan.getDay() + 1) / 7);
 }
 
 var getParams = function (url) {

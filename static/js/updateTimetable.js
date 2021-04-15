@@ -42,14 +42,18 @@ function updateTimetable(_callback){
 	    dayTEMP = 0;
 	}
 
-	var SUSSY = idnumber.toLowerCase() == "sus" || idnumber.toLowerCase() == "ඞ";
+	if (idnumber.toLowerCase() == "its dangerous to go alone"){
+		textBoxOpen('#text_tricks');
+	}
+
+	let SUSSY = idnumber.toLowerCase() == "sus" || idnumber.toLowerCase() == "ඞ";
 	if (SUSSY){
 		window.location.href = requestURL + "ඞ";
 	}
 
 	if (idnumber.length > 0){
 		
-		var url = [
+		let url = [
 			requestURL + 
 			'API/GENERATE_HTML?id=' + idnumber + 
 			"&day=" + dayTEMP + 
@@ -89,8 +93,8 @@ function updateTimetable(_callback){
 			if (!data['result']['html'].startsWith("<!-- ERROR -->")){
 
 				// Replaces the SVG with the new SVG data
-				var tdElement = document.getElementById('schedule');
-				var trElement = tdElement.parentNode;
+				let tdElement = document.getElementById('schedule');
+				let trElement = tdElement.parentNode;
 				trElement.removeChild(tdElement);
 				trElement.innerHTML = data['result']['html'] + trElement.innerHTML;
 
