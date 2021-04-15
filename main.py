@@ -20,7 +20,6 @@
 #endregion
 #region IMPORT
 import os
-from re import M
 import time
 import json
 import base64
@@ -31,6 +30,7 @@ import requests
 import traceback
 import threading
 import feedparser
+import numpy as np
 from urllib.parse import urlencode
 from operator import attrgetter
 from flask import Flask
@@ -46,7 +46,7 @@ from werkzeug.routing import Rule
 from werkzeug.exceptions import NotFound
 #endregion
 #region CACHE SETTINGS
-getDataMaxAge = 2*60 # Secounds
+getDataMaxAge = 5*60 # Secounds
 getFoodMaxAge = 60*60 # Secounds
 dataCache = {}
 #endregion
@@ -155,6 +155,49 @@ def GetFood(allowCache=True, week=None):
     if allowCache:
         dataCache[myHash] = {'maxage':getFoodMaxAge,'age':time.time(),'data':toReturn}
     return toReturn
+def fadeColor(color, percent):
+    """
+        if `0 > percent >= -1` then it fades to black.\n
+        if `1 > percent >=  0` then it fades to white.
+    """
+    
+    if type(color) == str:
+        # Code from https://stackoverflow.com/a/29643643
+        if color.startswith("#"):
+            color = color.lstrip('#')
+        color = tuple(int(color[i:i+2], 16) for i in (0, 2, 4))
+        typeToReturn = "hex"
+    else:
+        typeToReturn = "rgb"
+    
+    # Code from https://stackoverflow.com/a/28033054
+    color = np.array(color)
+    x = color + (np.array([0,0,0] if percent < 0 else [255,255,255]) - color) * (percent if percent > 1 else percent * -1)
+    x = (round(x[0]) if x[0] > 0 else 0 ,round(x[1]) if x[1] > 0 else 0 ,round(x[2]) if x[2] > 0 else 0 )
+    
+    if typeToReturn == "rgb":
+        return x
+    elif typeToReturn == "hex":
+        # Code from https://stackoverflow.com/a/3380739
+        return '#%02x%02x%02x' % x
+def grayscale(color):
+    if type(color) == str:
+        # Code from https://stackoverflow.com/a/29643643
+        if color.startswith("#"):
+            color = color.lstrip('#')
+        color = tuple(int(color[i:i+2], 16) for i in (0, 2, 4))
+        typeToReturn = "hex"
+    else:
+        typeToReturn = "rgb"
+
+    x = int(sum(color) / 3)
+    color = (x,x,x)
+
+    if typeToReturn == "rgb":
+        return color
+    elif typeToReturn == "hex":
+        # Code from https://stackoverflow.com/a/3380739
+        return '#%02x%02x%02x' % color
 #endregion
 #region CLASSES
 class FunctionLogger:
@@ -245,7 +288,13 @@ class GetTime:
             }
             url1 = 'https://web.skola24.se/api/encrypt/signature'
             payload1 = {"signature":self._id}
-            response1 = requests.post(url1, data=json.dumps(payload1), headers=headers1)
+            try:
+                response1 = requests.post(url1, data=json.dumps(payload1), headers=headers1)
+            except TimeoutError:
+                return {"status":-9,"message":"Response 1 Error (TimeoutError)","data":""}
+            except Exception:
+                return {"status":-10,"message":"Response 1 Error (Other)","data":traceback.format_exc}
+                
             try:response1 = json.loads(response1.text)['data']['signature']
             except:return {"status":-2,"message":"Response 1 Error","data":response1}
             #endregion
@@ -334,8 +383,12 @@ class GetTime:
             logger.info('ERROR!',response)
             return response
 
-        if response['data']['data']['lessonInfo'] == None:
-            return [] # No lessions this day
+        try:
+            if response['data']['data']['lessonInfo'] == None:
+                return [] # No lessions this day
+        except Exception as e:
+            logger.info(f"Before i die! : {str(response)}")
+            raise e
 
         for x in response['data']['data']['lessonInfo']:
             currentLesson = Lesson(
@@ -350,7 +403,7 @@ class GetTime:
             toReturn.append(currentLesson)
         toReturn.sort(key=attrgetter('timeStart'))
         return toReturn
-    def handleHTML(self, classes="", privateID=False, allowCache=True, darkMode=False, darkModeSetting=1, isMobile=False) -> dict:
+    def handleHTML(self, classes="", privateID=False, allowCache=True, darkMode=False, darkModeSetting=3, isMobile=False) -> dict:
         """
             Fetches and converts the <JSON> data into a SVG (for sending to HTML)
             \n
@@ -361,6 +414,7 @@ class GetTime:
         """
         logger = FunctionLogger(functionName='GetTime.handleHTML')
 
+        #region init
         toReturn = []
         timeTakenToFetchData = time.time()
         j = self.getData(allowCache=allowCache)
@@ -372,14 +426,14 @@ class GetTime:
                 return {'html':"""<!-- ERROR --> <div id="schedule" style="all: initial;*{all:unset;}">""" + f"""<p style="color:white">{j['message']}</p>{j['data']}</div>"""}
 
         timeTakenToFetchData = time.time()-timeTakenToFetchData
-        
         timeTakenToHandleData = time.time() 
          
         #_id="{EncodeString(configfile['key'],self._id)}" _week="{self._week}" _day="{self._day}" _resolution="{self._resolution}" class="{classes}"
         # Start of the SVG 
         toReturn.append(f"""<svg id="schedule" class="{classes}" style="width:{self._resolution[0]}; height:{self._resolution[1]};" viewBox="0 0 {self._resolution[0]} {self._resolution[1]}" shape-rendering="crispEdges">""")
-
-        logger.info("Looping through boxList...")
+        #endregion
+        #region boxList
+        logger.info("Looping through  ...")
         for current in j['data']['data']['boxList']:
             # Saves the color in a seperate variable so that we can modify it
             bColor = current['bColor']
@@ -387,6 +441,8 @@ class GetTime:
                 if current['type'] == "Lesson":
                     if darkModeSetting == 2:
                         bColor = "#525252"
+                    elif darkModeSetting == 3:
+                        bColor = grayscale(bColor)
                 else:
                     if bColor == "#FFFFFF":
                         bColor = "#282828"
@@ -397,7 +453,8 @@ class GetTime:
                 toReturn.append(f"""<rect x="{current['x']}" y="{current['y']}" width="{current['width']}" height="{current['height']}" class="schedule-rect schedule-rect-{current['type'].replace(" ","-")}" style="fill:{bColor};"></rect>""")
             else:
                 toReturn.append(f"""<rect id="{current['id']}" x="{current['x']}" y="{current['y']}" width="{current['width']}" height="{current['height']}" class="schedule-rect schedule-rect-{current['type'].replace(" ","-")}" style="fill:{bColor};stroke:{"#525252" if darkMode else "black"};stroke-width:1;"></rect>""")
-
+        #endregion
+        #region textList
         scriptBuilder = {}
         logger.info("Looping through textList...")
         for current in j['data']['data']['textList']:
@@ -432,7 +489,8 @@ class GetTime:
                     y_offset -= 4
 
                 toReturn.append(f"""<text x="{current['x']}" y="{current['y']+y_offset}" class="schedule-text schedule-text-{current['type'].replace(" ","-")}" style="font-size:{int(current['fontsize'])-2}px;fill:{fColor};">{current['text']}</text>""")
-
+        #endregion
+        #region lineList
         logger.info("Looping through lineList...")
         for current in j['data']['data']['lineList']:
             color = current['color']
@@ -449,7 +507,8 @@ class GetTime:
         if privateID == False:
             scriptsToRun = [f"""checkMyUrl('{x}','{"_".join(scriptBuilder[x])}');""" for x in scriptBuilder] # Loops through the ids, and creates scripts for them
             toReturn.append(f'<rect id="scheduleScript" style="display: none;" script="{"".join(scriptsToRun)}"></rect>')
-        
+        #endregion
+
         timeTakenToHandleData = time.time() - timeTakenToHandleData
 
         # Comments 
