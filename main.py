@@ -865,6 +865,7 @@ if __name__ == "__main__":
         t = CurrentTime()
         parseCode = ""
         requestURL = configfile['mainLink']
+        hideNavbar = False
         initID = ""
         initDayMode = False
         initWeek = t['week2']
@@ -928,6 +929,8 @@ if __name__ == "__main__":
             if request.args['filter'] == 'invert':
                 darkModeSetting = 4
         
+        hideNavbar = 'fullscreen' in request.args
+
         dropDownButtons = [buttons[x].render() for x in (menus['private'] if privateURL else menus['normal'])]
 
         #CSS
@@ -935,12 +938,13 @@ if __name__ == "__main__":
         cssToInclude.append({'name':"roller.css",'id':''})
         cssToInclude.append({'name':"toggle.css",'id':''})
         cssToInclude.append({'name':"darkmode-all.css",'id':'darkmodeAll'})
-
         if mobileRequest:
             cssToInclude.append({'name':"mobile.css",'id':''})
             cssToInclude.append({'name':"darkmode-mobile.css",'id':'darkmode'})
         else:
             cssToInclude.append({'name':"darkmode-desktop.css",'id':'darkmode'})
+        if hideNavbar:
+            cssToInclude.append({'name':"fullscreen.css",'id':''})
 
         #garbage code, but it does the job for now
         cssToInclude = [
@@ -973,7 +977,8 @@ if __name__ == "__main__":
             ignorejsmin=ignorejsmin,
             ignorecssmin=ignorecssmin,
             cssToInclude=cssToInclude,
-            darkModeSetting=darkModeSetting
+            darkModeSetting=darkModeSetting,
+            hideNavbar=hideNavbar
         )
     #endregion
     #region API
