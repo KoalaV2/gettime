@@ -859,8 +859,11 @@ if __name__ == "__main__":
         }
     ]
     @app.endpoint('index')
-    def index():
+    def index(alternativeArgs=None):
         logger = FunctionLogger(functionName='index')
+
+        if alternativeArgs != None:
+            request.args = alternativeArgs
 
         #region Default values
         t = CurrentTime()
@@ -1123,7 +1126,13 @@ if __name__ == "__main__":
     #region Special easter egg URL's for the creators/contributors AND AMOGUS ඞ
     @app.endpoint('schedule_Tay')
     def schedule_Tay():
-        return redirect(f'{configfile["mainLink"]}?a=ZGbCmXrCgcKiwqFocsKdwqlk&darkmode=1&ignorecookiepolicy=1&fullscreen&filter=flat')
+        return index(alternativeArgs={
+            'a':'ZGbCmXrCgcKiwqFocsKdwqlk',
+            'darkmode':'1',
+            'ignorecookiepolicy':'1',
+            'fullscreen':'1',
+            'filter':'flat'
+        })
     @app.endpoint('TheoCredit')
     def TheoCredit():
         return redirect('https://koalathe.dev/')
