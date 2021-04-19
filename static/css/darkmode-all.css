@@ -38,3 +38,6 @@ input:checked + .slider{
 .text_box a:link, .text_box a:visited, .text_box a:hover, .text_box a:active{
     color: white !important;
 }
+#scheduleBox rect{
+	stroke: #525252 !important;
+}

@@ -433,3 +433,8 @@ a:hover{
 .text-ClockFrameStart, .text-ClockFrameEnd{
 	filter: drop-shadow(0px 0px 3px black);
 }
+
+#scheduleBox rect:not(.rect-ClockFrameStart):not(.rect-ClockFrameEnd){
+	stroke: black;
+	stroke-width: 1;
+}

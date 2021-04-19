@@ -215,12 +215,11 @@ def invertColor(color):
     elif typeToReturn == "hex":
         # Code from https://stackoverflow.com/a/3380739
         return '#%02x%02x%02x' % color
-def createHTMLobject(tag, arguments):
-    a = ' '.join((f'{key}="{str(arguments[key])}"' if key != 'innerHTML' else "") for key in arguments)
-    b = "" if not 'innerHTML' in arguments else arguments['innerHTML']
-    return f"<{tag} {a}>{b}</{tag}>"
-
-#endregion
+def searchInDict(listInput, keyInput, valueInput):
+    for x, y in enumerate(listInput):
+        if y[keyInput] == valueInput:
+            return x
+    return None
 #region CLASSES
 class FunctionLogger:
     """
@@ -238,6 +237,14 @@ class FunctionLogger:
     def exception(self, *message):
         message = [str(x) for x in message]
         logging.exception(f"{self.functionName}() : {str(' '.join(message))}")
+class HTMLObject:
+    def __init__(self, tag, arguments):
+        self.tag = tag
+        self.arguments = arguments
+    def render(self):
+        a = ' '.join((f'{key}="{str(self.arguments[key])}"' if key != 'innerHTML' else "") for key in self.arguments)
+        b = "" if not 'innerHTML' in self.arguments else self.arguments['innerHTML']
+        return f"<{self.tag} {a}>{b}</{self.tag}>"
 class Lesson:
     def __init__(self, lessonName=None, teacherName=None, classroomName=None, timeStart=None, timeEnd=None, insertDict=None) -> None:
         if insertDict != None:
@@ -443,9 +450,9 @@ class GetTime:
             Returns:
                 {'html':(SVG HTML CODE),'timestamp':timeStamp}
         """
+        #region init
         logger = FunctionLogger(functionName='GetTime.handleHTML')
 
-        #region init
         toReturn = []
         timeTakenToFetchData = time.time()
         j = self.getData(allowCache=allowCache)
@@ -458,13 +465,12 @@ class GetTime:
 
         timeTakenToFetchData = time.time()-timeTakenToFetchData
         timeTakenToHandleData = time.time() 
-         
-        #_id="{EncodeString(configfile['key'],self._id)}" _week="{self._week}" _day="{self._day}" _resolution="{self._resolution}" class="{classes}"
-        # Start of the SVG 
-        toReturn.append(f"""<svg id="schedule" class="{classes}" style="width:{self._resolution[0]}; height:{self._resolution[1]};" viewBox="0 0 {self._resolution[0]} {self._resolution[1]}" shape-rendering="crispEdges">""")
         #endregion
+        #region Start of the SVG 
+        toReturn.append(f"""<svg id="schedule" class="{classes}" style="width:{self._resolution[0]}; height:{self._resolution[1]};" viewBox="0 0 {self._resolution[0]} {self._resolution[1]}" shape-rendering="crispEdges">""")
         #region boxList
-        logger.info("Looping through  ...")
+        logger.info("Looping through boxList...")
+        toReturn_boxList = []
         for current in j['data']['data']['boxList']:
             # Saves the color in a seperate variable so that we can modify it
             bColor = current['bColor']
@@ -483,36 +489,25 @@ class GetTime:
                     if bColor == "#CCCCCC":
                         bColor = "#373737"
 
-            arguments = {
-                'x':current['x'],
-                'y':current['y'],
-                'width':current['width'],
-                'height':current['height'],
-                'class':f"rect-{current['type'].replace(' ','-')}",
-            }
-
-            if current['type'].startswith("ClockFrame"):
-                arguments['style'] = f'fill:{bColor};'
-            else:
-                arguments['id'] = current['id']
-                arguments['style'] = f'fill:{bColor};stroke:{"#525252" if darkMode else "black"};stroke-width:1;'
-
-            #arguments = ' '.join(f'{key}="{str(arguments[key])}"' for key in arguments)
-
-            #toReturn.append(f"<rect {arguments}></rect>")
-            
-            toReturn.append(
-                createHTMLobject(
+            toReturn_boxList.append(
+                HTMLObject(
                     tag='rect',
-                    arguments=arguments
+                    arguments={
+                        'id':current['id'],
+                        'x':current['x'],
+                        'y':current['y'],
+                        'width':current['width'],
+                        'height':current['height'],
+                        'class':f"rect-{current['type'].replace(' ','-')}",
+                        'style':f'fill:{bColor};'
+                    }
                 )
             )
-            #toReturn.append(f"""<rect id="{current['id']}" x="{current['x']}" y="{current['y']}" width="{current['width']}" height="{current['height']}" class="rect-{current['type'].replace(" ","-")}" style="fill:{bColor};stroke:{"#525252" if darkMode else "black"};stroke-width:1;"></rect>""")
-            
         #endregion
         #region textList
         scriptBuilder = {}
         logger.info("Looping through textList...")
+        toReturn_textList = []
         for current in j['data']['data']['textList']:
             # Saves the color in a seperate variable so that we can modify it
             fColor = current['fColor']
@@ -533,6 +528,8 @@ class GetTime:
                 # This only happens if privateID is false, because if the ID is private, it doesnt add the scripts anyways, so why bother generating them in the first place?
                 if privateID == False and current['type'] == "Lesson":
 
+
+                    
                     # If the key does not exist yet, it creates an empty list for it
                     if not current['parentId'] in scriptBuilder:
                         scriptBuilder[current['parentId']] = []
@@ -553,8 +550,8 @@ class GetTime:
                 if current['type'] in ('ClockFrameStart','ClockFrameEnd'):
                     size_offset += 1
 
-                toReturn.append(
-                    createHTMLobject(
+                toReturn_textList.append(
+                    HTMLObject(
                         tag='text',
                         arguments={
                             'x':current['x'],
@@ -568,6 +565,7 @@ class GetTime:
         #endregion
         #region lineList
         logger.info("Looping through lineList...")
+        toReturn_lineList = []
         for current in j['data']['data']['lineList']:
             color = current['color']
             if darkMode:
@@ -577,8 +575,8 @@ class GetTime:
             x1,x2=current['p1x'],current['p2x']
             # Checks delta lenght and skips those smalled then 10px
             if int(x1-x2 if x1>x2 else x2-x1) > 10:
-                toReturn.append(
-                    createHTMLobject(
+                toReturn_lineList.append(
+                    HTMLObject(
                         tag='line',
                         arguments={
                             'x1':current['p1x'],
@@ -591,14 +589,18 @@ class GetTime:
                     )
                 )
         #endregion
-        
-        # Add the scripts to a rect so that they can be ran after the schedule has loaded (Skips this when ID is hidden)
+        #region Scripts
         if privateID == False:
-            scriptsToRun = [f"""checkMyUrl('{x}','{"_".join(scriptBuilder[x])}');""" for x in scriptBuilder] # Loops through the ids, and creates scripts for them
-            toReturn.append(f'<rect id="scheduleScript" style="display: none;" script="{"".join(scriptsToRun)}"></rect>')
+            a = [x.arguments for x in toReturn_boxList]
+
+            for key in scriptBuilder:
+               toReturn_boxList[searchInDict(a,'id',key)].arguments['onclick'] = f"""iWasClicked('{key}','{"_".join(scriptBuilder[key])}');"""
+
+        for x in toReturn_boxList + toReturn_textList + toReturn_lineList:
+            toReturn.append(x.render())
 
         timeTakenToHandleData = time.time() - timeTakenToHandleData
-
+        #endregion
         #region Comments 
         toReturn.append("<!-- THIS SCHEDULE WAS MADE POSSIBLE BY https://github.com/KoalaV2 -->")
         toReturn.append(f"<!-- SETTINGS USED: id: {'[HIDDEN]' if privateID else self._id}, week: {self._week}, day: {self._day}, resolution: {self._resolution}, class: {classes} -->")
@@ -607,9 +609,9 @@ class GetTime:
         toReturn.append(f"<!-- Time taken (TOTAL): {(timeTakenToFetchData + timeTakenToHandleData)} secounds -->")
         #endregion
 
-        # End of the SVG
         toReturn.append("</svg>")
-
+        # End of the SVG
+        #endregion
         return {'html':"\n".join(toReturn)}
     def GenerateTextSummary(self, mode="normal", lessons=None, allowCache=True):
         if lessons == None:lessons = self.fetch(allowCache=allowCache)
