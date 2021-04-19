@@ -119,7 +119,7 @@
 		display: inherit;
 	}
 
-	.info, .contact_info{
+	.text_box, .contact_info{
 		margin-top: 5rem;
     	position: inherit;
 		width: 90vw;
@@ -127,7 +127,7 @@
 		height: 83vh;
 	}
 
-	.infoClose{
+	.text_box_close{
 		bottom: 5vh;
 		font-size: 1rem;
 	}
