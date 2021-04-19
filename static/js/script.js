@@ -2,6 +2,8 @@ var urlArguments = {};
 var week;
 var day = initDay;
 var darkmode = initDarkMode;
+var hideNavbar = initHideNavbar;
+var oldURL = "";
 
 // Code from https://stackoverflow.com/a/1431113
 String.prototype.replaceAt = function(index, replacement) {
@@ -359,9 +361,54 @@ function clickOn_SAVEDLINKS(){
 	$('.controls-container').fadeOut(0);
 }
 
+function f_showNavbar(){
+	console.log("Showing navbar");
+	hideNavbar = false;
+	$('.navbar').show();
+	$('#scheduleBox').css({'top':$('.navbar').height()+'px'});
+	updateTimetable();
+}
+function f_hideNavbar(){
+	console.log("Hiding navbar");
+	hideNavbar = true;
+	$('.navbar').hide();
+	$('#scheduleBox').css({'top':'0px'});
+	updateTimetable();
+}
+
+function is_heightIsMoreThenWidth(){
+	return $(window).height() > $(window).width();
+}
+var heightIsMoreThenWidth = null;
+function hasMobileBeenRotated(){
+	if (mobileRequest){
+		if (heightIsMoreThenWidth == null){
+			heightIsMoreThenWidth = is_heightIsMoreThenWidth();
+		}
+		else{
+			if (heightIsMoreThenWidth == is_heightIsMoreThenWidth()){
+				console.log("User did not rotate their screen yet");
+				return;
+			}
+			else{
+				heightIsMoreThenWidth = is_heightIsMoreThenWidth();
+			}
+		}
+		if (initHideNavbar != true){
+			hideNavbar = !heightIsMoreThenWidth;
+
+			if (hideNavbar){
+				f_hideNavbar();
+			}
+			else{
+				f_showNavbar();
+			}
+		}
+	}
+}
+
 //events on load & event triggers.
 $(window).on("load", function(){
-
 	// debounce
 	//Code from https://tinyurl.com/ttd83xe6
 	function debounce(func, wait, immediate) {
@@ -444,18 +491,13 @@ $(window).on("load", function(){
 	$(".arrow-center-text").text(week);
 	$(".arrow-center").attr("title", ("Current week (" + week + ")"));
 
-	//load timetable after cookie info get
-	if (readCookie("infoClosed") == "closed" || ignorecookiepolicy){
-		console.log("load timetable after cookie info get");
-		updateTimetable();	
-	}
-
 	updateMenuButtonsBasedOnSize();
 	checkIfIDTextFits();
 
 	// TRIGGERS
 	//update timetable to fit new window size
 	var update_timetable_to_fit_new_window_size = debounce(function() {
+		hasMobileBeenRotated();
 		console.log("update timetable to fit new window size");
 		$("#schedule").fadeOut(500);
 		updateMenuButtonsBasedOnSize();
@@ -637,14 +679,45 @@ $(window).on("load", function(){
 		}
 	});
 
+	//Code from https://stackoverflow.com/a/1846733
+	document.onkeypress = function(evt) {
+		evt = evt || window.event;
+		var charCode = evt.keyCode || evt.which;
+		var charStr = String.fromCharCode(charCode);
+
+		if (charStr.toLowerCase() == "f"){
+			if (hideNavbar){
+				f_showNavbar();
+			}
+			else{
+				f_hideNavbar();
+			}
+		}
+	};
+
 	// Moves the timetable down so it doesnt overlay the navbar
-	$(document).ready(function() {
-		$("#scheduleBox").css("top", $(".navbar").height());
-	});
+	//$(document).ready(function() {
+	//	$("#scheduleBox").css("top", $(".navbar").height());
+	//});
 
 	if (showContactOnLoad){
 		textBoxOpen('#text_contact_info');
 		//contacttextBoxOpen('#text_cookies_info');
+	}
+
+	//load timetable after cookie info get
+	if (readCookie("infoClosed") == "closed" || ignorecookiepolicy){
+		console.log("load timetable after cookie info get");
+		updateTimetable();	
+	}
+	
+	hasMobileBeenRotated();
+
+	if (hideNavbar){
+		f_hideNavbar();
+	}
+	else{
+		f_showNavbar();
 	}
 
 	// Page finished loading, slide up loader screen

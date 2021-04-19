@@ -1,4 +1,5 @@
 function updateTimetable(_callback){
+
 	if (readCookie("infoClosed") != "closed") {
 		return
 	}
@@ -9,7 +10,7 @@ function updateTimetable(_callback){
 	width = $(window).width() + 6;
 	height = window.innerHeight + 1; // Sets height of schedule to the full screen size...
 
-	if (hideNavbar){
+	if (!hideNavbar){
 		height -= $(".navbar").height() //...minus the navigation bar at the top
 	}
 
@@ -65,6 +66,14 @@ function updateTimetable(_callback){
 			"&darkmodesetting=" + darkModeSetting + 
 			"&isMobile=" + (mobileRequest ? "1" : "0")
 		][0]
+
+		if (url == oldURL){
+			console.log("URL and oldURL matched. Canceling...");
+			return;
+		}
+		else{
+			oldURL = url;
+		}
 
 		// If the schedule is supposed to be blurred, the new request will return with the blur class allready applied
 		try{

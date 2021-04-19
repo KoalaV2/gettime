@@ -419,19 +419,17 @@ a:hover{
 	text-decoration: underline !important;
 }
 
+
 #scheduleBox{
 	position: fixed;
 	text-shadow: none;
 }
-
-
-.schedule-text{
+#scheduleBox text{
 	font-family: 'JetBrains Mono', monospace;
 }
-
-.schedule-text-ClockAxisBox, .schedule-text-HeadingDay{
+.text-ClockAxisBox, .text-HeadingDay{
 	filter: drop-shadow(0px 0px 3px white);
 }
-.schedule-text-ClockFrameStart, .schedule-text-ClockFrameEnd{
+.text-ClockFrameStart, .text-ClockFrameEnd{
 	filter: drop-shadow(0px 0px 3px black);
 }

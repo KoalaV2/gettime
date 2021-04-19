@@ -131,7 +131,7 @@ def arg01_to_bool(args, argName):
         if str(args[str(argName)]) == "0":
             return False
     return False
-def GetFood(allowCache=True, week=None):
+def getFood(allowCache=True, week=None):
     t = CurrentTime()
     week = week if week != None else t['week']
     myHash = sha256(f"{week}{t['week']}")
@@ -215,6 +215,11 @@ def invertColor(color):
     elif typeToReturn == "hex":
         # Code from https://stackoverflow.com/a/3380739
         return '#%02x%02x%02x' % color
+def createHTMLobject(tag, arguments):
+    a = ' '.join((f'{key}="{str(arguments[key])}"' if key != 'innerHTML' else "") for key in arguments)
+    b = "" if not 'innerHTML' in arguments else arguments['innerHTML']
+    return f"<{tag} {a}>{b}</{tag}>"
+
 #endregion
 #region CLASSES
 class FunctionLogger:
@@ -257,7 +262,9 @@ class Lesson:
         return int(secounds / 60)       
 class GetTime:
     """
-        GetTime Request object
+        GetTime Request object.
+
+        Once created, it can generate alot of information. (HTML schedule, Text schedule, Food, ect)
     """
     t = CurrentTime()
     def __init__(self, _id=None, _week=t['week2'], _day=t['weekday2'], _year=t['year'], _resolution=(1280,720)) -> None:
@@ -267,6 +274,13 @@ class GetTime:
         self._year = _year
         self._resolution = _resolution
     def getHash(self) -> str:
+        """
+            Generates a sha256 hash of all the settings of this object.
+            Usefull to figure out if we can use cache or not (If getHash() is the same, then the data inside is the same aswell)
+
+            Returns:
+                str: SHA256 hash
+        """
         return sha256("".join([str(x) for x in (self._id,self._week,self._day,self._year,self._resolution)]))
     def getData(self, allowCache=True) -> dict:
         """
@@ -456,7 +470,6 @@ class GetTime:
             bColor = current['bColor']
             
             if current['type'] == "Lesson":
-
                 if darkModeSetting == 2:
                     bColor = "#525252"
                 elif darkModeSetting == 3:
@@ -470,11 +483,32 @@ class GetTime:
                     if bColor == "#CCCCCC":
                         bColor = "#373737"
 
+            arguments = {
+                'x':current['x'],
+                'y':current['y'],
+                'width':current['width'],
+                'height':current['height'],
+                'class':f"rect-{current['type'].replace(' ','-')}",
+            }
 
             if current['type'].startswith("ClockFrame"):
-                toReturn.append(f"""<rect x="{current['x']}" y="{current['y']}" width="{current['width']}" height="{current['height']}" class="schedule-rect schedule-rect-{current['type'].replace(" ","-")}" style="fill:{bColor};"></rect>""")
+                arguments['style'] = f'fill:{bColor};'
             else:
-                toReturn.append(f"""<rect id="{current['id']}" x="{current['x']}" y="{current['y']}" width="{current['width']}" height="{current['height']}" class="schedule-rect schedule-rect-{current['type'].replace(" ","-")}" style="fill:{bColor};stroke:{"#525252" if darkMode else "black"};stroke-width:1;"></rect>""")
+                arguments['id'] = current['id']
+                arguments['style'] = f'fill:{bColor};stroke:{"#525252" if darkMode else "black"};stroke-width:1;'
+
+            #arguments = ' '.join(f'{key}="{str(arguments[key])}"' for key in arguments)
+
+            #toReturn.append(f"<rect {arguments}></rect>")
+            
+            toReturn.append(
+                createHTMLobject(
+                    tag='rect',
+                    arguments=arguments
+                )
+            )
+            #toReturn.append(f"""<rect id="{current['id']}" x="{current['x']}" y="{current['y']}" width="{current['width']}" height="{current['height']}" class="rect-{current['type'].replace(" ","-")}" style="fill:{bColor};stroke:{"#525252" if darkMode else "black"};stroke-width:1;"></rect>""")
+            
         #endregion
         #region textList
         scriptBuilder = {}
@@ -493,7 +527,6 @@ class GetTime:
                 if darkMode:
                     if fColor == "#000000":
                         fColor = "#FFFFFF"
-
             
             if current['text'] != "":
                 # If the text is of a Lession type, that means that it sits ontop of a block that the user should be able to click to set a URL.
@@ -508,14 +541,30 @@ class GetTime:
                     if len(scriptBuilder[current['parentId']]) <= 1:
                         scriptBuilder[current['parentId']].append(str(current['text'])) 
                 
-                # Adds text object to list
                 y_offset = 12
                 if current['type'] in ('HeadingDay','ClockAxisBox'):
                     y_offset += 5
                 if isMobile and current['type'] in ('ClockFrameStart','ClockFrameEnd'):
-                    y_offset -= 4
+                    y_offset -= 3
 
-                toReturn.append(f"""<text x="{current['x']}" y="{current['y']+y_offset}" class="schedule-text schedule-text-{current['type'].replace(" ","-")}" style="font-size:{int(current['fontsize'])-2}px;fill:{fColor};">{current['text']}</text>""")
+                size_offset = -2
+                if current['type'] == "Lesson":
+                    size_offset += -1
+                if current['type'] in ('ClockFrameStart','ClockFrameEnd'):
+                    size_offset += 1
+
+                toReturn.append(
+                    createHTMLobject(
+                        tag='text',
+                        arguments={
+                            'x':current['x'],
+                            'y':current['y'] + y_offset,
+                            'class':f"text-{current['type'].replace(' ','-')}",
+                            'style':f'font-size:{int(current["fontsize"])+size_offset}px;fill:{fColor};',
+                            'innerHTML':current['text']
+                        }
+                    )
+                )
         #endregion
         #region lineList
         logger.info("Looping through lineList...")
@@ -528,23 +577,36 @@ class GetTime:
             x1,x2=current['p1x'],current['p2x']
             # Checks delta lenght and skips those smalled then 10px
             if int(x1-x2 if x1>x2 else x2-x1) > 10:
-                toReturn.append(f"""<line x1="{current['p1x']}" y1="{current['p1y']}" x2="{current['p2x']}" y2="{current['p2y']}" stroke="{color}" class="schedule-line schedule-line-{current['type'].replace(" ","-")}"></line>""")
+                toReturn.append(
+                    createHTMLobject(
+                        tag='line',
+                        arguments={
+                            'x1':current['p1x'],
+                            'y1':current['p1y'],
+                            'x2':current['p2x'],
+                            'y2':current['p2y'],
+                            'stroke':color,
+                            'class':f"line-{current['type'].replace(' ','-')}"
+                        }
+                    )
+                )
+        #endregion
         
         # Add the scripts to a rect so that they can be ran after the schedule has loaded (Skips this when ID is hidden)
         if privateID == False:
             scriptsToRun = [f"""checkMyUrl('{x}','{"_".join(scriptBuilder[x])}');""" for x in scriptBuilder] # Loops through the ids, and creates scripts for them
             toReturn.append(f'<rect id="scheduleScript" style="display: none;" script="{"".join(scriptsToRun)}"></rect>')
-        #endregion
 
         timeTakenToHandleData = time.time() - timeTakenToHandleData
 
-        # Comments 
+        #region Comments 
         toReturn.append("<!-- THIS SCHEDULE WAS MADE POSSIBLE BY https://github.com/KoalaV2 -->")
         toReturn.append(f"<!-- SETTINGS USED: id: {'[HIDDEN]' if privateID else self._id}, week: {self._week}, day: {self._day}, resolution: {self._resolution}, class: {classes} -->")
         toReturn.append(f"<!-- Time taken (Requesting data): {timeTakenToFetchData} secounds -->")
         toReturn.append(f"<!-- Time taken (Schedule generation): {timeTakenToHandleData} secounds -->")
         toReturn.append(f"<!-- Time taken (TOTAL): {(timeTakenToFetchData + timeTakenToHandleData)} secounds -->")
-        
+        #endregion
+
         # End of the SVG
         toReturn.append("</svg>")
 
@@ -552,7 +614,7 @@ class GetTime:
     def GenerateTextSummary(self, mode="normal", lessons=None, allowCache=True):
         if lessons == None:lessons = self.fetch(allowCache=allowCache)
         try:
-            if lessons[0] < 0:return str(lessons[1])
+            if lessons[0]<0:return str(lessons[1])
         except:pass
         if mode == "normal":
             return "\n".join([(f"{x.lessonName} börjar kl {x.timeStart[:-3]} och slutar kl {x.timeEnd[:-3]}" + f" i sal {x.classroomName}" if x.classroomName != None else "") for x in lessons])
@@ -587,7 +649,16 @@ class GetTime:
             ]
         }
     def GetFood(self, allowCache=True):
-        return GetFood(allowCache=allowCache,week=self._week)
+        """
+            Runs `getFood()` on this object (using `self._week`)
+
+            Args:
+                allowCache (bool, optional): If set to `False` then it skips any existing cache. Defaults to True.
+
+            Returns:
+                dict: dictionary with all the food information. 
+        """
+        return getFood(allowCache=allowCache,week=self._week)
 #endregion
 if __name__ == "__main__":
     #region INIT
@@ -638,7 +709,6 @@ if __name__ == "__main__":
         Rule('/discord_logfile', endpoint='discord_logfile'),
 
         #Reserved
-        Rule('/s/tay', endpoint='schedule_Tay'),
         Rule('/theo', endpoint='TheoCredit'),
         Rule('/pierre', endpoint='PierreCredit'),
         Rule('/ඞ', endpoint='ඞ'),
@@ -859,8 +929,11 @@ if __name__ == "__main__":
         }
     ]
     @app.endpoint('index')
-    def index():
+    def index(alternativeArgs=None):
         logger = FunctionLogger(functionName='index')
+
+        if alternativeArgs != None:
+            request.args = alternativeArgs
 
         #region Default values
         t = CurrentTime()
@@ -944,8 +1017,8 @@ if __name__ == "__main__":
             cssToInclude.append({'name':"darkmode-mobile.css",'id':'darkmode'})
         else:
             cssToInclude.append({'name':"darkmode-desktop.css",'id':'darkmode'})
-        if hideNavbar:
-            cssToInclude.append({'name':"fullscreen.css",'id':''})
+        #if hideNavbar:
+        #    cssToInclude.append({'name':"fullscreen.css",'id':''})
 
         #garbage code, but it does the job for now
         cssToInclude = [
@@ -1104,7 +1177,7 @@ if __name__ == "__main__":
         else:
             week = None
         
-        return GetFood(week=week)
+        return getFood(week=week)
     #endregion
     #region Logs
     @app.endpoint('logfile')
@@ -1121,9 +1194,6 @@ if __name__ == "__main__":
                 return f"<pre>{logFileLocation+logFileName}</pre><pre>{''.join(f.readlines())}</pre>"
     #endregion
     #region Special easter egg URL's for the creators/contributors AND AMOGUS ඞ
-    @app.endpoint('schedule_Tay')
-    def schedule_Tay():
-        return redirect(f'{configfile["mainLink"]}?a=ZGbCmXrCgcKiwqFocsKdwqlk&darkmode=1&ignorecookiepolicy=1&fullscreen&filter=flat')
     @app.endpoint('TheoCredit')
     def TheoCredit():
         return redirect('https://koalathe.dev/')
@@ -1145,8 +1215,11 @@ if __name__ == "__main__":
     #endregion   
     #endregion
 
-    #NEEDS CLEANUP/REDESIGN
+    # NEEDS CLEANUP/REDESIGN
     def cacheClearer():
+        """
+            Checks for outdated cached data and deletes it to save on memory.
+        """
         logger = FunctionLogger('cacheClearer')
         while 1:
             try:
@@ -1165,7 +1238,7 @@ if __name__ == "__main__":
                 pass
             time.sleep(1)
 
-    #Makes it so that the cacheclearer runs at the same time (probably needs reworking)
+    # Makes it so that the cacheclearer runs at the same time (probably needs reworking)
     threading.Thread(target=cacheClearer, args=(), daemon=True).start()
     app.run(debug=configfile['DEBUGMODE'], host=configfile['ip'], port=configfile['port']) # Run website
 else:
