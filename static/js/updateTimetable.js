@@ -110,8 +110,8 @@ function updateTimetable(_callback){
 				$('#schedule').fadeOut(0);
 				
 				// Run the URL scripts
-				try{eval($('#scheduleScript').attr('script'));
-				}catch(error){console.error(error);}
+				// try{eval($('#scheduleScript').attr('script'));
+				// }catch(error){console.error(error);}
 				
 				// Fade in the Schedule
 				$('#schedule').fadeIn(500);
