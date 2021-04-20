@@ -272,6 +272,13 @@ allSchools = {
         'Referer':"https://web.skola24.se/timetable/timetable-viewer/botkyrka.skola24.se/Tumba%20gymnasium/",
         'host':"botkyrka.skola24.se",
         'unitGuid':"YzQzNmI3ZDEtYTdmYi1mYTk3LTg4MmEtMGMzNGJmOGVmYmVl"
+    },
+    'Realgymnasiet Stockholm':{
+        'id':1,
+        'name':'Realgymnasiet Stockholm',
+        'Referer':"https://web.skola24.se/timetable/timetable-viewer/realgymnasiet-sso.skola24.se/Realgymnasiet%20Stockholm/",
+        'host':"realgymnasiet-sso.skola24.se",
+        'unitGuid':"M2IwMjM4NzEtNjY2Ni1mM2Q5LWFjMWYtOTlmZmMxNjM5MzFk"
     }
 }
 
