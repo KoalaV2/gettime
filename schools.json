@@ -21,5 +21,19 @@
         "Referer": "https://web.skola24.se/timetable/timetable-viewer/realgymnasiet-sso.skola24.se/Realgymnasiet%20Stockholm/",
         "host": "realgymnasiet-sso.skola24.se",
         "unitGuid": "M2IwMjM4NzEtNjY2Ni1mM2Q5LWFjMWYtOTlmZmMxNjM5MzFk"
+    },
+    "NTI Gärdet": {
+        "id": 3,
+        "name": "NTI Gärdet",
+        "Referer": "https://web.skola24.se/timetable/timetable-viewer/ntigymnasiet.skola24.se/NTI%20G%C3%A4rdet/",
+        "host": "ntigymnasiet.skola24.se",
+        "unitGuid": "MjA4OWI4ZjgtZGNlZi1mOTNjLWIzNTctNWM5YjhmNjcwNzI3"
+    },
+    "Skyttbrinks gymnasium": {
+        "id": 4,
+        "name": "Skyttbrinks gymnasium",
+        "Referer": "https://web.skola24.se/timetable/timetable-viewer/botkyrka.skola24.se/Skyttbrinks%20gymnasium/",
+        "host": "botkyrka.skola24.se",
+        "unitGuid": "ZjE1YjNhZWEtOTBmMi1mZmE3LWJhZWEtNzA3NjUwZTgzNzdk"
     }
 }
