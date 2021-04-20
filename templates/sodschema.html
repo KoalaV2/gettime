@@ -268,7 +268,7 @@
 			<!-- Contact information -->
 			<div id="text_school_selector" class="text_box">
 				
-				<h1>Välj din skola här</h1>
+				<h1>Välj din skola här:</h1>
 				
 				{% if oldPrivateUrl %}
 					<p>
@@ -280,7 +280,7 @@
 				<ul>
 				{% for x in allSchoolsNames %}
 					<li>
-						<p onclick="schoolSelected('{{x}}')">{{x}}</p>
+                        <p style="text-decoration: underline !important; cursor: pointer;" onclick="schoolSelected('{{x}}')">{{x}}</p>
 					</li>
 				{% endfor %}
 				</ul>
