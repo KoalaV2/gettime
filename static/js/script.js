@@ -382,36 +382,36 @@ function f_hideNavbar(){
 	updateTimetable();
 }
 
-function is_heightIsMoreThenWidth(){
-	return $(window).height() > $(window).width();
-}
-var heightIsMoreThenWidth = null;
-function hasMobileBeenRotated(){
-	if (mobileRequest){
-		if (heightIsMoreThenWidth == null){
-			heightIsMoreThenWidth = is_heightIsMoreThenWidth();
-		}
-		else{
-			if (heightIsMoreThenWidth == is_heightIsMoreThenWidth()){
-				console.log("User did not rotate their screen yet");
-				return;
-			}
-			else{
-				heightIsMoreThenWidth = is_heightIsMoreThenWidth();
-			}
-		}
-		if (initHideNavbar != true){
-			hideNavbar = !heightIsMoreThenWidth;
+// function is_heightIsMoreThenWidth(){
+// 	return $(window).height() > $(window).width();
+// }
+// var heightIsMoreThenWidth = null;
+// function hasMobileBeenRotated(){
+// 	if (mobileRequest){
+// 		if (heightIsMoreThenWidth == null){
+// 			heightIsMoreThenWidth = is_heightIsMoreThenWidth();
+// 		}
+// 		else{
+// 			if (heightIsMoreThenWidth == is_heightIsMoreThenWidth()){
+// 				console.log("User did not rotate their screen yet");
+// 				return;
+// 			}
+// 			else{
+// 				heightIsMoreThenWidth = is_heightIsMoreThenWidth();
+// 			}
+// 		}
+// 		if (initHideNavbar != true){
+// 			hideNavbar = !heightIsMoreThenWidth;
 
-			if (hideNavbar){
-				f_hideNavbar();
-			}
-			else{
-				f_showNavbar();
-			}
-		}
-	}
-}
+// 			if (hideNavbar){
+// 				f_hideNavbar();
+// 			}
+// 			else{
+// 				f_showNavbar();
+// 			}
+// 		}
+// 	}
+// }
 
 function schoolSelected(schoolName){
 	school = schoolName;
@@ -532,7 +532,7 @@ $(window).on("load", function(){
 	// TRIGGERS
 	//update timetable to fit new window size
 	var update_timetable_to_fit_new_window_size = debounce(function() {
-		hasMobileBeenRotated();
+		// hasMobileBeenRotated();
 		console.log("update timetable to fit new window size");
 		$("#schedule").fadeOut(500);
 		updateMenuButtonsBasedOnSize();
@@ -747,7 +747,7 @@ $(window).on("load", function(){
 		updateTimetable();	
 	}
 	
-	hasMobileBeenRotated();
+	// hasMobileBeenRotated();
 
 	if (hideNavbar){
 		f_hideNavbar();
