@@ -880,26 +880,39 @@ if __name__ == "__main__":
             button_arguments={
                 'onclick':"""toggleDarkMode();"""
             }
+        ),
+
+        # Toggle Dark mode
+        'changeSchool':DropDown_Button(
+            button_text="Byt skola",
+            button_type="link",
+            button_icon="fas fa-school",
+            button_id='input-change-school',
+            button_arguments={
+                'onclick':"""textBoxOpen('#text_school_selector');"""
+            }
         )
     }
     menus = {
         'normal':(
             'dayMode',
+            'darkmode',
             'food',
             'generateSavableLink',
             'generateQrCode',
             'showSaved',
-            'contact',
-            'darkmode'
+            'changeSchool',
+            'contact'  
         ),
         'private':(
             'dayMode',
+            'darkmode',
             'food',
             'generateSavableLink', #'copySavableLink',
             'generateQrCode',
             'mainPage',
-            'contact',
-            'darkmode'
+            'changeSchool',
+            'contact'            
         )
     }
     contacts = [
