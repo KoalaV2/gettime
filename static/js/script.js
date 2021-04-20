@@ -6,7 +6,6 @@ var hideNavbar = initHideNavbar;
 var oldURL = "";
 var school = initSchool;
 
-
 // Code from https://stackoverflow.com/a/1431113
 String.prototype.replaceAt = function(index, replacement) {
 	return this.substr(0, index) + replacement + this.substr(index + replacement.length);
@@ -367,20 +366,20 @@ function clickOn_SAVEDLINKS(){
 	$('.controls-container').fadeOut(0);
 }
 
-function f_showNavbar(){
-	console.log("Showing navbar");
-	hideNavbar = false;
-	$('.navbar').show();
-	$('#scheduleBox').css({'top':$('.navbar').height()+'px'});
-	updateTimetable();
-}
-function f_hideNavbar(){
-	console.log("Hiding navbar");
-	hideNavbar = true;
-	$('.navbar').hide();
-	$('#scheduleBox').css({'top':'0px'});
-	updateTimetable();
-}
+// function f_showNavbar(){
+// 	console.log("Showing navbar");
+// 	hideNavbar = false;
+// 	$('.navbar').show();
+// 	$('#scheduleBox').css({'top':$('.navbar').height()+'px'});
+// 	updateTimetable();
+// }
+// function f_hideNavbar(){
+// 	console.log("Hiding navbar");
+// 	hideNavbar = true;
+// 	$('.navbar').hide();
+// 	$('#scheduleBox').css({'top':'0px'});
+// 	updateTimetable();
+// }
 
 // function is_heightIsMoreThenWidth(){
 // 	return $(window).height() > $(window).width();
@@ -493,7 +492,6 @@ $(window).on("load", function(){
 			}
 		}
 	}
-
 
 	//hide all textboxes
 	$('.text_box').hide();
@@ -652,11 +650,11 @@ $(window).on("load", function(){
 		updateTimetable();
 	});
 
-	//update timetable on related button click
-	$('#roundedMode').on('click', function() {
-		console.log('update timetable on related button click 2');
-		updateTimetable();
-	});
+	// //update timetable on related button click
+	// $('#roundedMode').on('click', function() {
+	// 	console.log('update timetable on related button click 2');
+	// 	updateTimetable();
+	// });
 
 	//handles menu button clicking
 	$('.menuButton').on('click', function(){
@@ -714,27 +712,27 @@ $(window).on("load", function(){
 		}
 	});
 
-	//Code from https://stackoverflow.com/a/1846733
-	document.onkeypress = function(evt) {
-		if (mobileRequest || document.activeElement == document.getElementById('id-input-box') || document.activeElement == document.getElementById('id-input-box2')){
-			return;
-		}
-		else
-		{
-			evt = evt || window.event;
-			var charCode = evt.keyCode || evt.which;
-			var charStr = String.fromCharCode(charCode);
+	// //Code from https://stackoverflow.com/a/1846733
+	// document.onkeypress = function(evt) {
+	// 	if (mobileRequest || document.activeElement == document.getElementById('id-input-box') || document.activeElement == document.getElementById('id-input-box2')){
+	// 		return;
+	// 	}
+	// 	else
+	// 	{
+	// 		evt = evt || window.event;
+	// 		var charCode = evt.keyCode || evt.which;
+	// 		var charStr = String.fromCharCode(charCode);
 	
-			if (charStr.toLowerCase() == "f"){
-				if (hideNavbar){
-					f_showNavbar();
-				}
-				else{
-					f_hideNavbar();
-				}
-			}
-		}
-	};
+	// 		if (charStr.toLowerCase() == "f"){
+	// 			if (hideNavbar){
+	// 				f_showNavbar();
+	// 			}
+	// 			else{
+	// 				f_hideNavbar();
+	// 			}
+	// 		}
+	// 	}
+	// };
 
 	// Moves the timetable down so it doesnt overlay the navbar
 	//$(document).ready(function() {
@@ -754,12 +752,12 @@ $(window).on("load", function(){
 	
 	// hasMobileBeenRotated();
 
-	if (hideNavbar){
-		f_hideNavbar();
-	}
-	else{
-		f_showNavbar();
-	}
+	// if (hideNavbar){
+	// 	f_hideNavbar();
+	// }
+	// else{
+	// 	f_showNavbar();
+	// }
 
 	// Page finished loading, slide up loader screen
 	$(".loader-main").slideToggle();
