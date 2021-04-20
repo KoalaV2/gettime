@@ -51,6 +51,7 @@ getFoodMaxAge = 60*60 # Secounds
 dataCache = {}
 #endregion
 #region FUNCTIONS
+
 def SetLogging(path="", filename="log.log", format='%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s'):
     """
         Changes logging settings.
@@ -702,6 +703,7 @@ if __name__ == "__main__":
         Rule('/API/SIMPLE_JSON', endpoint='API_SIMPLE_JSON'),
         Rule('/API/TERMINAL_SCHEDULE', endpoint='API_TERMINAL_SCHEDULE'),
         Rule('/API/FOOD', endpoint='API_FOOD'),
+        Rule('/API/FOOD_REDIRECT', endpoint='FOOD_REDIRECT'),
 
         #Logfiles
         Rule('/logfile', endpoint='logfile'),
@@ -794,7 +796,7 @@ if __name__ == "__main__":
             button_type="link",
             button_id='button-text-food',
             button_arguments={
-                'href':'https://skolmaten.se/nti-gymnasiet-sodertorn/'
+                'onclick':f"""window.location.href = '{configfile["mainLink"]}API/FOOD_REDIRECT?school='+encodeURI(school)"""
             }
         ),
 
@@ -1234,6 +1236,15 @@ if __name__ == "__main__":
             week = None
         
         return getFood(week=week)
+    @app.endpoint('FOOD_REDIRECT')
+    def FOOD_REDIRECT():
+        logger = FunctionLogger(functionName='FOOD_REDIRECT')
+        request.args["school"]
+        flink = allSchools[request.args["school"]]
+        if "lunchLink" in flink:
+            logger.info(flink)
+            return redirect(flink["lunchLink"])
+        return("Finns ingen matlänk för din skola, om detta är fel kontakta gärna oss på https://gettime.ga/?contact=1")
     #endregion
     #region Logs
     @app.endpoint('logfile')

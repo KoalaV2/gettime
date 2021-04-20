@@ -6,6 +6,7 @@ var hideNavbar = initHideNavbar;
 var oldURL = "";
 var school = initSchool;
 
+
 // Code from https://stackoverflow.com/a/1431113
 String.prototype.replaceAt = function(index, replacement) {
 	return this.substr(0, index) + replacement + this.substr(index + replacement.length);
