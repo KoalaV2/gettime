@@ -17,9 +17,7 @@ function updateTimetable(_callback){
 	width = $(window).width() + 6;
 	height = window.innerHeight + 1; // Sets height of schedule to the full screen size...
 
-	if (!hideNavbar){
-		height -= $(".navbar").height() //...minus the navigation bar at the top
-	}
+	height -= $(".navbar").height() //...minus the navigation bar at the top
 
 	dayOnly = $("#input-day").is(':checked');
 
