@@ -715,16 +715,22 @@ $(window).on("load", function(){
 
 	//Code from https://stackoverflow.com/a/1846733
 	document.onkeypress = function(evt) {
-		evt = evt || window.event;
-		var charCode = evt.keyCode || evt.which;
-		var charStr = String.fromCharCode(charCode);
-
-		if (charStr.toLowerCase() == "f"){
-			if (hideNavbar){
-				f_showNavbar();
-			}
-			else{
-				f_hideNavbar();
+		if (mobileRequest || document.activeElement == document.getElementById('id-input-box') || document.activeElement == document.getElementById('id-input-box2')){
+			return;
+		}
+		else
+		{
+			evt = evt || window.event;
+			var charCode = evt.keyCode || evt.which;
+			var charStr = String.fromCharCode(charCode);
+	
+			if (charStr.toLowerCase() == "f"){
+				if (hideNavbar){
+					f_showNavbar();
+				}
+				else{
+					f_hideNavbar();
+				}
 			}
 		}
 	};

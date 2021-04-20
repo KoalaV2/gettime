@@ -256,33 +256,6 @@ class Lesson:
         
         secounds = sum(x * int(t) for x, t in zip([1, 60, 3600], reversed((self.timeStart if start else self.timeEnd).split(":"))))
         return int(secounds / 60)       
-
-allSchools = {
-    'NTI Södertörn':{
-        'id':0,
-        'name':'NTI Södertörn',
-        'Referer':"https://web.skola24.se/timetable/timetable-viewer/it-gymnasiet.skola24.se/IT-Gymnasiet%20S%C3%B6dert%C3%B6rn/",
-        'host':"it-gymnasiet.skola24.se",
-        'unitGuid':"ZTEyNTdlZjItZDc3OC1mZWJkLThiYmEtOGYyZDA4NGU1YjI2",
-        'lunchLink':"https://skolmaten.se/nti-gymnasiet-sodertorn/"
-    },
-    'Tumba':{
-        'id':1,
-        'name':'Tumba',
-        'Referer':"https://web.skola24.se/timetable/timetable-viewer/botkyrka.skola24.se/Tumba%20gymnasium/",
-        'host':"botkyrka.skola24.se",
-        'unitGuid':"YzQzNmI3ZDEtYTdmYi1mYTk3LTg4MmEtMGMzNGJmOGVmYmVl",
-        'lunchLink':"https://skolmaten.se/tumba-gymnasium/"
-    },
-    'Realgymnasiet Stockholm':{
-        'id':2,
-        'name':'Realgymnasiet Stockholm',
-        'Referer':"https://web.skola24.se/timetable/timetable-viewer/realgymnasiet-sso.skola24.se/Realgymnasiet%20Stockholm/",
-        'host':"realgymnasiet-sso.skola24.se",
-        'unitGuid':"M2IwMjM4NzEtNjY2Ni1mM2Q5LWFjMWYtOTlmZmMxNjM5MzFk"
-    }
-}
-
 class GetTime:
     """
         GetTime Request object.
@@ -474,9 +447,9 @@ class GetTime:
 
         if j['status'] < 0:
             try:
-                return {'html':"""<!-- ERROR --> <div id="schedule" style="all: initial;*{all:unset;}">""" + f"""<p style="color:white">{j['message']}</p>""" + j['data'].text + "</div>"}
+                return {'html':"""<!-- ERROR --> <div id="schedule" style="all: initial;*{all:unset;}">""" + f"""<p style="color:white">{j['message']}</p>""" + j['data'].text + "</div>",'data':j}
             except AttributeError:
-                return {'html':"""<!-- ERROR --> <div id="schedule" style="all: initial;*{all:unset;}">""" + f"""<p style="color:white">{j['message']}</p>{j['data']}</div>"""}
+                return {'html':"""<!-- ERROR --> <div id="schedule" style="all: initial;*{all:unset;}">""" + f"""<p style="color:white">{j['message']}</p>{j['data']}</div>""",'data':j}
 
         timeTakenToFetchData = time.time()-timeTakenToFetchData
         timeTakenToHandleData = time.time() 
@@ -679,14 +652,24 @@ class GetTime:
 #endregion
 if __name__ == "__main__":
     #region INIT
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s") # Sets default logging settings (before cfg file has been loaded in)
+    # Sets default logging settings (before cfg file has been loaded in)
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s") 
 
-    os.chdir(os.path.dirname(os.path.realpath(__file__))) # Set working dir to path of main.py
+    # Set working dir to path of main.py
+    os.chdir(os.path.dirname(os.path.realpath(__file__))) 
 
     # Load config file
     with open("settings.json") as f:
         try:configfile = json.load(f)
         except:configfile = {}
+
+    # Load schools file
+    with open("schools.json", encoding="utf-8") as f:
+        try:allSchools = json.load(f)
+        except:allSchools = {}
+    allSchoolsList = [allSchools[x] for x in allSchools]
+    allSchoolsNames=[x for x in allSchools]
+    allSchoolsNames.sort()
 
     # Change logging to go to file
     if configfile['logToFile']:
@@ -702,7 +685,6 @@ if __name__ == "__main__":
 
     # Setup Flask
     app = Flask(__name__)
-    #minify(app=app, html=True, js=False, cssless=True)
     minify(app=app, html=True, js=False, cssless=True, passive=True)
     Mobility(app) # Mobile features
     CORS(app) # Behövs så att man kan skicka requests till serven (for some reason idk)
@@ -1014,9 +996,8 @@ if __name__ == "__main__":
             temp = DecodeString(configfile['key'],request.args['a'])
             if "½" in temp:
                 initID,initSchool = temp.split("½")
-                a = [allSchools[x] for x in allSchools]
-                b = searchInDict(a,'id',int(initSchool))
-                initSchool = a[b]['name']
+                b = searchInDict(allSchoolsList,'id',int(initSchool))
+                initSchool = allSchoolsList[b]['name']
                 print(initSchool)
             else:
                 initID = temp
@@ -1118,7 +1099,8 @@ if __name__ == "__main__":
             darkModeSetting=darkModeSetting,
             hideNavbar=hideNavbar,
             allSchools=allSchools,
-            oldPrivateUrl=oldPrivateUrl
+            oldPrivateUrl=oldPrivateUrl,
+            allSchoolsNames=allSchoolsNames
         )
     #endregion
     #region API
@@ -1142,12 +1124,19 @@ if __name__ == "__main__":
         """
         #logger = FunctionLogger(functionName='API_GENERATE_HTML')
         
+        #Checks if school was the school ID, and if so, grabs the name
+        try:
+            b = searchInDict(allSchoolsList,'id',int(request.args['school']))
+            initSchool = allSchoolsList[b]['name']
+        except:
+            initSchool = request.args['school']
+
         myRequest = GetTime(
             _id = request.args['id'],
             _week = int(request.args['week']),
             _day = int(request.args['day']),
             _resolution = (int(request.args['width']),int(request.args['height'])),
-            _school=request.args['school']
+            _school=initSchool
         )
         if 'classes' in request.args: 
             classes = request.args['classes']

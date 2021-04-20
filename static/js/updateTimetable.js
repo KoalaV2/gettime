@@ -108,16 +108,25 @@ function updateTimetable(_callback){
 				console.log("Saved ID to cookie");
 			}
 
-			if (data['result']['html'].startsWith("<!-- ERROR -->")){
-				console.log("<!-- ERROR --> Found in response!");
-				$("#background-roller").fadeOut("fast");
-			}
-			
+
+
 			// Replaces the SVG with the new SVG data
 			let tdElement = document.getElementById('schedule');
 			let trElement = tdElement.parentNode;
 			trElement.removeChild(tdElement);
-			trElement.innerHTML = data['result']['html'] + trElement.innerHTML;
+
+			if (data['result']['html'].startsWith("<!-- ERROR -->")){
+				console.log("<!-- ERROR --> Found in response!");
+				let errorMessage = data['result']['data']['data']['validation'][0]['message'];
+				console.log(errorMessage);
+				$("#background-roller").fadeOut("fast");
+
+				trElement.innerHTML = errorMessage + trElement.innerHTML;
+			}
+			else{
+				trElement.innerHTML = data['result']['html'] + trElement.innerHTML;
+			}
+			
 
 			$('#schedule').fadeOut(0);
 			

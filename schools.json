@@ -1,0 +1,25 @@
+{
+    "NTI Södertörn": {
+        "id": 0, 
+        "name": "NTI Södertörn",
+        "Referer": "https://web.skola24.se/timetable/timetable-viewer/it-gymnasiet.skola24.se/IT-Gymnasiet%20S%C3%B6dert%C3%B6rn/",
+        "host": "it-gymnasiet.skola24.se",
+        "unitGuid": "ZTEyNTdlZjItZDc3OC1mZWJkLThiYmEtOGYyZDA4NGU1YjI2",
+        "lunchLink": "https://skolmaten.se/nti-gymnasiet-sodertorn/"
+    },
+    "Tumba": {
+        "id": 1,
+        "name": "Tumba",
+        "Referer": "https://web.skola24.se/timetable/timetable-viewer/botkyrka.skola24.se/Tumba%20gymnasium/",
+        "host": "botkyrka.skola24.se",
+        "unitGuid": "YzQzNmI3ZDEtYTdmYi1mYTk3LTg4MmEtMGMzNGJmOGVmYmVl",
+        "lunchLink": "https://skolmaten.se/tumba-gymnasium/"
+    },
+    "Realgymnasiet Stockholm": {
+        "id": 2,
+        "name": "Realgymnasiet Stockholm",
+        "Referer": "https://web.skola24.se/timetable/timetable-viewer/realgymnasiet-sso.skola24.se/Realgymnasiet%20Stockholm/",
+        "host": "realgymnasiet-sso.skola24.se",
+        "unitGuid": "M2IwMjM4NzEtNjY2Ni1mM2Q5LWFjMWYtOTlmZmMxNjM5MzFk"
+    }
+}
