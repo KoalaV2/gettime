@@ -1,9 +1,16 @@
 function updateTimetable(_callback){
+	console.log("updateTimetable was excecuted.");
 
 	if (readCookie("infoClosed") != "closed") {
-		return
+		return;
 	}
-	console.log("updateTimetable was excecuted.");
+
+	if (school == null || school == "" || school == "null"){
+		if (readCookie("infoClosed") == "closed"){
+			textBoxOpen('#text_school_selector');
+		}	
+		return;
+	}
 
 	idnumber = $("#id-input-box").val();
 	checkIfIDTextFits();
@@ -64,8 +71,10 @@ function updateTimetable(_callback){
 			"&privateID=" + (privateURL ? "1" : "0") + 
 			"&darkmode=" + (darkmode ? "1" : "0") + 
 			"&darkmodesetting=" + darkModeSetting + 
-			"&isMobile=" + (mobileRequest ? "1" : "0")
+			"&isMobile=" + (mobileRequest ? "1" : "0") +
+			"&school=" + encodeURI(school)
 		][0]
+		console.log(url);
 
 		if (url == oldURL){
 			console.log("URL and oldURL matched. Canceling...");
@@ -99,32 +108,42 @@ function updateTimetable(_callback){
 				console.log("Saved ID to cookie");
 			}
 
-			if (!data['result']['html'].startsWith("<!-- ERROR -->")){
 
-				// Replaces the SVG with the new SVG data
-				let tdElement = document.getElementById('schedule');
-				let trElement = tdElement.parentNode;
-				trElement.removeChild(tdElement);
-				trElement.innerHTML = data['result']['html'] + trElement.innerHTML;
 
-				$('#schedule').fadeOut(0);
-				
-				// Run the URL scripts
-				// try{eval($('#scheduleScript').attr('script'));
-				// }catch(error){console.error(error);}
-				
-				// Fade in the Schedule
-				$('#schedule').fadeIn(500);
-				$("#schedule").css({"transform": "none", "opacity": 1});
-				
-				// toUrl['id'] = idnumber;
-				// toUrl['week'] = week;
-				// toUrl['day'] = dayTEMP;
-				// if (!privateURL){
-				// 	UpdateEntryInUrlArguments('id',idnumber);
-				// }
-				// window.history.pushState("", "", $.param(toUrl));
+			if (data['result']['html'].startsWith("<!-- ERROR -->")){
+				console.log("<!-- ERROR --> Found in response!");
+				let errorMessage = data['result']['data']['data']['validation'][0]['message'];
+				console.log(errorMessage);
+				$("#background-roller").fadeOut("fast");
+
+            //	trElement.innerHTML = errorMessage + trElement.innerHTML;
 			}
+			else{
+	        // Replaces the SVG with the new SVG data
+			let tdElement = document.getElementById('schedule');
+			let trElement = tdElement.parentNode;
+			trElement.removeChild(tdElement);
+			trElement.innerHTML = data['result']['html'] + trElement.innerHTML;
+			}
+			
+
+			$('#schedule').fadeOut(0);
+			
+			// Run the URL scripts
+			// try{eval($('#scheduleScript').attr('script'));
+			// }catch(error){console.error(error);}
+			
+			// Fade in the Schedule
+			$('#schedule').fadeIn(500);
+			$("#schedule").css({"transform": "none", "opacity": 1});
+			
+			// toUrl['id'] = idnumber;
+			// toUrl['week'] = week;
+			// toUrl['day'] = dayTEMP;
+			// if (!privateURL){
+			// 	UpdateEntryInUrlArguments('id',idnumber);
+			// }
+			// window.history.pushState("", "", $.param(toUrl));
 
 		})
 

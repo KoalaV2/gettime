@@ -9,6 +9,7 @@
 				saveIdToCookie = {{"true" if saveIdToCookie else "false"}},
 				mobileRequest = {{"true" if mobileRequest else "false"}},
 				initID = "{{initID}}",
+				initSchool = "{{initSchool if initSchool != None else ''}}"
 				initDayMode = {{"true" if initDayMode else "false"}},
 				initWeek = {{initWeek}},
 				initDay = {{initDay}},
@@ -264,14 +265,30 @@
 
 			</div>
 
+			<!-- Contact information -->
+			<div id="text_school_selector" class="text_box">
+				
+				<h1>Välj din skola här:</h1>
+				
+				{% if oldPrivateUrl %}
+					<p>
+						OOPS! Det här är en gammal privat URL. Detta innebär att du kommer behöva välja skola varje gång du laddar denna länk.
+						För att slippa göra det, skapa en ny privat URL och använd den istället.
+					</p>
+				{% endif %}
+				
+				<ul>
+				{% for x in allSchoolsNames %}
+					<li>
+                        <p style="text-decoration: underline !important; cursor: pointer;" onclick="schoolSelected('{{x}}')">{{x}}</p>
+					</li>
+				{% endfor %}
+				</ul>
+
+			</div>
+
 			<!-- Contact information TEST -->
 			<div id="text_tricks" class="text_box">
-				<style>
-					#text_tricks a{
-						text-decoration: underline !important;
-					}
-				</style>
-
 				<h1 style="-webkit-text-fill-color: #fff!important;">🧙⚔️</h1>
 
 				<h2>Hey look, you found me!</h2>

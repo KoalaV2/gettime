@@ -419,7 +419,6 @@ a:hover{
 	text-decoration: underline !important;
 }
 
-
 #scheduleBox{
 	position: fixed;
 	text-shadow: none;
@@ -437,4 +436,8 @@ a:hover{
 #scheduleBox rect:not(.rect-ClockFrameStart):not(.rect-ClockFrameEnd){
 	stroke: black;
 	stroke-width: 1;
+}
+
+#text_tricks a{
+	text-decoration: underline !important;
 }

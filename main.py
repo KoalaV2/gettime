@@ -51,6 +51,7 @@ getFoodMaxAge = 60*60 # Secounds
 dataCache = {}
 #endregion
 #region FUNCTIONS
+
 def SetLogging(path="", filename="log.log", format='%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s'):
     """
         Changes logging settings.
@@ -112,8 +113,8 @@ def DecodeString(key, enc):
         dec_c = chr((256 + ord(enc[i]) - ord(key_c)) % 256)
         dec.append(dec_c)
     return "".join(dec)
-def GenerateHiddenURL(key, idInput, mainLink):
-    a = EncodeString(key,idInput)
+def GenerateHiddenURL(key, idInput, schoolInput, mainLink):
+    a = EncodeString(key,idInput + "½" + str(allSchools[schoolInput]['id']))
     return mainLink + f"?a={a}",a
 def sha256(hash_string):
     # Code from https://tinyurl.com/2k3ds62p
@@ -155,71 +156,60 @@ def getFood(allowCache=True, week=None):
     if allowCache:
         dataCache[myHash] = {'maxage':getFoodMaxAge,'age':time.time(),'data':toReturn}
     return toReturn
+def color_convert(color, reverse=False):
+    if reverse:
+        if color[1] == "hex":
+            return '#%02x%02x%02x' % color[0] # Code from https://stackoverflow.com/a/3380739
+        if color[1] == "rgb":
+            return color[0]
+        if color[1] == "rgb_L":
+            return list(color[0])
+    
+    if type(color) == str: # Assuming its HEX
+        typeToReturn = "hex"
+        if color.startswith("#"):
+            color = color.lstrip('#')
+        color = tuple(int(color[i:i+2], 16) for i in (0, 2, 4)) # Code from https://stackoverflow.com/a/29643643
+    elif type(color) == list and len(color) == 3: # Assuming its RGB, but as a list
+        typeToReturn = "rgb_L"
+        color = tuple(color)
+    elif type(color) == tuple and len(color) == 3: # Assuming its RGB in the right format
+        typeToReturn = "rgb"
+    return color,typeToReturn
 def fadeColor(color, percent):
     """
         if `0 > percent >= -1` then it fades to black.\n
         if `1 > percent >=  0` then it fades to white.
     """
-    
-    if type(color) == str:
-        # Code from https://stackoverflow.com/a/29643643
-        if color.startswith("#"):
-            color = color.lstrip('#')
-        color = tuple(int(color[i:i+2], 16) for i in (0, 2, 4))
-        typeToReturn = "hex"
-    else:
-        typeToReturn = "rgb"
-    
+    color,typeToReturn = color_convert(color)
+
     # Code from https://stackoverflow.com/a/28033054
     color = np.array(color)
     x = color + (np.array([0,0,0] if percent < 0 else [255,255,255]) - color) * (percent if percent > 1 else percent * -1)
     x = (round(x[0]) if x[0] > 0 else 0 ,round(x[1]) if x[1] > 0 else 0 ,round(x[2]) if x[2] > 0 else 0 )
     
-    if typeToReturn == "rgb":
-        return x
-    elif typeToReturn == "hex":
-        # Code from https://stackoverflow.com/a/3380739
-        return '#%02x%02x%02x' % x
+    return color_convert((color,typeToReturn),reverse=True)
 def grayscale(color):
-    if type(color) == str:
-        # Code from https://stackoverflow.com/a/29643643
-        if color.startswith("#"):
-            color = color.lstrip('#')
-        color = tuple(int(color[i:i+2], 16) for i in (0, 2, 4))
-        typeToReturn = "hex"
-    else:
-        typeToReturn = "rgb"
+    color,typeToReturn = color_convert(color)
 
     x = int(sum(color) / 3)
     color = (x,x,x)
 
-    if typeToReturn == "rgb":
-        return color
-    elif typeToReturn == "hex":
-        # Code from https://stackoverflow.com/a/3380739
-        return '#%02x%02x%02x' % color
+    return color_convert((color,typeToReturn),reverse=True)
 def invertColor(color):
-    if type(color) == str:
-        # Code from https://stackoverflow.com/a/29643643
-        if color.startswith("#"):
-            color = color.lstrip('#')
-        color = tuple(int(color[i:i+2], 16) for i in (0, 2, 4))
-        typeToReturn = "hex"
-    else:
-        typeToReturn = "rgb"
+    color,typeToReturn = color_convert(color)
     
     color = (255-color[0],255-color[1],255-color[2])
 
-    if typeToReturn == "rgb":
-        return color
-    elif typeToReturn == "hex":
-        # Code from https://stackoverflow.com/a/3380739
-        return '#%02x%02x%02x' % color
+    return color_convert((color,typeToReturn),reverse=True)
 def searchInDict(listInput, keyInput, valueInput):
-    for x, y in enumerate(listInput):
+    #Code from https://stackoverflow.com/a/8653568
+    a = enumerate(listInput)
+    for x, y in a:
         if y[keyInput] == valueInput:
             return x
     return None
+#endregion
 #region CLASSES
 class FunctionLogger:
     """
@@ -274,12 +264,13 @@ class GetTime:
         Once created, it can generate alot of information. (HTML schedule, Text schedule, Food, ect)
     """
     t = CurrentTime()
-    def __init__(self, _id=None, _week=t['week2'], _day=t['weekday2'], _year=t['year'], _resolution=(1280,720)) -> None:
+    def __init__(self, _id=None, _week=t['week2'], _day=t['weekday2'], _year=t['year'], _resolution=(1280,720), _school='NTI Södertörn') -> None:
         self._id = _id
         self._week = _week
         self._day = _day
         self._year = _year
         self._resolution = _resolution
+        self._school = _school
     def getHash(self) -> str:
         """
             Generates a sha256 hash of all the settings of this object.
@@ -288,7 +279,7 @@ class GetTime:
             Returns:
                 str: SHA256 hash
         """
-        return sha256("".join([str(x) for x in (self._id,self._week,self._day,self._year,self._resolution)]))
+        return sha256("".join([str(x) for x in (self._id,self._week,self._day,self._year,self._resolution,self._school)]))
     def getData(self, allowCache=True) -> dict:
         """
             This function makes a request to Skola24's servers and returns the schedule data
@@ -318,8 +309,7 @@ class GetTime:
                 "X-Requested-With": "XMLHttpRequest",
                 "Content-Type": "application/json",
                 "Accept": "application/json, text/javascript, */*; q=0.01",
-                "Referer": "https://web.skola24.se/timetable/timetable-viewer/it-gymnasiet.skola24.se/IT-Gymnasiet%20S%C3%B6dert%C3%B6rn/",
-                #"Referer": f"https://web.skola24.se/timetable/timetable-viewer/it-gymnasiet.skola24.se/{urlsafe(testSchool[3])}/",
+                "Referer": allSchools[self._school]['Referer'],
                 "Accept-Encoding": "gzip,deflate",
                 "Accept-Language": "en-US;q=0.5",
                 "Cookie": "ASP.NET_SessionId=5hgt3njwnabrqso3cujrrj2p"
@@ -350,8 +340,7 @@ class GetTime:
                 "Content-Length": "4",
                 "Origin": "https://web.skola24.se",
                 "Connection": "close",
-                "Referer": "https://web.skola24.se/timetable/timetable-viewer/it-gymnasiet.skola24.se/IT-Gymnasiet%20S%C3%B6dert%C3%B6rn/",
-                #"Referer": f"https://web.skola24.se/timetable/timetable-viewer/it-gymnasiet.skola24.se/{urlsafe(testSchool[3])}/",
+                "Referer": allSchools[self._school]['Referer'],
                 "Cookie": "ASP.NET_SessionId=5hgt3njwnabrqso3cujrrj2p",
                 "Sec-GPC": "1",
                 "DNT":"1"
@@ -368,8 +357,8 @@ class GetTime:
             url3 = 'https://web.skola24.se/api/render/timetable'
             payload3 = {
                 "renderKey":response2,
-                "host":"it-gymnasiet.skola24.se",
-                "unitGuid":"ZTEyNTdlZjItZDc3OC1mZWJkLThiYmEtOGYyZDA4NGU1YjI2",
+                "host": allSchools[self._school]['host'],
+                "unitGuid": allSchools[self._school]['unitGuid'],
                 "startDate":"null",
                 "endDate":"null",
                 "scheduleDay":int(self._day),
@@ -459,9 +448,9 @@ class GetTime:
 
         if j['status'] < 0:
             try:
-                return {'html':"""<!-- ERROR --> <div id="schedule" style="all: initial;*{all:unset;}">""" + f"""<p style="color:white">{j['message']}</p>""" + j['data'].text + "</div>"}
+                return {'html':"""<!-- ERROR --> <div id="schedule" style="all: initial;*{all:unset;}">""" + f"""<p style="color:white">{j['message']}</p>""" + j['data'].text + "</div>",'data':j}
             except AttributeError:
-                return {'html':"""<!-- ERROR --> <div id="schedule" style="all: initial;*{all:unset;}">""" + f"""<p style="color:white">{j['message']}</p>{j['data']}</div>"""}
+                return {'html':"""<!-- ERROR --> <div id="schedule" style="all: initial;*{all:unset;}">""" + f"""<p style="color:white">{j['message']}</p>{j['data']}</div>""",'data':j}
 
         timeTakenToFetchData = time.time()-timeTakenToFetchData
         timeTakenToHandleData = time.time() 
@@ -664,14 +653,24 @@ class GetTime:
 #endregion
 if __name__ == "__main__":
     #region INIT
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s") # Sets default logging settings (before cfg file has been loaded in)
+    # Sets default logging settings (before cfg file has been loaded in)
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s") 
 
-    os.chdir(os.path.dirname(os.path.realpath(__file__))) # Set working dir to path of main.py
+    # Set working dir to path of main.py
+    os.chdir(os.path.dirname(os.path.realpath(__file__))) 
 
     # Load config file
     with open("settings.json") as f:
         try:configfile = json.load(f)
         except:configfile = {}
+
+    # Load schools file
+    with open("schools.json", encoding="utf-8") as f:
+        try:allSchools = json.load(f)
+        except:allSchools = {}
+    allSchoolsList = [allSchools[x] for x in allSchools]
+    allSchoolsNames=[x for x in allSchools]
+    allSchoolsNames.sort()
 
     # Change logging to go to file
     if configfile['logToFile']:
@@ -687,7 +686,6 @@ if __name__ == "__main__":
 
     # Setup Flask
     app = Flask(__name__)
-    #minify(app=app, html=True, js=False, cssless=True)
     minify(app=app, html=True, js=False, cssless=True, passive=True)
     Mobility(app) # Mobile features
     CORS(app) # Behövs så att man kan skicka requests till serven (for some reason idk)
@@ -705,6 +703,7 @@ if __name__ == "__main__":
         Rule('/API/SIMPLE_JSON', endpoint='API_SIMPLE_JSON'),
         Rule('/API/TERMINAL_SCHEDULE', endpoint='API_TERMINAL_SCHEDULE'),
         Rule('/API/FOOD', endpoint='API_FOOD'),
+        Rule('/API/FOOD_REDIRECT', endpoint='FOOD_REDIRECT'),
 
         #Logfiles
         Rule('/logfile', endpoint='logfile'),
@@ -797,7 +796,7 @@ if __name__ == "__main__":
             button_type="link",
             button_id='button-text-food',
             button_arguments={
-                'href':'https://skolmaten.se/nti-gymnasiet-sodertorn/'
+                'onclick':f"""window.location.href = '{configfile["mainLink"]}API/FOOD_REDIRECT?school='+encodeURI(school)"""
             }
         ),
 
@@ -934,15 +933,43 @@ if __name__ == "__main__":
     def index(alternativeArgs=None):
         logger = FunctionLogger(functionName='index')
 
+        # alternativeArgs can be used to pass in URL arguments.
         if alternativeArgs != None:
             request.args = alternativeArgs
 
         #region Default values
         t = CurrentTime()
+        #Fix this later
+        # arguments = {
+        #     'parseCode': "",
+        #     'requestURL': configfile['mainLink'],
+        #     'hideNavbar': False,
+        #     'initID': "",
+        #     'initSchool': None, #If set to "null" then it will ALWAYS ask what shcool it should use
+        #     'initDayMode': False,
+        #     'initWeek': t['week2'],
+        #     'initDay': t['weekday3'],
+        #     'initDarkMode': "null",
+        #     'darkModeSetting': 1,
+        #     'debugmode': False,
+        #     'privateURL': False,
+        #     'saveIdToCookie': True,
+        #     'mobileRequest': request.MOBILE,
+        #     'showContactOnLoad': False,
+        #     'autoReloadSchedule': False,
+        #     'dropDownButtons': [],
+        #     'ignorecookiepolicy': False,
+        #     'ignorejsmin': False,
+        #     'ignorecssmin': False,
+        #     'ignorehtmlmin': False,
+        #     'cssToInclude': [],
+        #     'oldPrivateUrl': False
+        # }
         parseCode = ""
         requestURL = configfile['mainLink']
         hideNavbar = False
         initID = ""
+        initSchool = None #If set to "null" then it will ALWAYS ask what shcool it should use
         initDayMode = False
         initWeek = t['week2']
         initDay = t['weekday3']
@@ -960,6 +987,7 @@ if __name__ == "__main__":
         ignorecssmin = False
         ignorehtmlmin = False
         cssToInclude = []
+        oldPrivateUrl = False
         #endregion
         #region Check parameters
         if 'id' in request.args:
@@ -967,10 +995,24 @@ if __name__ == "__main__":
             saveIdToCookie = False
             logger.info(f"Custom ID argument found ({initID})")
         if 'a' in request.args:
-            initID = DecodeString(configfile['key'],request.args['a'])
+            temp = DecodeString(configfile['key'],request.args['a'])
+            if "½" in temp:
+                initID,initSchool = temp.split("½")
+                b = searchInDict(allSchoolsList,'id',int(initSchool))
+                initSchool = allSchoolsList[b]['name']
+                print(initSchool)
+            else:
+                initID = temp
+                initSchool = "null"
+                oldPrivateUrl = True
+            
             privateURL = True
             saveIdToCookie = False
             logger.info(f"Custom Encoded ID argument found ({initID})")
+        
+        if 'school' in request.args:
+            initSchool = request.args['school']
+        
         if 'week' in request.args:
             try:initWeek = int(request.args['week'])
             except:pass
@@ -996,7 +1038,6 @@ if __name__ == "__main__":
             ignorehtmlmin = arg01_to_bool(request.args,"ignorehtmlmin")
         if 'darkmode' in request.args: 
             initDarkMode = str(arg01_to_bool(request.args,"darkmode")).lower()
-        
         if 'filter' in request.args:
             if request.args['filter'] == 'flat':
                 darkModeSetting = 2
@@ -1004,7 +1045,6 @@ if __name__ == "__main__":
                 darkModeSetting = 3
             if request.args['filter'] == 'invert':
                 darkModeSetting = 4
-        
         hideNavbar = 'fullscreen' in request.args
 
         dropDownButtons = [buttons[x].render() for x in (menus['private'] if privateURL else menus['normal'])]
@@ -1019,10 +1059,9 @@ if __name__ == "__main__":
             cssToInclude.append({'name':"darkmode-mobile.css",'id':'darkmode'})
         else:
             cssToInclude.append({'name':"darkmode-desktop.css",'id':'darkmode'})
-        #if hideNavbar:
-        #    cssToInclude.append({'name':"fullscreen.css",'id':''})
 
-        #garbage code, but it does the job for now
+        # garbage code, but it does the job for now
+        # basicly, all it does is convert everything in cssToInclude to the stuff to put in the HTML document
         cssToInclude = [
             {
                 'name':(x['name'] if (ignorecssmin or 'ignore' in x) else f"min/{x['name'][:-4]}.min.css"),
@@ -1030,7 +1069,12 @@ if __name__ == "__main__":
             }
         for x in cssToInclude]
         cssToInclude = [Markup(f"""<link {x['id']} rel="stylesheet" type="text/css" href="/static/css/{x['name']}">""") for x in cssToInclude]
-        #endregion    
+        #endregion
+
+        if configfile['DEBUGMODE']:
+            ignorejsmin = True
+            ignorecssmin = True
+            ignorehtmlmin = True
         
         return render_template(
             template_name_or_list="sodschema.html" if ignorehtmlmin else "min/sodschema.min.html",
@@ -1038,6 +1082,7 @@ if __name__ == "__main__":
             parseCode=parseCode,
             requestURL=requestURL,
             initID=initID,
+            initSchool=initSchool,
             initDayMode=initDayMode,
             initWeek=initWeek,
             initDay=initDay,
@@ -1054,7 +1099,10 @@ if __name__ == "__main__":
             ignorecssmin=ignorecssmin,
             cssToInclude=cssToInclude,
             darkModeSetting=darkModeSetting,
-            hideNavbar=hideNavbar
+            hideNavbar=hideNavbar,
+            allSchools=allSchools,
+            oldPrivateUrl=oldPrivateUrl,
+            allSchoolsNames=allSchoolsNames
         )
     #endregion
     #region API
@@ -1069,7 +1117,7 @@ if __name__ == "__main__":
     @app.endpoint('API_SHAREABLE_URL')
     def API_SHAREABLE_URL():
         global configfile
-        a = GenerateHiddenURL(configfile['key'],request.args['id'],configfile['mainLink'])
+        a = GenerateHiddenURL(configfile['key'],request.args['id'],request.args['school'],configfile['mainLink'])
         return jsonify(result={'url':a[0],'id':a[1]})
     @app.endpoint('API_GENERATE_HTML')
     def API_GENERATE_HTML():
@@ -1078,11 +1126,19 @@ if __name__ == "__main__":
         """
         #logger = FunctionLogger(functionName='API_GENERATE_HTML')
         
+        #Checks if school was the school ID, and if so, grabs the name
+        try:
+            b = searchInDict(allSchoolsList,'id',int(request.args['school']))
+            initSchool = allSchoolsList[b]['name']
+        except:
+            initSchool = request.args['school']
+
         myRequest = GetTime(
             _id = request.args['id'],
             _week = int(request.args['week']),
             _day = int(request.args['day']),
-            _resolution = (int(request.args['width']),int(request.args['height']))
+            _resolution = (int(request.args['width']),int(request.args['height'])),
+            _school=initSchool
         )
         if 'classes' in request.args: 
             classes = request.args['classes']
@@ -1180,6 +1236,15 @@ if __name__ == "__main__":
             week = None
         
         return getFood(week=week)
+    @app.endpoint('FOOD_REDIRECT')
+    def FOOD_REDIRECT():
+        logger = FunctionLogger(functionName='FOOD_REDIRECT')
+        request.args["school"]
+        flink = allSchools[request.args["school"]]
+        if "lunchLink" in flink:
+            logger.info(flink)
+            return redirect(flink["lunchLink"])
+        return("Finns ingen matlänk för din skola, om detta är fel kontakta gärna oss på https://gettime.ga/?contact=1")
     #endregion
     #region Logs
     @app.endpoint('logfile')

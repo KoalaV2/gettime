@@ -4,6 +4,8 @@ var day = initDay;
 var darkmode = initDarkMode;
 var hideNavbar = initHideNavbar;
 var oldURL = "";
+var school = initSchool;
+
 
 // Code from https://stackoverflow.com/a/1431113
 String.prototype.replaceAt = function(index, replacement) {
@@ -125,7 +127,7 @@ else{
 		toggleDarkMode_on = '/static/css/min/darkmode-desktop.min.css';
 	}	
 }
-function toggleDarkMode(disableAnimation=false,saveToCookie=true){
+function toggleDarkMode(disableAnimation=false,saveToCookie=true,updateTimeTableAfter=true){
 	
 	//Set the dark mode switch first
 	darkmode = $('#input-darkmode').prop('checked')
@@ -151,12 +153,16 @@ function toggleDarkMode(disableAnimation=false,saveToCookie=true){
 	
 	if (disableAnimation){
 		doTheThing();
-		updateTimetable();
+		if (updateTimeTableAfter){
+			updateTimetable();
+		}
 	}
 	else{
 		$(".loader-main").slideToggle(500,function(){
 			doTheThing();
-			updateTimetable();
+			if (updateTimeTableAfter){
+				updateTimetable();
+			}
 		});
 
 		//Needs better timing (its to fast rn)
@@ -325,7 +331,7 @@ function updateClipboard(newClip) {
 //Gets the shareable link
 function getShareableURL(){
 	var value= $.ajax({ 
-	   url: requestURL + 'API/SHAREABLE_URL?id=' + $("#id-input-box").val(), 
+	   url: requestURL + 'API/SHAREABLE_URL?id=' + $("#id-input-box").val() + "&school=" + encodeURI(school), 
 	   async: false
 	}).responseJSON;
 	return value['result'];
@@ -407,6 +413,13 @@ function hasMobileBeenRotated(){
 	}
 }
 
+function schoolSelected(schoolName){
+	school = schoolName;
+	createCookie('school',schoolName,365);
+	textBoxClose('#text_school_selector');
+	updateTimetable();
+}
+
 //events on load & event triggers.
 $(window).on("load", function(){
 	// debounce
@@ -449,7 +462,7 @@ $(window).on("load", function(){
 	}
 	//Dark mode is true by "default", so this will turn it off if dark mode SHOULD be off (confusing as hell but ok)
 	if (darkmode == false){
-		toggleDarkMode(disableAnimation=true,saveToCookie=false);
+		toggleDarkMode(disableAnimation=true,saveToCookie=false,updateTimeTableAfter=false);
 	}
 	$('#input-darkmode').prop('checked', darkmode);
 
@@ -458,6 +471,30 @@ $(window).on("load", function(){
 		$('#id-input-box').css("display", "none");
 	}
 	
+	//set school
+	if (initSchool == "null"){
+		if (!(!ignorecookiepolicy && readCookie("infoClosed") != "closed")){
+			textBoxOpen('#text_school_selector');
+		}
+	}
+	else{
+		if (initSchool != ""){
+			school = initSchool;
+		}
+		else{
+			let schoolNow = readCookie("school");
+			if (schoolNow == null){
+				if (!(!ignorecookiepolicy && readCookie("infoClosed") != "closed")){
+					textBoxOpen('#text_school_selector');
+				}
+			}
+			else{
+				school = schoolNow;
+			}
+		}
+	}
+
+
 	//hide all textboxes
 	$('.text_box').hide();
 
@@ -479,10 +516,8 @@ $(window).on("load", function(){
 	}
 
 	//get info closed cookie and hide or show info accordingly
-	if (!ignorecookiepolicy){
-		if (readCookie("infoClosed") != "closed") {
-			textBoxOpen('#text_cookies_info')
-		}
+	if (!ignorecookiepolicy && readCookie("infoClosed") != "closed"){
+		textBoxOpen('#text_cookies_info')
 	}
 
 	//get and set current week
