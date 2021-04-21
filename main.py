@@ -721,16 +721,20 @@ if __name__ == "__main__":
         Rule('/script/API_GENERATE_HTML', endpoint='API_GENERATE_HTML'),
         Rule('/api/json', endpoint='API_JSON')
     )]
-    #region Error handling and cache settings
-    @app.after_request # Script to help prevent caching
+    #region Error handling and response headers
+    @app.after_request 
     def after_request(response):
         response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
         response.headers['X-Content-Type-Options'] = 'nosniff'
         response.headers['X-Frame-Options'] = 'SAMEORIGIN 2'
         response.headers['X-XSS-Protection'] = '1; mode=block'
+        #response.headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'none';"
+
+        # This helps preventing caching
         response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, public, max-age=0"
         response.headers["Expires"] = 0
         response.headers["Pragma"] = "no-cache"
+        
         return response
     @app.errorhandler(NotFound)
     def handle_bad_request_404(e):
