@@ -17,6 +17,11 @@ Date.prototype.getWeek = function(){
 	return Math.ceil((((this - onejan) / 86400000) + onejan.getDay() + 1) / 7);
 }
 
+//Code from https://stackoverflow.com/a/10050831
+function range(size, startAt = 0) {
+    return [...Array(size).keys()].map(i => i + startAt);
+}
+
 function fixURLArgumentIcons(urlInput){
 	let newURL = urlInput;
 	if (newURL.length >= requestURL.length){
@@ -366,20 +371,20 @@ function clickOn_SAVEDLINKS(){
 	$('.controls-container').fadeOut(0);
 }
 
-// function f_showNavbar(){
-// 	console.log("Showing navbar");
-// 	hideNavbar = false;
-// 	$('.navbar').show();
-// 	$('#scheduleBox').css({'top':$('.navbar').height()+'px'});
-// 	updateTimetable();
-// }
-// function f_hideNavbar(){
-// 	console.log("Hiding navbar");
-// 	hideNavbar = true;
-// 	$('.navbar').hide();
-// 	$('#scheduleBox').css({'top':'0px'});
-// 	updateTimetable();
-// }
+function f_showNavbar(){
+	console.log("Showing navbar");
+	hideNavbar = false;
+	$('.navbar').show();
+	$('#scheduleBox').css({'top':$('.navbar').height()+'px'});
+	updateTimetable();
+}
+function f_hideNavbar(){
+	console.log("Hiding navbar");
+	hideNavbar = true;
+	$('.navbar').hide();
+	$('#scheduleBox').css({'top':'0px'});
+	updateTimetable();
+}
 
 // function is_heightIsMoreThenWidth(){
 // 	return $(window).height() > $(window).width();
@@ -733,6 +738,11 @@ $(window).on("load", function(){
 	// 		}
 	// 	}
 	// };
+  
+	// Moves the timetable down so it doesnt overlay the navbar
+	$(document).ready(function() {
+		$("#scheduleBox").css("top", $(".navbar").height());
+	});
 
 	if (showContactOnLoad){
 		textBoxOpen('#text_contact_info');
@@ -747,12 +757,12 @@ $(window).on("load", function(){
 	
 	// hasMobileBeenRotated();
 
-	// if (hideNavbar){
-	// 	f_hideNavbar();
-	// }
-	// else{
-	// 	f_showNavbar();
-	// }
+	if (hideNavbar){
+		f_hideNavbar();
+	}
+	else{
+		//f_showNavbar();
+	}
 
 	// Page finished loading, slide up loader screen
 	$(".loader-main").slideToggle();

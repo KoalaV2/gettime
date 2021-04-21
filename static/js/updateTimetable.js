@@ -12,8 +12,39 @@ function updateTimetable(_callback){
 		return;
 	}
 
-	idnumber = $("#id-input-box").val();
+	//Code from https://portswigger.net/web-security/cross-site-scripting/preventing#how-to-prevent-xss-client-side-in-javascript:~:text=function%20htmlEncode(str)%7B,%7D
+	function htmlEncode(str){
+		return String(str).replace(/[^\w. ]/gi, function(c){
+		   return '&#'+c.charCodeAt(0)+';';
+		});
+	}
+
+	//Code from https://portswigger.net/web-security/cross-site-scripting/preventing#how-to-prevent-xss-client-side-in-javascript:~:text=function%20jsEscape(str)%7B,%7D
+	function jsEscape(str){
+		return String(str).replace(/[^\w. ]/gi, function(c){
+		   return '\\u'+('0000'+c.charCodeAt(0).toString(16)).slice(-4);
+		});
+	}
+
+	var bannedCharacters = "<>/!@#$%^&*()=";
+	var idnumber = "";
+	var idnumberBeforeScan = $("#id-input-box").val();
+
+	console.log("Before : " + idnumberBeforeScan);
+	for (i in range(idnumberBeforeScan.length)){
+		let currentChar = idnumberBeforeScan.charAt(i);
+		console.log(i + " : " + currentChar);
+		if (!bannedCharacters.includes(currentChar)){
+			idnumber += currentChar;
+		}
+	}
+	console.log("After : " + idnumber);
+	$("#id-input-box").val(idnumber);
+	//var idnumber = jsEscape($("#id-input-box").val());
+
+		
 	checkIfIDTextFits();
+
 	width = $(window).width() + 6;
 	height = window.innerHeight + 1; // Sets height of schedule to the full screen size...
 
@@ -61,7 +92,7 @@ function updateTimetable(_callback){
 		
 		let url = [
 			requestURL + 
-			'API/GENERATE_HTML?id=' + idnumber + 
+			'API/GENERATE_HTML?id=' + encodeURI(idnumber) + 
 			"&day=" + dayTEMP + 
 			"&week=" + week + 
 			"&width=" + width + 
@@ -76,6 +107,8 @@ function updateTimetable(_callback){
 
 		if (url == oldURL){
 			console.log("URL and oldURL matched. Canceling...");
+			$('#schedule').fadeIn(500);
+			$("#schedule").css({"transform": "none", "opacity": 1});
 			return;
 		}
 		else{
@@ -105,8 +138,6 @@ function updateTimetable(_callback){
 				createCookie("idnumber", idnumber, 360);
 				console.log("Saved ID to cookie");
 			}
-
-
 
 			if (data['result']['html'].startsWith("<!-- ERROR -->")){
 				console.log("<!-- ERROR --> Found in response!");
