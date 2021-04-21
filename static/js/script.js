@@ -738,7 +738,7 @@ $(window).on("load", function(){
 	// 		}
 	// 	}
 	// };
-
+  
 	// Moves the timetable down so it doesnt overlay the navbar
 	$(document).ready(function() {
 		$("#scheduleBox").css("top", $(".navbar").height());
