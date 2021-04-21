@@ -35,5 +35,12 @@
         "Referer": "https://web.skola24.se/timetable/timetable-viewer/botkyrka.skola24.se/Skyttbrinks%20gymnasium/",
         "host": "botkyrka.skola24.se",
         "unitGuid": "ZjE1YjNhZWEtOTBmMi1mZmE3LWJhZWEtNzA3NjUwZTgzNzdk"
+    },
+    "Widerströmska gymnasium": {
+        "id": 5,
+        "name": "Widerströmska gymnasium",
+        "Referer": "https://web.skola24.se/timetable/timetable-viewer/huddinge.skola24.se/Widerstr%C3%B6mska%20gymnasiet/",
+        "host": "huddinge.skola24.se",
+        "unitGuid": "Zjc2MGRhNmQtZWMwNS1mNjk5LWE4ODYtODY5ODUwOTY0ZGYy"
     }
 }
