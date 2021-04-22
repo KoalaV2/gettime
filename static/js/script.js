@@ -11,89 +11,16 @@ String.prototype.replaceAt = function(index, replacement) {
 	return this.substr(0, index) + replacement + this.substr(index + replacement.length);
 }
 
-//get week number function
+// Code from https://web.archive.org/web/20070216153346/http://javascript.about.com/library/blweekyear.htm
+// Gets the current week
 Date.prototype.getWeek = function(){
 	var onejan = new Date(this.getFullYear(), 0, 1);
 	return Math.ceil((((this - onejan) / 86400000) + onejan.getDay() + 1) / 7);
 }
 
-//Code from https://stackoverflow.com/a/10050831
+// Code from https://stackoverflow.com/a/10050831
 function range(size, startAt = 0) {
     return [...Array(size).keys()].map(i => i + startAt);
-}
-
-function fixURLArgumentIcons(urlInput){
-	let newURL = urlInput;
-	if (newURL.length >= requestURL.length){
-		newURL = newURL.replaceAt(requestURL.length,"?");
-	}
-	return newURL;
-}
-
-function readURLArgumentValueFromKey(key,urlInput=null){	
-	if (urlInput==null){urlInput = window.location.href;}
-
-	let a = urlInput.split(key + "=")[1] //Contains what is AFTER "key="
-	if (a == undefined){
-		return null;
-	}
-	if (a.includes("&")){
-		a = a.split("&")[0]; //Now contains what "value" is for "key"
-	}
-	return a;
-}
-
-function removeURLArgument(key,urlInput=null){
-	if (urlInput==null){urlInput = window.location.href;}
-
-	let currentURL = urlInput;
-	let keyIcon = currentURL[currentURL.indexOf(key)-1]; //Contains what is before the key (& or ?)
-	let a = readURLArgumentValueFromKey(key);
-
-	if (currentURL.includes(keyIcon+key+"="+a)){
-		currentURL = currentURL.replace(keyIcon+key+"="+a,"");
-	}
-	else if (currentURL.includes(keyIcon+key)){
-		currentURL = currentURL.replace(keyIcon+key,"");
-	}
-	
-	currentURL = fixURLArgumentIcons(currentURL);
-
-	return currentURL;
-}
-
-//takes list with 2 strings, and changes the url to match
-function addURLArgument(key,value=""){
-	let currentURL = window.location.href;
-	let newURL = currentURL;
-	let argument = key + ((value != "") ? ("=" + value) : ("")); //Contains "key=value" (or just "key" if no value was passed)
-
-	// If includes the key, with the same value.
-	if (currentURL.includes(argument)){
-		newURL = newURL.replace(newURL[newURL.indexOf(argument)-1] + argument,'');
-		newURL = fixURLArgumentIcons(newURL);
-	}
-	// If includes the key, but not the same value.
-	else if (currentURL.includes(key) && value != ""){
-		let a = currentURL.split(key + "=")[1]
-		if (a.includes("&")){
-			a = a.split("&")[0];
-		}
-		
-		newURL = newURL.replace(key + "=" + a, key + "=" + value);
-		console.log(a);
-	}
-	// If does not include key or value.
-	else{
-		let argIcon = currentURL.includes(requestURL + "?") ? "&" : "?";
-		newURL += argIcon + argument;
-	}
-
-	if (decodeURIComponent(readURLArgumentValueFromKey("id",urlInput=newURL)) == 'its dangerous to go alone'){
-		newURL = removeURLArgument('id',urlInput=newURL);
-	}
-
-	window.location.href = newURL;
 }
 
 // Code from https://tinyurl.com/j7axshp7
@@ -171,32 +98,6 @@ function toggleDarkMode(disableAnimation=false,saveToCookie=true,updateTimeTable
 
 		//Needs better timing (its to fast rn)
 		$(".loader-main").slideToggle(500);
-	}
-}
-
-var getParams = function (url) {
-	var params = {};
-	var parser = document.createElement('a');
-	parser.href = url;
-	var query = parser.search.substring(1);
-	var vars = query.split('&');
-	for (var i = 0; i < vars.length; i++) {
-		var pair = vars[i].split('=');
-		params[pair[0]] = decodeURIComponent(pair[1]);
-	}
-	return params;
-};
-
-function UpdateEntryInUrlArguments(key,value,update=false){
-	urlArguments[key] = value;
-	if (update){
-		var a = getParams(window.location.href);
-		for (var _key in a){
-			if (_key != ""){
-				urlArguments[_key] = a[_key];
-			}
-		}
-		window.history.pushState("", "", "?"+$.param(urlArguments));
 	}
 }
 
@@ -321,6 +222,20 @@ function hideControls(){
 	});
 };
 
+function showControls(){
+	$('.controls').slideToggle('fast', function(){
+		$('.controls-container').fadeIn(0);
+		if ($(this).is(':visible')){
+			$(this).css('display','flex');
+			$('#schedule').addClass("menuBgBlur");
+			$(".menuIcon").removeClass("fa-bars").addClass("fa-times");
+		}else{
+			$('#schedule').removeClass("menuBgBlur");
+			$(".menuIcon").removeClass("fa-times").addClass("fa-bars");
+		};
+	});
+}
+
 //Copies text to users clipboard
 function updateClipboard(newClip) {
 	navigator.clipboard.writeText(newClip).then(function() {
@@ -419,15 +334,26 @@ function f_hideNavbar(){
 
 function schoolSelected(schoolName){
 	school = schoolName;
+
+	// let tdElement = document.getElementById('schedule');
+	// let trElement = tdElement.parentNode;
+	// trElement.removeChild(tdElement);
+	// trElement.innerHTML = '<svg id="schedule"></svg>' + trElement.innerHTML;
+
+	// $("#id-input-box").val("");
+	// $("#id-input-box2").val("");
+
 	createCookie('school',schoolName,365);
 	textBoxClose('#text_school_selector');
 	updateTimetable();
+
+	$("#background-roller").fadeOut("fast");
 }
 
 //events on load & event triggers.
 $(window).on("load", function(){
 	// debounce
-	//Code from https://tinyurl.com/ttd83xe6
+	// Code from https://tinyurl.com/ttd83xe6
 	function debounce(func, wait, immediate) {
 		var timeout;
 		return function() {
@@ -443,7 +369,7 @@ $(window).on("load", function(){
 		};
 	};
 
-	//Code from https://stackoverflow.com/a/15032300
+	// Code from https://stackoverflow.com/a/15032300
 	if (autoReloadSchedule){
 		var lastRefresh = new Date(); // If the user just loaded the page you don't want to refresh either
 		setInterval(function(){
@@ -482,12 +408,14 @@ $(window).on("load", function(){
 		}
 	}
 	else{
+		//If school was specified in the URL
 		if (initSchool != ""){
 			school = initSchool;
 		}
 		else{
 			let schoolNow = readCookie("school");
-			if (schoolNow == null){
+
+			if (isNaN(schoolNow) || schoolNow == null){
 				if (!(!ignorecookiepolicy && readCookie("infoClosed") != "closed")){
 					textBoxOpen('#text_school_selector');
 				}
@@ -663,17 +591,7 @@ $(window).on("load", function(){
 
 	//handles menu button clicking
 	$('.menuButton').on('click', function(){
-		$('.controls').slideToggle('fast', function(){
-			$('.controls-container').fadeIn(0);
-			if ($(this).is(':visible')){
-				$(this).css('display','flex');
-				$('#schedule').addClass("menuBgBlur");
-				$(".menuIcon").removeClass("fa-bars").addClass("fa-times");
-			}else{
-				$('#schedule').removeClass("menuBgBlur");
-				$(".menuIcon").removeClass("fa-times").addClass("fa-bars");
-			};
-		});
+		showControls();
 	});
 
 	// hide divs and remove focus from inputs when timetable is clicked

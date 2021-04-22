@@ -1162,10 +1162,12 @@ if __name__ == "__main__":
         else:
             classes = ""
 
+        darkMode = arg01_to_bool(request.args,"darkmode")
+
         return jsonify(result=myRequest.handleHTML(
             classes=classes,
             privateID=arg01_to_bool(request.args,"privateID"),
-            darkMode=arg01_to_bool(request.args,"darkmode"),
+            darkMode=darkMode,
             isMobile=arg01_to_bool(request.args,"isMobile"),
             darkModeSetting=int(request.args["darkmodesetting"])
         ))

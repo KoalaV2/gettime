@@ -227,6 +227,9 @@ a:hover{
 	-webkit-transform: translate3d(0,0,0);
 	padding: 2rem 2rem 0 2.5rem;
 	box-sizing: border-box;
+
+	overflow-y: scroll;
+    /* max-height: 400px; */
 }
 
 .saved-container{
@@ -375,7 +378,7 @@ a:hover{
 	border-radius: 5rem;
 	color: white;
 	padding: 1rem 2rem;
-	z-index: 9999999999999999;
+	z-index: 999999999;
 	-webkit-box-shadow: 2px 2px 1px rgba(0,0,0,0.5);
 	-moz-box-shadow: 2px 2px 1px rgba(0,0,0,0.5);
 	box-shadow: 2px 2px 1px rgba(0,0,0,0.5);
@@ -440,4 +443,14 @@ a:hover{
 
 #text_tricks a{
 	text-decoration: underline !important;
+}
+
+.errorBox{
+	position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translateX(-50%) translateY(-50%) !important;
+}
+.errorMessage{
+	font-family: "Rubik", sans-serif;
 }
