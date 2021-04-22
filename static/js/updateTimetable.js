@@ -118,11 +118,15 @@ function updateTimetable(_callback){
 			let trElement = tdElement.parentNode;
 			trElement.removeChild(tdElement);
 
-			if (data['result']['html'].startsWith("<!-- ERROR -->")){
-				// var errorMessage = data['result']['data']['data']['validation'][0]['message'];
-				var errorMessage = data['result']['data']['message'];
+			if (data['result']['html'] == undefined || data['result']['html'].startsWith("<!-- ERROR -->")){
+				if (data['result']['html'] == undefined ){
+					var errorMessage = "No response from sever (GetTime eller Skola24 ligger nere)";
+				}
+				else{
+					var errorMessage = data['result']['data']['message'];
+					console.log("<!-- ERROR --> Found in response!");
+				}
 				
-				console.log("<!-- ERROR --> Found in response!");
 				console.log(errorMessage);
 
 				//Stop the loading icon
@@ -172,6 +176,6 @@ function updateTimetable(_callback){
 		$(".arrow-center-text").text(week);
 
 	}
-	
+
 	try{_callback();}catch{}
 };
