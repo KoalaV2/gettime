@@ -329,7 +329,9 @@ class GetTime:
                 return {"status":-10,"message":"Response 1 Error (Other)","data":traceback.format_exc}
                 
             try:response1 = json.loads(response1.text)['data']['signature']
-            except Exception as e:return {"status":-2,"message":f"Response 1 Error : {str(e)}","data":str(response1)}
+            except Exception as e:
+                logger.exception(f"Response 1 Error : {str(e)}")
+                return {"status":-2,"message":f"Response 1 Error : {str(e)}","data":str(response1)}
             #endregion
             #region Request 2
             logger.info("Request 2")
@@ -354,7 +356,9 @@ class GetTime:
             payload2 = "null"
             response2 = requests.post(url2, data=payload2, headers=headers2)
             try:response2 = json.loads(response2.text)['data']['key']
-            except Exception as e:return {"status":-3,"message":f"Response 2 Error : {str(e)}","data":str(response2)}
+            except Exception as e:
+                logger.exception(f"Response 2 Error : {str(e)}")
+                return {"status":-3,"message":f"Response 2 Error : {str(e)}","data":str(response2)}
             #endregion
             #region Request 3
             logger.info("Request 3")
@@ -382,7 +386,9 @@ class GetTime:
             }
             response3 = requests.post(url3, data=json.dumps(payload3), headers=headers3)
             try:response3 = json.loads(response3.text)
-            except Exception as e:return {"status":-4,"message":f"Response 3 Error : {str(e)}","data":str(response3)}
+            except Exception as e:
+                logger.exception(f"Response 3 Error : {str(e)}")
+                return {"status":-4,"message":f"Response 3 Error : {str(e)}","data":str(response3)}
             #endregion
             toReturn = {"status":0,"message":"OK","data":response3}
             
@@ -565,7 +571,6 @@ class GetTime:
             if darkMode:
                 if color == "#000000":
                     color = "#525252"
-            #print(current)
             x1,x2=current['p1x'],current['p2x']
             # Checks delta lenght and skips those smalled then 10px
             if int(x1-x2 if x1>x2 else x2-x1) > 10:
@@ -1172,9 +1177,11 @@ if __name__ == "__main__":
             darkModeSetting=int(request.args["darkmodesetting"])
         )
 
-        print(result)
-
-        return jsonify(result=result)
+        try:
+            return jsonify(result=result)
+        except:
+            print(result)
+            return result
     @app.endpoint('API_JSON')
     def API_JSON():
         #logger = FunctionLogger(functionName='API_JSON')
