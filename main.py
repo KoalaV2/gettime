@@ -59,11 +59,22 @@ def searchInDict(listInput, keyInput, valueInput):
             return x
     return None
 def getSchoolByID(schoolID):
+    """
+        Returns `True, {school data}` if `schoolID` was an int\n
+        Returns `False, {school data}` if `schoolID` was an string, and if it existed in the school list\n
+        Returns `None, None` if `schoolID` was not in the school list at all.
+    """
     try:
         b = searchInDict(allSchoolsList,'id',int(schoolID))
-        return True, allSchools[allSchoolsList[b]['name']]
+        try:
+            return True, allSchools[allSchoolsList[b]['name']]
+        except:
+            return None,None
     except:
-        return False, allSchools[schoolID]
+        try:
+            return False, allSchools[schoolID]
+        except:
+            return None,None
 def SetLogging(path="", filename="log.log", format='%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s'):
     """
         Changes logging settings.
@@ -398,6 +409,7 @@ class GetTime:
                 toReturn = {"status":0,"message":"OK","data":response3}
             except Exception as e:
                 toReturn = {"status":-99,"message":"GENERAL ERROR","data":traceback.format_exc}
+                logger.info(str(toReturn))
             logger.info("Request 3 is finished. Will now check for errors")
             #Error Checking
             try:
@@ -1198,13 +1210,15 @@ if __name__ == "__main__":
         # Custom API (gets the whole JSON file for the user to mess with)
         # This is what the Skola24 website seems to get.
         # It contains all the info you need to rebuild the schedule image.
-
+        
         myRequest = GetTime()
         try:myRequest._id = request.args['id']
         except:raise
         try:myRequest._week = request.args['week']
         except:pass
         try:myRequest._day = request.args['day']
+        except:pass
+        try:myRequest._school = getSchoolByID(request.args['school'])['name']
         except:pass
         try:myRequest._resolution = request.args['res'].split(",")
         except:pass
@@ -1213,13 +1227,14 @@ if __name__ == "__main__":
     def API_SIMPLE_JSON():
         myRequest = GetTime()
         currentTime = CurrentTime()
-
         try:myRequest._id = request.args['id']
         except:raise
         try:myRequest._week = int(request.args['week'])
         except:myRequest._week = currentTime['week2']
         try:myRequest._day = int(request.args['day'])
         except:myRequest._day = currentTime['weekday3']
+        try:myRequest._school = getSchoolByID(request.args['school'])['name']
+        except:pass
 
         try:
             # Mode 1 checks if the last lesson has ended for the day, and if so, it goes to the next day
@@ -1262,6 +1277,8 @@ if __name__ == "__main__":
         except:myRequest._week = currentTime['week2']
         try:myRequest._day = int(request.args['day'])
         except:myRequest._day = currentTime['weekday3']
+        try:myRequest._school = getSchoolByID(request.args['school'])['name']
+        except:pass
 
         
         if arg01_to_bool(request.args,"text"):

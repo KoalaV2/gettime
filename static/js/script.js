@@ -549,7 +549,7 @@ $(window).on("load", function(){
 			console.log('update timetable on related input (AFTER DEBOUNCE)');
 			updateTimetable();
 		});
-	}, 350);
+	}, 450);
 	$('#id-input-box').on('input', update_timetable_on_related_input)
 
 	//If private ID, then this textbox shows up, so that the user can change the ID
@@ -568,7 +568,7 @@ $(window).on("load", function(){
 			}
 			updateTimetable();
 		});
-	}, 350);
+	}, 450);
 	$('#id-input-box2').on('input', update_timetable_on_related_input)
 
 	//unreliable fix, need more investigation on why input week arrows dont work.
