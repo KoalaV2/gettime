@@ -51,7 +51,19 @@ getFoodMaxAge = 60*60 # Secounds
 dataCache = {}
 #endregion
 #region FUNCTIONS
-
+def searchInDict(listInput, keyInput, valueInput):
+    #Code from https://stackoverflow.com/a/8653568
+    a = enumerate(listInput)
+    for x, y in a:
+        if y[keyInput] == valueInput:
+            return x
+    return None
+def getSchoolByID(schoolID):
+    try:
+        b = searchInDict(allSchoolsList,'id',int(schoolID))
+        return True, allSchools[allSchoolsList[b]['name']]
+    except:
+        return False, allSchools[schoolID]
 def SetLogging(path="", filename="log.log", format='%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s'):
     """
         Changes logging settings.
@@ -114,7 +126,7 @@ def DecodeString(key, enc):
         dec.append(dec_c)
     return "".join(dec)
 def GenerateHiddenURL(key, idInput, schoolInput, mainLink):
-    a = EncodeString(key,idInput + "½" + str(allSchools[schoolInput]['id']))
+    a = EncodeString(key,idInput + "½" + str(getSchoolByID(schoolInput)[1]['id']))
     return mainLink + f"?a={a}",a
 def sha256(hash_string):
     # Code from https://tinyurl.com/2k3ds62p
@@ -202,13 +214,6 @@ def invertColor(color):
     color = (255-color[0],255-color[1],255-color[2])
 
     return color_convert((color,typeToReturn),reverse=True)
-def searchInDict(listInput, keyInput, valueInput):
-    #Code from https://stackoverflow.com/a/8653568
-    a = enumerate(listInput)
-    for x, y in a:
-        if y[keyInput] == valueInput:
-            return x
-    return None
 #endregion
 #region CLASSES
 class FunctionLogger:
@@ -324,7 +329,7 @@ class GetTime:
                 return {"status":-10,"message":"Response 1 Error (Other)","data":traceback.format_exc}
                 
             try:response1 = json.loads(response1.text)['data']['signature']
-            except:return {"status":-2,"message":"Response 1 Error","data":response1}
+            except Exception as e:return {"status":-2,"message":f"Response 1 Error : {str(e)}","data":str(response1)}
             #endregion
             #region Request 2
             logger.info("Request 2")
@@ -349,7 +354,7 @@ class GetTime:
             payload2 = "null"
             response2 = requests.post(url2, data=payload2, headers=headers2)
             try:response2 = json.loads(response2.text)['data']['key']
-            except:return {"status":-3,"message":"Response 2 Error","data":response2}
+            except Exception as e:return {"status":-3,"message":f"Response 2 Error : {str(e)}","data":str(response2)}
             #endregion
             #region Request 3
             logger.info("Request 3")
@@ -377,7 +382,7 @@ class GetTime:
             }
             response3 = requests.post(url3, data=json.dumps(payload3), headers=headers3)
             try:response3 = json.loads(response3.text)
-            except:return {"status":-4,"message":"Response 3 Error","data":response3}
+            except Exception as e:return {"status":-4,"message":f"Response 3 Error : {str(e)}","data":str(response3)}
             #endregion
             toReturn = {"status":0,"message":"OK","data":response3}
             
@@ -387,7 +392,7 @@ class GetTime:
                 if response3['error'] != None:
                     toReturn = {'status':-5,'message':"error was not None","data":response3}
                 if len(response3['validation']) > 0:
-                    toReturn = {'status':-6,'message':"validation was not empty : " + ','.join([x['message'] for x in response3['validation']]),"data":response3,"validation":response3['validation']}
+                    toReturn = {'status':-6,'message':','.join([x['message'] for x in response3['validation']]),"data":response3,"validation":response3['validation']}
             except:
                 toReturn = {'status':-8,'message':f"An error occured when trying to check for other errors! Here is the traceback : {traceback.format_exc()}","data":response3}
             
@@ -1015,9 +1020,7 @@ if __name__ == "__main__":
             temp = DecodeString(configfile['key'],request.args['a'])
             if "½" in temp:
                 initID,initSchool = temp.split("½")
-                b = searchInDict(allSchoolsList,'id',int(initSchool))
-                initSchool = allSchoolsList[b]['name']
-                print(initSchool)
+                initSchool = int(initSchool)
             else:
                 initID = temp
                 initSchool = "null"
@@ -1161,16 +1164,17 @@ if __name__ == "__main__":
             classes = request.args['classes']
         else:
             classes = ""
-
-        darkMode = arg01_to_bool(request.args,"darkmode")
-
-        return jsonify(result=myRequest.handleHTML(
+        result = myRequest.handleHTML(
             classes=classes,
             privateID=arg01_to_bool(request.args,"privateID"),
-            darkMode=darkMode,
+            darkMode=arg01_to_bool(request.args,"darkmode"),
             isMobile=arg01_to_bool(request.args,"isMobile"),
             darkModeSetting=int(request.args["darkmodesetting"])
-        ))
+        )
+
+        print(result)
+
+        return jsonify(result=result)
     @app.endpoint('API_JSON')
     def API_JSON():
         #logger = FunctionLogger(functionName='API_JSON')
@@ -1259,7 +1263,11 @@ if __name__ == "__main__":
     def FOOD_REDIRECT():
         logger = FunctionLogger(functionName='FOOD_REDIRECT')
         request.args["school"]
-        flink = allSchools[request.args["school"]]
+        try:
+            b = searchInDict(allSchoolsList,'id',int(request.args["school"]))
+            flink = allSchoolsList[b]
+        except:
+            flink = allSchools[request.args["school"]]
         if "lunchLink" in flink:
             logger.info(flink)
             return redirect(flink["lunchLink"])

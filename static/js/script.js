@@ -158,7 +158,7 @@ function checkIfIDTextFits(){
 // show and update saved url's
 function showSaved(){
 
-	$('#schedule').addClass("menuBgBlur");
+	$('#scheduleBox').addClass("menuBgBlur");
 	$(".menuIcon").removeClass("fa-bars").addClass("fa-times");
 
 	$(".savedList").empty();
@@ -213,10 +213,10 @@ function hideControls(){
 	$('.controls').slideUp('fast', function() {
 	    if ($(this).is(':visible')){
 	        $(this).css('display','flex');
-			$('#schedule').addClass("menuBgBlur");
+			$('#scheduleBox').addClass("menuBgBlur");
 	        $(".menuIcon").removeClass("fa-bars").addClass("fa-times");
 	    }else{
-			$('#schedule').removeClass("menuBgBlur");
+			$('#scheduleBox').removeClass("menuBgBlur");
 	        $(".menuIcon").removeClass("fa-times").addClass("fa-bars");
 	    };
 	});
@@ -227,10 +227,10 @@ function showControls(){
 		$('.controls-container').fadeIn(0);
 		if ($(this).is(':visible')){
 			$(this).css('display','flex');
-			$('#schedule').addClass("menuBgBlur");
+			$('#scheduleBox').addClass("menuBgBlur");
 			$(".menuIcon").removeClass("fa-bars").addClass("fa-times");
 		}else{
-			$('#schedule').removeClass("menuBgBlur");
+			$('#scheduleBox').removeClass("menuBgBlur");
 			$(".menuIcon").removeClass("fa-times").addClass("fa-bars");
 		};
 	});
@@ -247,13 +247,27 @@ function updateClipboard(newClip) {
 	});
 }
 
+function send_API_request(url){
+	var send_API_request_response = "";
+
+	function reqListener () {
+		send_API_request_response = JSON.parse(this.responseText);
+	}
+
+	let r = new XMLHttpRequest();
+	r.addEventListener("load", reqListener);
+	r.open("GET", url, false);
+	r.send();
+
+	return send_API_request_response;
+}
+
+
 //Gets the shareable link
 function getShareableURL(){
-	var value= $.ajax({ 
-	   url: requestURL + 'API/SHAREABLE_URL?id=' + $("#id-input-box").val() + "&school=" + encodeURI(school), 
-	   async: false
-	}).responseJSON;
-	return value['result'];
+	return send_API_request(
+		requestURL + 'API/SHAREABLE_URL?id=' + $("#id-input-box").val() + "&school=" + encodeURI(school)
+	)['result'];
 }
 
 function updateMenuButtonsBasedOnSize(){

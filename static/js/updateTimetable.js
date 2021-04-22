@@ -28,7 +28,7 @@ function updateTimetable(_callback){
 
 	//Updates the input boxes with the XSS cleaned input
 	$("#id-input-box").val(idnumber);
-	$("#id-input-box2").val(idnumber);
+	//$("#id-input-box2").val(idnumber);
 
 	checkIfIDTextFits();
 
@@ -103,15 +103,6 @@ function updateTimetable(_callback){
 			oldURL = url;
 		}
 
-		// If the schedule is supposed to be blurred, the new request will return with the blur class allready applied
-		try{
-			if (document.getElementById('schedule').classList.contains('menuBgBlur')){
-				url += '&classes=menuBgBlur';
-			}
-		}catch(error){
-			console.error(error);
-		}
-
 		if (privateURL){
 			console.log("Requesting schedule with private ID...")
 		}
@@ -128,7 +119,9 @@ function updateTimetable(_callback){
 			trElement.removeChild(tdElement);
 
 			if (data['result']['html'].startsWith("<!-- ERROR -->")){
-				let errorMessage = data['result']['data']['data']['validation'][0]['message'];
+				// var errorMessage = data['result']['data']['data']['validation'][0]['message'];
+				var errorMessage = data['result']['data']['message'];
+				
 
 				console.log("<!-- ERROR --> Found in response!");
 				console.log(errorMessage);
