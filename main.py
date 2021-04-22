@@ -330,7 +330,7 @@ class GetTime:
                 
             try:response1 = json.loads(response1.text)['data']['signature']
             except Exception as e:
-                logger.exception(f"Response 1 Error : {str(e)}")
+                logger.info(f"Response 1 Error : {str(e)}")
                 return {"status":-2,"message":f"Response 1 Error : {str(e)}","data":str(response1)}
             #endregion
             #region Request 2
@@ -357,7 +357,7 @@ class GetTime:
             response2 = requests.post(url2, data=payload2, headers=headers2)
             try:response2 = json.loads(response2.text)['data']['key']
             except Exception as e:
-                logger.exception(f"Response 2 Error : {str(e)}")
+                logger.info(f"Response 2 Error : {str(e)}")
                 return {"status":-3,"message":f"Response 2 Error : {str(e)}","data":str(response2)}
             #endregion
             #region Request 3
@@ -387,7 +387,7 @@ class GetTime:
             response3 = requests.post(url3, data=json.dumps(payload3), headers=headers3)
             try:response3 = json.loads(response3.text)
             except Exception as e:
-                logger.exception(f"Response 3 Error : {str(e)}")
+                logger.info(f"Response 3 Error : {str(e)}")
                 return {"status":-4,"message":f"Response 3 Error : {str(e)}","data":str(response3)}
             #endregion
             toReturn = {"status":0,"message":"OK","data":response3}
@@ -1180,7 +1180,7 @@ if __name__ == "__main__":
         try:
             return jsonify(result=result)
         except:
-            print(result)
+            print("JSONIFY ERROR : ",result)
             try:
                 return jsonify(result=str(result))
             except:
