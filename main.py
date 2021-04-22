@@ -1181,7 +1181,10 @@ if __name__ == "__main__":
             return jsonify(result=result)
         except:
             print(result)
-            return result
+            try:
+                return jsonify(result=str(result))
+            except:
+                return result
     @app.endpoint('API_JSON')
     def API_JSON():
         #logger = FunctionLogger(functionName='API_JSON')
