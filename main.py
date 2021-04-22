@@ -305,97 +305,99 @@ class GetTime:
             logger.info("Using cache!")
             toReturn = dataCache[myHash]['data']
         else:
-            #region Request 1
-            logger.info("Request 1")
-            headers1 = {
-                "Connection": "keep-alive",
-                "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:85.0) Gecko/20100101 Firefox/85.0",
-                "X-Scope": "8a22163c-8662-4535-9050-bc5e1923df48",
-                "X-Requested-With": "XMLHttpRequest",
-                "Content-Type": "application/json",
-                "Accept": "application/json, text/javascript, */*; q=0.01",
-                "Referer": allSchools[self._school]['Referer'],
-                "Accept-Encoding": "gzip,deflate",
-                "Accept-Language": "en-US;q=0.5",
-                "Cookie": "ASP.NET_SessionId=5hgt3njwnabrqso3cujrrj2p"
-            }
-            url1 = 'https://web.skola24.se/api/encrypt/signature'
-            payload1 = {"signature":self._id}
             try:
-                response1 = requests.post(url1, data=json.dumps(payload1), headers=headers1)
-            except TimeoutError:
-                return {"status":-9,"message":"Response 1 Error (TimeoutError)","data":""}
-            except Exception:
-                return {"status":-10,"message":"Response 1 Error (Other)","data":traceback.format_exc}
-                
-            try:response1 = json.loads(response1.text)['data']['signature']
+                #region Request 1
+                logger.info("Request 1")
+                headers1 = {
+                    "Connection": "keep-alive",
+                    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:85.0) Gecko/20100101 Firefox/85.0",
+                    "X-Scope": "8a22163c-8662-4535-9050-bc5e1923df48",
+                    "X-Requested-With": "XMLHttpRequest",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/javascript, */*; q=0.01",
+                    "Referer": allSchools[self._school]['Referer'],
+                    "Accept-Encoding": "gzip,deflate",
+                    "Accept-Language": "en-US;q=0.5",
+                    "Cookie": "ASP.NET_SessionId=5hgt3njwnabrqso3cujrrj2p"
+                }
+                url1 = 'https://web.skola24.se/api/encrypt/signature'
+                payload1 = {"signature":self._id}
+                try:
+                    response1 = requests.post(url1, data=json.dumps(payload1), headers=headers1)
+                except TimeoutError:
+                    return {"status":-9,"message":"Response 1 Error (TimeoutError)","data":""}
+                except Exception:
+                    return {"status":-10,"message":"Response 1 Error (Other)","data":traceback.format_exc}
+                    
+                try:response1 = json.loads(response1.text)['data']['signature']
+                except Exception as e:
+                    logger.info(f"Response 1 Error : {str(e)}")
+                    return {"status":-2,"message":f"Response 1 Error : {str(e)}","data":str(response1)}
+                #endregion
+                #region Request 2
+                logger.info("Request 2")
+                headers2 = {
+                    "Host": "web.skola24.se",
+                    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:85.0) Gecko/20100101 Firefox/85.0",
+                    "Accept": "application/json, text/javascript, */*; q=0.01",
+                    "Accept-Language": "en-US,en;q=0.5",
+                    "Accept-Encoding": "gzip, deflate",
+                    "Content-Type": "application/json",
+                    "X-Scope": "8a22163c-8662-4535-9050-bc5e1923df48",
+                    "X-Requested-With": "XMLHttpRequest",
+                    "Content-Length": "4",
+                    "Origin": "https://web.skola24.se",
+                    "Connection": "close",
+                    "Referer": allSchools[self._school]['Referer'],
+                    "Cookie": "ASP.NET_SessionId=5hgt3njwnabrqso3cujrrj2p",
+                    "Sec-GPC": "1",
+                    "DNT":"1"
+                }
+                url2 = 'https://web.skola24.se/api/get/timetable/render/key'
+                payload2 = "null"
+                response2 = requests.post(url2, data=payload2, headers=headers2)
+                try:response2 = json.loads(response2.text)['data']['key']
+                except TimeoutError:
+                    return {"status":-11,"message":"Response 2 Error (TimeoutError)","data":""}
+                except Exception as e:
+                    logger.info(f"Response 2 Error : {str(e)}")
+                    return {"status":-3,"message":f"Response 2 Error : {str(e)}","data":str(response2)}
+                #endregion
+                #region Request 3
+                logger.info("Request 3")
+                headers3 = headers2
+                url3 = 'https://web.skola24.se/api/render/timetable'
+                payload3 = {
+                    "renderKey":response2,
+                    "host": allSchools[self._school]['host'],
+                    "unitGuid": allSchools[self._school]['unitGuid'],
+                    "startDate":"null",
+                    "endDate":"null",
+                    "scheduleDay":int(self._day),
+                    "blackAndWhite":"false",
+                    "width":int(self._resolution[0]),
+                    "height":int(self._resolution[1]),
+                    "selectionType":4,
+                    "selection":response1,
+                    "showHeader":"false",
+                    "periodText":"",
+                    "week":int(self._week),
+                    "year":int(self._year),
+                    "privateFreeTextMode":"false",
+                    "privateSelectionMode":"null",
+                    "customerKey":""
+                }
+                response3 = requests.post(url3, data=json.dumps(payload3), headers=headers3)
+                try:response3 = json.loads(response3.text)
+                except TimeoutError:
+                    return {"status":-12,"message":"Response 3 Error (TimeoutError)","data":""}
+                except Exception as e:
+                    logger.info(f"Response 3 Error : {str(e)}")
+                    return {"status":-4,"message":f"Response 3 Error : {str(e)}","data":str(response3)}
+                #endregion
+                toReturn = {"status":0,"message":"OK","data":response3}
             except Exception as e:
-                logger.info(f"Response 1 Error : {str(e)}")
-                return {"status":-2,"message":f"Response 1 Error : {str(e)}","data":str(response1)}
-            #endregion
-            #region Request 2
-            logger.info("Request 2")
-            headers2 = {
-                "Host": "web.skola24.se",
-                "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:85.0) Gecko/20100101 Firefox/85.0",
-                "Accept": "application/json, text/javascript, */*; q=0.01",
-                "Accept-Language": "en-US,en;q=0.5",
-                "Accept-Encoding": "gzip, deflate",
-                "Content-Type": "application/json",
-                "X-Scope": "8a22163c-8662-4535-9050-bc5e1923df48",
-                "X-Requested-With": "XMLHttpRequest",
-                "Content-Length": "4",
-                "Origin": "https://web.skola24.se",
-                "Connection": "close",
-                "Referer": allSchools[self._school]['Referer'],
-                "Cookie": "ASP.NET_SessionId=5hgt3njwnabrqso3cujrrj2p",
-                "Sec-GPC": "1",
-                "DNT":"1"
-            }
-            url2 = 'https://web.skola24.se/api/get/timetable/render/key'
-            payload2 = "null"
-            response2 = requests.post(url2, data=payload2, headers=headers2)
-            try:response2 = json.loads(response2.text)['data']['key']
-            except TimeoutError:
-                return {"status":-11,"message":"Response 2 Error (TimeoutError)","data":""}
-            except Exception as e:
-                logger.info(f"Response 2 Error : {str(e)}")
-                return {"status":-3,"message":f"Response 2 Error : {str(e)}","data":str(response2)}
-            #endregion
-            #region Request 3
-            logger.info("Request 3")
-            headers3 = headers2
-            url3 = 'https://web.skola24.se/api/render/timetable'
-            payload3 = {
-                "renderKey":response2,
-                "host": allSchools[self._school]['host'],
-                "unitGuid": allSchools[self._school]['unitGuid'],
-                "startDate":"null",
-                "endDate":"null",
-                "scheduleDay":int(self._day),
-                "blackAndWhite":"false",
-                "width":int(self._resolution[0]),
-                "height":int(self._resolution[1]),
-                "selectionType":4,
-                "selection":response1,
-                "showHeader":"false",
-                "periodText":"",
-                "week":int(self._week),
-                "year":int(self._year),
-                "privateFreeTextMode":"false",
-                "privateSelectionMode":"null",
-                "customerKey":""
-            }
-            response3 = requests.post(url3, data=json.dumps(payload3), headers=headers3)
-            try:response3 = json.loads(response3.text)
-            except TimeoutError:
-                return {"status":-12,"message":"Response 3 Error (TimeoutError)","data":""}
-            except Exception as e:
-                logger.info(f"Response 3 Error : {str(e)}")
-                return {"status":-4,"message":f"Response 3 Error : {str(e)}","data":str(response3)}
-            #endregion
-            toReturn = {"status":0,"message":"OK","data":response3}
-            
+                toReturn = {"status":-99,"message":"GENERAL ERROR","data":traceback.format_exc}
             logger.info("Request 3 is finished. Will now check for errors")
             #Error Checking
             try:
