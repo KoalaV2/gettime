@@ -356,6 +356,8 @@ class GetTime:
             payload2 = "null"
             response2 = requests.post(url2, data=payload2, headers=headers2)
             try:response2 = json.loads(response2.text)['data']['key']
+            except TimeoutError:
+                return {"status":-11,"message":"Response 2 Error (TimeoutError)","data":""}
             except Exception as e:
                 logger.info(f"Response 2 Error : {str(e)}")
                 return {"status":-3,"message":f"Response 2 Error : {str(e)}","data":str(response2)}
@@ -386,6 +388,8 @@ class GetTime:
             }
             response3 = requests.post(url3, data=json.dumps(payload3), headers=headers3)
             try:response3 = json.loads(response3.text)
+            except TimeoutError:
+                return {"status":-12,"message":"Response 3 Error (TimeoutError)","data":""}
             except Exception as e:
                 logger.info(f"Response 3 Error : {str(e)}")
                 return {"status":-4,"message":f"Response 3 Error : {str(e)}","data":str(response3)}
