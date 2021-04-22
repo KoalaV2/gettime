@@ -1,54 +1,41 @@
 function updateTimetable(_callback){
 	console.log("updateTimetable was excecuted.");
 
+	//If cookie information hasnt been closed then ignore this request.
 	if (readCookie("infoClosed") != "closed") {
+		console.log("infoClosed was not closed yet! (Cookies not accepted)")
 		return;
 	}
 
-	if (school == null || school == "" || school == "null"){
-		if (readCookie("infoClosed") == "closed"){
-			textBoxOpen('#text_school_selector');
-		}	
+	//If school is not set, and no school was specified, then bring up the school selector.
+	if (isNaN(school) || school == null || school == "" || school == "null"){
+		console.log("School not set!")
+		textBoxOpen('#text_school_selector');
 		return;
 	}
 
-	//Code from https://portswigger.net/web-security/cross-site-scripting/preventing#how-to-prevent-xss-client-side-in-javascript:~:text=function%20htmlEncode(str)%7B,%7D
-	function htmlEncode(str){
-		return String(str).replace(/[^\w. ]/gi, function(c){
-		   return '&#'+c.charCodeAt(0)+';';
-		});
-	}
+	//Prevent XSS
+	let bannedCharacters = "<>/!@#$%^&*()=";
+	let idnumber = "";
+	let idnumberBeforeScan = $("#id-input-box").val();
 
-	//Code from https://portswigger.net/web-security/cross-site-scripting/preventing#how-to-prevent-xss-client-side-in-javascript:~:text=function%20jsEscape(str)%7B,%7D
-	function jsEscape(str){
-		return String(str).replace(/[^\w. ]/gi, function(c){
-		   return '\\u'+('0000'+c.charCodeAt(0).toString(16)).slice(-4);
-		});
-	}
-
-	var bannedCharacters = "<>/!@#$%^&*()=";
-	var idnumber = "";
-	var idnumberBeforeScan = $("#id-input-box").val();
-
-	console.log("Before : " + idnumberBeforeScan);
 	for (i in range(idnumberBeforeScan.length)){
 		let currentChar = idnumberBeforeScan.charAt(i);
-		console.log(i + " : " + currentChar);
 		if (!bannedCharacters.includes(currentChar)){
 			idnumber += currentChar;
 		}
 	}
-	console.log("After : " + idnumber);
-	$("#id-input-box").val(idnumber);
-	//var idnumber = jsEscape($("#id-input-box").val());
 
-		
+	//Updates the input boxes with the XSS cleaned input
+	$("#id-input-box").val(idnumber);
+	//$("#id-input-box2").val(idnumber);
+
 	checkIfIDTextFits();
 
 	width = $(window).width() + 6;
-	height = window.innerHeight + 1; // Sets height of schedule to the full screen size...
+	height = window.innerHeight + 2; // Sets height of schedule to the full screen size...
 
-	height -= $(".navbar").height() //...minus the navigation bar at the top
+	height -= $(".navbar").height(); //...minus the navigation bar at the top
 
 	dayOnly = $("#input-day").is(':checked');
 
@@ -69,7 +56,7 @@ function updateTimetable(_callback){
 		$(".savedIDs").css("transform", "none");
 	}
 
-	var dayTEMP;
+	let dayTEMP;
     if(dayOnly){
     	$("#input-day-label").text("Show week");
 		dayTEMP = day;
@@ -86,6 +73,7 @@ function updateTimetable(_callback){
 	let SUSSY = idnumber.toLowerCase() == "sus" || idnumber.toLowerCase() == "ඞ";
 	if (SUSSY){
 		window.location.href = requestURL + "ඞ";
+		return;
 	}
 
 	if (idnumber.length > 0){
@@ -102,9 +90,9 @@ function updateTimetable(_callback){
 			"&darkmodesetting=" + darkModeSetting + 
 			"&isMobile=" + (mobileRequest ? "1" : "0") +
 			"&school=" + encodeURI(school)
-		][0]
-		console.log(url);
+		][0];
 
+		//Checks if URL has changed
 		if (url == oldURL){
 			console.log("URL and oldURL matched. Canceling...");
 			$('#schedule').fadeIn(500);
@@ -115,56 +103,58 @@ function updateTimetable(_callback){
 			oldURL = url;
 		}
 
-		// If the schedule is supposed to be blurred, the new request will return with the blur class allready applied
-		try{
-			if (document.getElementById('schedule').classList.contains('menuBgBlur')){
-				url += '&classes=menuBgBlur';
-			}
-		}catch(error){
-			console.error(error);
-		}
-
-		if (!privateURL){
-			console.log("Requesting schedule with this url : " + url)
+		if (privateURL){
+			console.log("Requesting schedule with private ID...")
 		}
 		else{
-			console.log("Requesting schedule...")
+			console.log("Requesting schedule with this url : " + url)
 		}
 
 		/* This code asks the server to generate a new schedule for you */
 		$.getJSON(url, function(data) {
 
-			if (!data['result']['html'].startsWith("<!-- ERROR -->") && saveIdToCookie && !SUSSY){
-				createCookie("idnumber", idnumber, 360);
-				console.log("Saved ID to cookie");
-			}
-
-			if (data['result']['html'].startsWith("<!-- ERROR -->")){
-				console.log("<!-- ERROR --> Found in response!");
-				let errorMessage = data['result']['data']['data']['validation'][0]['message'];
-				console.log(errorMessage);
-				$("#background-roller").fadeOut("fast");
-
-            //	trElement.innerHTML = errorMessage + trElement.innerHTML;
-			}
-			else{
-	        // Replaces the SVG with the new SVG data
+			// Replaces the SVG with the new SVG data
 			let tdElement = document.getElementById('schedule');
 			let trElement = tdElement.parentNode;
 			trElement.removeChild(tdElement);
-			trElement.innerHTML = data['result']['html'] + trElement.innerHTML;
+
+			if (data['result']['html'].startsWith("<!-- ERROR -->")){
+				// var errorMessage = data['result']['data']['data']['validation'][0]['message'];
+				var errorMessage = data['result']['data']['message'];
+				
+				console.log("<!-- ERROR --> Found in response!");
+				console.log(errorMessage);
+
+				//Stop the loading icon
+				$("#background-roller").fadeOut("fast");
+				
+            	trElement.innerHTML = '<p id="schedule" class="errorMessage">' + errorMessage + "</p>" + trElement.innerHTML;
+				$("#scheduleBox").addClass('errorBox');
+				$('#schedule').fadeOut(0);
+				$('#schedule').fadeIn(500);
+			}
+			else{
+				if (saveIdToCookie){
+					//If we got here, that means that the schedule have loaded successfully, and we want to save the ID in the cookie
+					createCookie("idnumber", idnumber, 360);
+					console.log("Saved ID to cookie");
+				}
+				else{
+					console.log("Did not save ID to cookie, because saveIdToCookie is false")
+				}
+
+				trElement.innerHTML = data['result']['html'] + trElement.innerHTML;
+				$("#scheduleBox").removeClass('errorBox');
+
+				// Makes sure the schedule is faded out before it fades in (Otherwise it blinks before it fades in)
+				$('#schedule').fadeOut(0);
+				
+				// Fade in the Schedule
+				$('#schedule').fadeIn(500);
+				$("#schedule").css({"transform": "none", "opacity": 1});
 			}
 			
-
-			$('#schedule').fadeOut(0);
 			
-			// Run the URL scripts
-			// try{eval($('#scheduleScript').attr('script'));
-			// }catch(error){console.error(error);}
-			
-			// Fade in the Schedule
-			$('#schedule').fadeIn(500);
-			$("#schedule").css({"transform": "none", "opacity": 1});
 			
 			// toUrl['id'] = idnumber;
 			// toUrl['week'] = week;
@@ -175,14 +165,13 @@ function updateTimetable(_callback){
 			// window.history.pushState("", "", $.param(toUrl));
 
 		})
-
+		// Stops arrows from blinking
 		$('.arrow').removeClass('arrow-loading');
 
-		//This needs to be timed so that it happens AFTER the schedule fades in
-		//$("#background-roller").fadeOut("fast");
+		// Updates the button with the right week number
 		$(".arrow-center-text").text(week);
 
 	}
-
+	
 	try{_callback();}catch{}
 };

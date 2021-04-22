@@ -55,10 +55,10 @@
 	.control-container{
 		width: auto;
 		min-width: 85%;
-		margin: 0;
+		margin: 0.3rem;
 		background: white;
 		color: rgba(48,126,182,1);
-		padding: 0.5rem 2rem !important;
+		/* padding: 0.5rem 2rem !important; */
 	}
 
 	.control-container span{

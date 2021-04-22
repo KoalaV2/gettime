@@ -28,19 +28,21 @@
 
 		<!-- JS Libraries -->
 		<script type="text/javascript" src="/static/js/jquery-3.6.0.min.js"></script>
-		<script type="text/javascript" src="/static/js/jquery.touchSwipe.min.js"></script>
+		<!-- <script type="text/javascript" src="/static/js/jquery.touchSwipe.min.js"></script> -->
 		{% if ignorejsmin %}
 			<script type="text/javascript" src="/static/js/cookies.js"></script>
-			<script type="text/javascript" src="/static/js/touchEvents.js"></script>
+			<!-- <script type="text/javascript" src="/static/js/touchEvents.js"></script> -->
 			<script type="text/javascript" src="/static/js/script.js"></script>
 			<script type="text/javascript" src="/static/js/updateTimetable.js"></script>
 			<script type="text/javascript" src="/static/js/saveurl.js"></script>
+			<script type="text/javascript" src="/static/js/handleURI.js"></script>
 		{% else %}
 			<script type="text/javascript" src="/static/js/min/cookies.min.js"></script>
-			<script type="text/javascript" src="/static/js/min/touchEvents.min.js"></script>
+			<!-- <script type="text/javascript" src="/static/js/min/touchEvents.min.js"></script> -->
 			<script type="text/javascript" src="/static/js/min/script.min.js"></script>
 			<script type="text/javascript" src="/static/js/min/updateTimetable.min.js"></script>
 			<script type="text/javascript" src="/static/js/min/saveurl.min.js"></script>
+			<script type="text/javascript" src="/static/js/min/handleURI.min.js"></script>
 		{% endif %}
 
 		<!-- Basic meta tags -->
@@ -280,7 +282,7 @@
 				<ul>
 				{% for x in allSchoolsNames %}
 					<li>
-                        <p style="text-decoration: underline !important; cursor: pointer;" onclick="schoolSelected('{{x}}')">{{x}}</p>
+                        <p style="text-decoration: underline !important; cursor: pointer;" onclick="schoolSelected('{{allSchools[x]['id']}}')">{{x}}</p>
 					</li>
 				{% endfor %}
 				</ul>
