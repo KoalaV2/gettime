@@ -122,7 +122,6 @@ function updateTimetable(_callback){
 				// var errorMessage = data['result']['data']['data']['validation'][0]['message'];
 				var errorMessage = data['result']['data']['message'];
 				
-
 				console.log("<!-- ERROR --> Found in response!");
 				console.log(errorMessage);
 
@@ -143,7 +142,6 @@ function updateTimetable(_callback){
 				else{
 					console.log("Did not save ID to cookie, because saveIdToCookie is false")
 				}
-
 
 				trElement.innerHTML = data['result']['html'] + trElement.innerHTML;
 				$("#scheduleBox").removeClass('errorBox');
@@ -170,13 +168,10 @@ function updateTimetable(_callback){
 		// Stops arrows from blinking
 		$('.arrow').removeClass('arrow-loading');
 
-		// This needs to be timed so that it happens AFTER the schedule fades in
-		//$("#background-roller").fadeOut("fast");
-
 		// Updates the button with the right week number
 		$(".arrow-center-text").text(week);
 
 	}
-
+	
 	try{_callback();}catch{}
 };
