@@ -119,19 +119,35 @@ async def on_message(message):
         #     );await message.channel.send(embed=embed)
 
         if userMessage[1].lower() in ('reg','notify'):
+            
+            if userMessage[2] == "help":
+                return await EmbedMessage(
+                    title=f"{configfile['discordPrefix']} {userMessage[1].lower()} hjälp",
+                    description="\n".join((
+                        f"Användning :\n{configfile['discordPrefix']} {userMessage[1].lower()} `<DITT ID HÄR>` `<DIN SKOL-ID HÄR>` `<HUR MÅNGA MINUTER I FÖRVÄG DU VILL BLI NOTIFIERAD>`",
+                        "",
+                        "SKOL-ID's :\n",
+                        "\n".join([f"{allSchools[x]['name']} : {allSchools[x]['id']}" for x in allSchools])
+                    )
+                )).send(message.channel)
+                
+
             idToCheck = GetIdFromUser()
             schoolToCheck = GetSchoolFromUser()
 
             if None in (idsToCheck, schoolToCheck):
+                await EmbedMessage(
+                    title=f"Fel användning av `{configfile['discordPrefix']} {userMessage[1].lower()}`\nSkriv `{configfile['discordPrefix']} {userMessage[1].lower()} help` för mer info."
+                ).send(message.channel)
                 await message.channel.send(f"> Fel användning av `{configfile['discordPrefix']} {userMessage[1].lower()}` (Inget ID)")
                 return
 
-            try:remindThisManyMinutes = int(userMessage[3])
+            try:remindThisManyMinutes = int(userMessage[4])
             except:remindThisManyMinutes = 5 # Default value is 5 minutes
             
             #Tries to fetch the ID to see if its valid
             try:
-                checkIDisValid = GetTime(_id=idToCheck,_school=schoolToCheck).getData(allowCache=False)
+                checkIDisValid = GetTime(_id=idToCheck,_school=schoolToCheck).getData()
             except MaxRetryError:
                 await message.channel.send(f"> Försök igen senare! (MaxRetryError)")
                 return
