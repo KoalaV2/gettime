@@ -58,7 +58,7 @@ def searchInDict(listInput, keyInput, valueInput):
         if y[keyInput] == valueInput:
             return x
     return None
-def getSchoolByID(schoolID) -> tuple[bool, dict]:
+def getSchoolByID(schoolID):
     """
         Returns `True, {school data}` if `schoolID` was an int\n
         Returns `False, {school data}` if `schoolID` was an string, and if it existed in the school list\n
