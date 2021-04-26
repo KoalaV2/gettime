@@ -1248,7 +1248,7 @@ if __name__ == "__main__":
         except:pass
         try:myRequest._day = request.args['day']
         except:pass
-        try:myRequest._school = getSchoolByID(request.args['school'])['name']
+        try:myRequest._school = getSchoolByID(request.args['school'])[1]['name']
         except:pass
         try:myRequest._resolution = request.args['res'].split(",")
         except:pass
@@ -1263,7 +1263,7 @@ if __name__ == "__main__":
         except:myRequest._week = currentTime['week2']
         try:myRequest._day = int(request.args['day'])
         except:myRequest._day = currentTime['weekday3']
-        try:myRequest._school = getSchoolByID(request.args['school'])['name']
+        try:myRequest._school = getSchoolByID(request.args['school'])[1]['name']
         except:pass
 
         try:
@@ -1307,7 +1307,7 @@ if __name__ == "__main__":
         except:myRequest._week = currentTime['week2']
         try:myRequest._day = int(request.args['day'])
         except:myRequest._day = currentTime['weekday3']
-        try:myRequest._school = getSchoolByID(request.args['school'])['name']
+        try:myRequest._school = getSchoolByID(request.args['school'])[1]['name']
         except:pass
 
         
