@@ -176,6 +176,9 @@ function updateTimetable(_callback){
 		$(".arrow-center-text").text(week);
 
 	}
+	else{
+		console.log("updateTimetable did not run (ID was less then 1 lenght)");
+	}
 
 	try{_callback();}catch{}
 };
