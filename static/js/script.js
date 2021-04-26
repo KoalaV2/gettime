@@ -5,61 +5,33 @@ var darkmode = initDarkMode;
 var hideNavbar = initHideNavbar;
 var oldURL = "";
 var school = initSchool;
-
-// Code from https://stackoverflow.com/a/1431113
-String.prototype.replaceAt = function(index, replacement) {
-	return this.substr(0, index) + replacement + this.substr(index + replacement.length);
-}
-
-// Code from https://web.archive.org/web/20070216153346/http://javascript.about.com/library/blweekyear.htm
-// Gets the current week
-Date.prototype.getWeek = function(){
-	var onejan = new Date(this.getFullYear(), 0, 1);
-	return Math.ceil((((this - onejan) / 86400000) + onejan.getDay() + 1) / 7);
-}
-
-// Code from https://stackoverflow.com/a/10050831
-function range(size, startAt = 0) {
-    return [...Array(size).keys()].map(i => i + startAt);
-}
-
-// Code from https://tinyurl.com/j7axshp7
-function sleep(milliseconds,_callback){
-	const date = Date.now();
-	let currentDate = null;
-	do{
-	  	currentDate = Date.now();
-	}while (currentDate - date < milliseconds);
-	try{_callback();}catch{}
-}
   
 // Idea from https://tinyurl.com/yhsukrs9
-var toggleDarkMode_on = '';
-var toggleDarkModeAll_on = '';
-var toggleDarkMode_off = 'off';
-if (ignorecssmin){
 
-	toggleDarkModeAll_on = '/static/css/darkmode-all.css';
-
-	if (mobileRequest){
-		toggleDarkMode_on = '/static/css/darkmode-mobile.css';}
-	else{
-		toggleDarkMode_on = '/static/css/darkmode-desktop.css';
-	}
-}
-else{
-
-	toggleDarkModeAll_on = '/static/css/min/darkmode-all.min.css';
-
-	if (mobileRequest){
-		toggleDarkMode_on = '/static/css/min/darkmode-mobile.min.css';
-	}
-	else{
-		toggleDarkMode_on = '/static/css/min/darkmode-desktop.min.css';
-	}	
-}
 function toggleDarkMode(disableAnimation=false,saveToCookie=true,updateTimeTableAfter=true){
-	
+	//This code is messy
+	let toggleDarkMode_on = '';
+	let toggleDarkModeAll_on = '';
+	if (ignorecssmin){
+		toggleDarkModeAll_on = '/static/css/darkmode-all.css';
+
+		if (mobileRequest){
+			toggleDarkMode_on = '/static/css/darkmode-mobile.css';}
+		else{
+			toggleDarkMode_on = '/static/css/darkmode-desktop.css';
+		}
+	}
+	else{
+		toggleDarkModeAll_on = '/static/css/min/darkmode-all.min.css';
+
+		if (mobileRequest){
+			toggleDarkMode_on = '/static/css/min/darkmode-mobile.min.css';
+		}
+		else{
+			toggleDarkMode_on = '/static/css/min/darkmode-desktop.min.css';
+		}	
+	}
+
 	//Set the dark mode switch first
 	darkmode = $('#input-darkmode').prop('checked')
 
@@ -72,13 +44,13 @@ function toggleDarkMode(disableAnimation=false,saveToCookie=true,updateTimeTable
 		var theme = document.getElementById('darkmode');
 		var theme2 = document.getElementById('darkmodeAll');
 
-		if (theme.getAttribute('href') == toggleDarkMode_off){
+		if (theme.getAttribute('href') == 'off'){
 			theme.setAttribute('href', toggleDarkMode_on);
 			theme2.setAttribute('href', toggleDarkModeAll_on);
 		}
 		else{
-			theme.setAttribute('href', toggleDarkMode_off);
-			theme2.setAttribute('href', toggleDarkMode_off);
+			theme.setAttribute('href', 'off');
+			theme2.setAttribute('href', 'off');
 		}
 	}
 	
@@ -221,8 +193,8 @@ function hideControls(){
 	    };
 	});
 };
-
 function showControls(){
+	updateMenuButtonsBasedOnSize();
 	$('.controls').slideToggle('fast', function(){
 		$('.controls-container').fadeIn(0);
 		if ($(this).is(':visible')){
@@ -246,22 +218,6 @@ function updateClipboard(newClip) {
 			console.log("NO");
 	});
 }
-
-function send_API_request(url){
-	var send_API_request_response = "";
-
-	function reqListener () {
-		send_API_request_response = JSON.parse(this.responseText);
-	}
-
-	let r = new XMLHttpRequest();
-	r.addEventListener("load", reqListener);
-	r.open("GET", url, false);
-	r.send();
-
-	return send_API_request_response;
-}
-
 
 //Gets the shareable link
 function getShareableURL(){
@@ -315,37 +271,6 @@ function f_hideNavbar(){
 	updateTimetable();
 }
 
-// function is_heightIsMoreThenWidth(){
-// 	return $(window).height() > $(window).width();
-// }
-// var heightIsMoreThenWidth = null;
-// function hasMobileBeenRotated(){
-// 	if (mobileRequest){
-// 		if (heightIsMoreThenWidth == null){
-// 			heightIsMoreThenWidth = is_heightIsMoreThenWidth();
-// 		}
-// 		else{
-// 			if (heightIsMoreThenWidth == is_heightIsMoreThenWidth()){
-// 				console.log("User did not rotate their screen yet");
-// 				return;
-// 			}
-// 			else{
-// 				heightIsMoreThenWidth = is_heightIsMoreThenWidth();
-// 			}
-// 		}
-// 		if (initHideNavbar != true){
-// 			hideNavbar = !heightIsMoreThenWidth;
-
-// 			if (hideNavbar){
-// 				f_hideNavbar();
-// 			}
-// 			else{
-// 				f_showNavbar();
-// 			}
-// 		}
-// 	}
-// }
-
 function schoolSelected(schoolName){
 	school = schoolName;
 
@@ -366,22 +291,6 @@ function schoolSelected(schoolName){
 
 //events on load & event triggers.
 $(window).on("load", function(){
-	// debounce
-	// Code from https://tinyurl.com/ttd83xe6
-	function debounce(func, wait, immediate) {
-		var timeout;
-		return function() {
-			var context = this, args = arguments;
-			var later = function() {
-				timeout = null;
-				if (!immediate) func.apply(context, args);
-			};
-			var callNow = immediate && !timeout;
-			clearTimeout(timeout);
-			timeout = setTimeout(later, wait);
-			if (callNow) func.apply(context, args);
-		};
-	};
 
 	// Code from https://stackoverflow.com/a/15032300
 	if (autoReloadSchedule){
@@ -401,11 +310,10 @@ $(window).on("load", function(){
 			darkmode = false;
 		}
 		else{
-			darkmode = readCookie('darkmode') == "1" ? true : false;
+			darkmode = (readCookie('darkmode') == "1" ? true : false);
 		}
 	}
-	//Dark mode is true by "default", so this will turn it off if dark mode SHOULD be off (confusing as hell but ok)
-	if (darkmode == false){
+	if (!darkmode){ //Dark mode is true by "default", so this will turn it off if dark mode SHOULD be off (confusing as hell but ok)
 		toggleDarkMode(disableAnimation=true,saveToCookie=false,updateTimeTableAfter=false);
 	}
 	$('#input-darkmode').prop('checked', darkmode);
@@ -453,12 +361,10 @@ $(window).on("load", function(){
 	$('#input-day').prop('checked', initDayMode);
 
 	//get idnumber from cookie or input data
-	if (initID == ""){
-		$("#id-input-box").val(readCookie("idnumber"));
-	}
-	else{
-		$("#id-input-box").val(initID);
-	}
+	$("#id-input-box").val(
+		(initID == "" ? readCookie("idnumber") : initID)
+	);
+	checkIfIDTextFits();
 
 	//get info closed cookie and hide or show info accordingly
 	if (!ignorecookiepolicy && readCookie("infoClosed") != "closed"){
@@ -471,214 +377,8 @@ $(window).on("load", function(){
 	$(".arrow-center-text").text(week);
 	$(".arrow-center").attr("title", ("Current week (" + week + ")"));
 
-	updateMenuButtonsBasedOnSize();
-	checkIfIDTextFits();
-
-	// TRIGGERS
-	//update timetable to fit new window size
-	var update_timetable_to_fit_new_window_size = debounce(function() {
-		// hasMobileBeenRotated();
-		console.log("update timetable to fit new window size");
-		$("#schedule").fadeOut(500);
-		updateMenuButtonsBasedOnSize();
-		updateTimetable();
-		checkIfIDTextFits();
-	}, 250);
-	window.addEventListener('resize', update_timetable_to_fit_new_window_size);
-
-	//blink arrow and go move week on timetable
-	$(".arrow-left").on("click", function(){
-		$('.arrow-left').addClass('arrow-loading');
-		$("#schedule").fadeOut(500, function(){
-			if ($("#input-day").is(':checked')){
-				day -= 1;
-				if (day < 1){
-					week -= 1;
-					day = 5;
-					//UpdateEntryInUrlArguments('week',week);
-				}
-				//UpdateEntryInUrlArguments('day',day);
-			}
-			else{
-				week -= 1;
-				//UpdateEntryInUrlArguments('week',week);
-			}
-			$(".input-week").val(week);
-			updateTimetable();
-		});
-	});
-
-	//blink arrow and go move week on timetable
-	$(".arrow-center").on("click", function(){
-		$('.arrow-center').addClass('arrow-loading');
-		$("#schedule").fadeOut(500, function(){
-			if ($("#input-day").is(':checked')){
-				$('#input-day').prop('checked', false);
-			}
-			week = initWeek;
-			$(".input-week").val(initWeek);
-			updateTimetable();
-		});
-	});
-
-	//blink arrow and go move week on timetable
-	$(".arrow-right").on("click", function(){
-		$('.arrow-right').addClass('arrow-loading');
-		$("#schedule").fadeOut(500, function(){
-			if ($("#input-day").is(':checked')){
-				day += 1;
-				if (day > 5){
-					week += 1;
-					day = 1;
-					//UpdateEntryInUrlArguments('week',week);
-				}
-				//UpdateEntryInUrlArguments('day',day);
-			}
-			else{
-				week += 1;
-				//UpdateEntryInUrlArguments('week',week);
-			}
-			$(".input-week").val(week);
-			updateTimetable();			
-		});
-	});
-
-	//update timetable on related input
-	var update_timetable_on_related_input = debounce(function() {
-		$("#schedule").fadeOut(500, function(){
-			console.log('update timetable on related input (AFTER DEBOUNCE)');
-			updateTimetable();
-		});
-	}, 450);
-	$('#id-input-box').on('input', update_timetable_on_related_input)
-
-	//If private ID, then this textbox shows up, so that the user can change the ID
-	var update_timetable_on_related_input = debounce(function() {
-		$("#schedule").fadeOut(500, function(){
-			$('#id-input-box').val($('#id-input-box2').val());
-
-			//Sets value back to the private ID if input is empty
-			if ($('#id-input-box').val() == ""){
-				if (initID == ""){
-					$("#id-input-box").val(readCookie("idnumber"));
-				}
-				else{
-					$("#id-input-box").val(initID);
-				}
-			}
-			updateTimetable();
-		});
-	}, 450);
-	$('#id-input-box2').on('input', update_timetable_on_related_input)
-
-	//unreliable fix, need more investigation on why input week arrows dont work.
-	$(".input-week-container").on("click", function(){
-		$(".input-week").focus();
-	});
-
-	//unreliable fix, need more investigation on why input week arrows dont work.
-	$(".input-week").on("click", function(){
-		$(".input-week").focus();
-	});
-
-	//update timetable on related input
-	$('.input-week').on('input', function() {
-		console.log('update timetable on related input 2');
-		updateTimetable();
-	});
-
-	//update timetable on related button click
-	$('#input-day').on('click', function() {
-		console.log('update timetable on related button click');
-		// if ($("#input-day").is(':checked')){
-		// 	day = initDay;
-		// 	week = initWeek;
-		// }
-		updateTimetable();
-	});
-
-	// //update timetable on related button click
-	// $('#roundedMode').on('click', function() {
-	// 	console.log('update timetable on related button click 2');
-	// 	updateTimetable();
-	// });
-
-	//handles menu button clicking
-	$('.menuButton').on('click', function(){
-		showControls();
-	});
-
-	// hide divs and remove focus from inputs when timetable is clicked
-	$('#schedule').on('click', function(){
-		hideControls();
-		$(".input-idnumber").blur();
-		$(".savedIDs").fadeOut("fast");
-		checkIfIDTextFits();
-	});
-
-	// remove focus from input when enter is clicked for cleaner ux
-	$('.input-idnumber').keypress(function(event){
-		var keycode = (event.keyCode ? event.keyCode : event.which);
-		if(keycode == '13'){
-			hideControls();
-			$(".input-idnumber").blur();
-		};
-	});
-
-	//hide controls if enter is clicked in week input
-	$('.input-week').keypress(function(event){
-		var keycode = (event.keyCode ? event.keyCode : event.which);
-		if(keycode == '13'){
-			hideControls();
-		};
-	});
-
-	// hide controls when save button is clicked
-	$('.savebutton').on("click", function(){
-		hideControls();
-	});
-
-	// close saveIDs if clicked outside of div
-	$(document).mouseup(function(e){
-	var container = $(".savedIDs");
-
-		// if the target of the click isn't the container nor a descendant of the container
-		if (!container.is(e.target) && container.has(e.target).length === 0) 
-		{
-		    container.fadeOut("fast");
-		}
-	});
-
-	// //Code from https://stackoverflow.com/a/1846733
-	// document.onkeypress = function(evt) {
-	// 	if (mobileRequest || document.activeElement == document.getElementById('id-input-box') || document.activeElement == document.getElementById('id-input-box2')){
-	// 		return;
-	// 	}
-	// 	else
-	// 	{
-	// 		evt = evt || window.event;
-	// 		var charCode = evt.keyCode || evt.which;
-	// 		var charStr = String.fromCharCode(charCode);
-	
-	// 		if (charStr.toLowerCase() == "f"){
-	// 			if (hideNavbar){
-	// 				f_showNavbar();
-	// 			}
-	// 			else{
-	// 				f_hideNavbar();
-	// 			}
-	// 		}
-	// 	}
-	// };
-  
-	// Moves the timetable down so it doesnt overlay the navbar
-	$(document).ready(function() {
-		$("#scheduleBox").css("top", $(".navbar").height());
-	});
-
 	if (showContactOnLoad){
 		textBoxOpen('#text_contact_info');
-		//contacttextBoxOpen('#text_cookies_info');
 	}
 
 	//load timetable after cookie info get
@@ -687,17 +387,55 @@ $(window).on("load", function(){
 		updateTimetable();	
 	}
 	
-	// hasMobileBeenRotated();
-
 	if (hideNavbar){
 		f_hideNavbar();
-	}
-	else{
-		//f_showNavbar();
 	}
 
 	// Page finished loading, slide up loader screen
 	$(".loader-main").slideToggle();
 
-	console.log("script.js is loaded");
+	console.log("script.js is done");
 });
+
+// Moves the timetable down so it doesnt overlay the navbar
+$(document).ready(function() {
+    $("#scheduleBox").css("top", $(".navbar").height());
+});
+
+// function is_heightIsMoreThenWidth(){
+// 	return $(window).height() > $(window).width();
+// }
+// var heightIsMoreThenWidth = null;
+// function hasMobileBeenRotated(){
+// 	if (mobileRequest){
+// 		if (heightIsMoreThenWidth == null){
+// 			heightIsMoreThenWidth = is_heightIsMoreThenWidth();
+// 		}
+// 		else{
+// 			if (heightIsMoreThenWidth == is_heightIsMoreThenWidth()){
+// 				console.log("User did not rotate their screen yet");
+// 				return;
+// 			}
+// 			else{
+// 				heightIsMoreThenWidth = is_heightIsMoreThenWidth();
+// 			}
+// 		}
+// 		if (initHideNavbar != true){
+// 			hideNavbar = !heightIsMoreThenWidth;
+
+// 			if (hideNavbar){
+// 				f_hideNavbar();
+// 			}
+// 			else{
+// 				f_showNavbar();
+// 			}
+// 		}
+// 	}
+// }
+
+// if (initID == ""){
+// 	$("#id-input-box").val(readCookie("idnumber"));
+// }
+// else{
+// 	$("#id-input-box").val(initID);
+// }
