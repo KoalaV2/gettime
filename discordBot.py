@@ -6,6 +6,12 @@ import logging
 import discord
 import traceback
 from discord.ext import tasks
+configfile = {}
+allSchoolsList = []
+allSchoolsNames = []
+import main
+configfile, allSchools, allSchoolsList, allSchoolsNames = main.init_Load()
+
 from main import GetTime # type: ignore
 from main import SetLogging # type: ignore
 from main import CurrentTime # type: ignore
@@ -16,10 +22,6 @@ from urllib3.exceptions import MaxRetryError
 
 #region INIT
 os.chdir(os.path.dirname(os.path.realpath(__file__))) # Set working dir to path of main.py
-
-with open("settings.json") as f:
-    try:configfile = json.load(f)
-    except:configfile = {}
 
 logFileName = "discord_logfile.log"
 logFileLocation = configfile['logFileLocation']
@@ -68,10 +70,21 @@ async def on_message(message):
         userMessage = message.content.split(' ')
         
         def GetIdFromUser(messageIndex=2):
-            try:return userMessage[messageIndex]
+            try:
+                return userMessage[messageIndex]
             except:
-                if str(message.author.id) in idsToCheck:return idsToCheck[str(message.author.id)]['id']
-                else:return None
+                if str(message.author.id) in idsToCheck:
+                    return idsToCheck[str(message.author.id)]['id']
+                else:
+                    return None
+        def GetSchoolFromUser(messageIndex=3):
+            try:
+                return int(userMessage[messageIndex])
+            except:
+                if str(message.author.id) in idsToCheck:
+                    return int(idsToCheck[str(message.author.id)]['school'])
+                else:
+                    return None
 
         # if userMessage[1].lower() in ('help','?'):
         #     c = (
@@ -107,7 +120,9 @@ async def on_message(message):
 
         if userMessage[1].lower() in ('reg','notify'):
             idToCheck = GetIdFromUser()
-            if idsToCheck == None:
+            schoolToCheck = GetSchoolFromUser()
+
+            if None in (idsToCheck, schoolToCheck):
                 await message.channel.send(f"> Fel användning av `{configfile['discordPrefix']} {userMessage[1].lower()}` (Inget ID)")
                 return
 
@@ -116,7 +131,7 @@ async def on_message(message):
             
             #Tries to fetch the ID to see if its valid
             try:
-                checkIDisValid = GetTime(_id=idToCheck).getData(allowCache=False)
+                checkIDisValid = GetTime(_id=idToCheck,_school=schoolToCheck).getData(allowCache=False)
             except MaxRetryError:
                 await message.channel.send(f"> Försök igen senare! (MaxRetryError)")
                 return
@@ -130,13 +145,20 @@ async def on_message(message):
                 if str(message.author.id) in idsToCheck:
                     idsToCheck[str(message.author.id)] = {
                         'id':idToCheck,
+                        'school':schoolToCheck,
                         'discordID':message.author.id,
                         'minutes':remindThisManyMinutes
                     }
                     updateUserFile()
                     await EmbedMessage(title="Dina nya inställningar är sparade!").send(message.channel)
                 else:
-                    idsToCheck[str(message.author.id)] = {"id":idToCheck,"discordID":message.author.id,"minutes":remindThisManyMinutes}
+                    idsToCheck[str(message.author.id)] = {
+                        "id":idToCheck,
+                        'school':schoolToCheck,
+                        "discordID":message.author.id,
+                        "minutes":remindThisManyMinutes
+                    }
+
                     updateUserFile()
                     await message.channel.send(f"> Du kommer nu bli notifierad {remindThisManyMinutes} {'minut' if remindThisManyMinutes == 1 else 'minuter'} innan varje lektion!")
         if userMessage[1].lower() in ('unreg','unnotify'):
@@ -165,8 +187,7 @@ async def on_message(message):
                     myRequest.GenerateTextSummary(mode="discord") + f"\n{urlEmbed('Öppna schemat online',getTimeURL)}"
                 ).send(message.channel)
             except MaxRetryError:
-                await message.channel.send(f"> Försök igen senare! (MaxRetryError)")
-                return
+                return await message.channel.send(f"> Försök igen senare! (MaxRetryError)")
         if userMessage[1].lower() in ('next'):
             idToCheck = GetIdFromUser()
             if idsToCheck == None:
@@ -179,8 +200,7 @@ async def on_message(message):
                         _day=currentTimeTemp['weekday']
                     ).fetch(allowCache=False)
                 except MaxRetryError:
-                    await message.channel.send(f"> Försök igen senare! (MaxRetryError)")
-                    return
+                    return await message.channel.send(f"> Försök igen senare! (MaxRetryError)")
 
                 timeScore = (currentTimeTemp['hour'] * 60) + currentTimeTemp['minute']
                 for x in a:
@@ -253,11 +273,14 @@ async def lessonStart():
                             _day=currentTimeTemp['weekday'],
                             _week=currentTimeTemp['week']
                         ).fetch()
+                        if 'status' in a and a['status'] < 0:
+                            userDM = await client.fetch_user(user_id=int(currentID['discordID']))
+                            return await userDM.send(f"⚠️ OKÄNT FEL : {str(a)}")
+ 
                         cachedResponses[str(currentID['discordID'])] = {'data':a,'age':time.time()}
                     except MaxRetryError:
                         userDM = await client.fetch_user(user_id=int(currentID['discordID']))
-                        await userDM.send(f"> Försök igen senare! (MaxRetryError)")
-                        return
+                        return await userDM.send(f"> Försök igen senare! (MaxRetryError)")
 
                 # if 'status' in a and a['status'] < 0:
                 #     if str(currentID['discordID']) in cachedResponses:

@@ -1,3 +1,30 @@
+function updateScheduleHTML(newHTML, errorMessage=false){
+	let tdElement = document.getElementById('schedule');
+	let trElement = tdElement.parentNode;
+	trElement.removeChild(tdElement);
+	
+	if (errorMessage){
+		trElement.innerHTML = '<p id="schedule" class="errorMessage">' + newHTML + "</p>" + trElement.innerHTML;
+		$("#scheduleBox").addClass('errorBox');
+	}
+	else{
+		trElement.innerHTML = newHTML + trElement.innerHTML;
+		$("#scheduleBox").removeClass('errorBox');
+	}
+	//Hides the schedule at first, and then fades it in.
+	$('#schedule').fadeOut(0);
+	$('#schedule').fadeIn(500);
+
+	//Does some shit
+	$("#schedule").css({"transform": "none", "opacity": 1});
+
+	//Stops loading animation
+	$("#background-roller").fadeOut("fast");
+
+	// Stops arrows from blinking
+	$('.arrow').removeClass('arrow-loading');
+};
+
 function updateTimetable(_callback){
 	console.log("updateTimetable was excecuted.");
 
@@ -34,10 +61,7 @@ function updateTimetable(_callback){
 
 	width = $(window).width() + 6;
 	height = window.innerHeight + 2; // Sets height of schedule to the full screen size...
-
 	height -= $(".navbar").height(); //...minus the navigation bar at the top
-
-	dayOnly = $("#input-day").is(':checked');
 
 	if (idnumber.length > 0){
 		$("#background-roller").fadeIn("fast");
@@ -56,22 +80,11 @@ function updateTimetable(_callback){
 		$(".savedIDs").css("transform", "none");
 	}
 
-	let dayTEMP;
-    if(dayOnly){
-    	$("#input-day-label").text("Show week");
-		dayTEMP = day;
-	}
-	else{
-    	$("#input-day-label").text("Show day");
-	    dayTEMP = 0;
-	}
-
 	if (idnumber.toLowerCase() == "its dangerous to go alone"){
 		textBoxOpen('#text_tricks');
+		return;
 	}
-
-	let SUSSY = idnumber.toLowerCase() == "sus" || idnumber.toLowerCase() == "ඞ";
-	if (SUSSY){
+	if (idnumber.toLowerCase() == "sus" || idnumber.toLowerCase() == "ඞ"){
 		window.location.href = requestURL + "ඞ";
 		return;
 	}
@@ -81,7 +94,7 @@ function updateTimetable(_callback){
 		let url = [
 			requestURL + 
 			'API/GENERATE_HTML?id=' + encodeURI(idnumber) + 
-			"&day=" + dayTEMP + 
+			"&day=" + ($("#input-day").is(':checked') ? day : 0) + 
 			"&week=" + week + 
 			"&width=" + width + 
 			"&height=" + height + 
@@ -103,80 +116,39 @@ function updateTimetable(_callback){
 			oldURL = url;
 		}
 
-		if (privateURL){
-			console.log("Requesting schedule with private ID...")
-		}
-		else{
-			console.log("Requesting schedule with this url : " + url)
-		}
+		console.log("Requesting schedule with " + ( privateURL ? "private ID..." : "this url : " + url ))
+		let data = send_API_request(url); /* This code asks the server to generate a new schedule for you */
 
-		/* This code asks the server to generate a new schedule for you */
-		$.getJSON(url, function(data) {
-
-			// Replaces the SVG with the new SVG data
-			let tdElement = document.getElementById('schedule');
-			let trElement = tdElement.parentNode;
-			trElement.removeChild(tdElement);
-
-			if (data['result']['html'] == undefined || data['result']['html'].startsWith("<!-- ERROR -->")){
-				if (data['result']['html'] == undefined ){
-					var errorMessage = "No response from sever (GetTime eller Skola24 ligger nere)";
-				}
-				else{
-					var errorMessage = data['result']['data']['message'];
-					console.log("<!-- ERROR --> Found in response!");
-				}
-				
-				console.log(errorMessage);
-
-				//Stop the loading icon
-				$("#background-roller").fadeOut("fast");
-				
-            	trElement.innerHTML = '<p id="schedule" class="errorMessage">' + errorMessage + "</p>" + trElement.innerHTML;
-				$("#scheduleBox").addClass('errorBox');
-				$('#schedule').fadeOut(0);
-				$('#schedule').fadeIn(500);
+		if (data['result']['html'] == undefined || data['result']['html'].startsWith("<!-- ERROR -->")){
+			if (data['result']['html'] == undefined){
+				var errorMessage = "No response from sever (GetTime eller Skola24 ligger nere)";
 			}
 			else{
-				if (saveIdToCookie){
-					//If we got here, that means that the schedule have loaded successfully, and we want to save the ID in the cookie
-					createCookie("idnumber", idnumber, 360);
-					console.log("Saved ID to cookie");
-				}
-				else{
-					console.log("Did not save ID to cookie, because saveIdToCookie is false")
-				}
-
-				trElement.innerHTML = data['result']['html'] + trElement.innerHTML;
-				$("#scheduleBox").removeClass('errorBox');
-
-				// Makes sure the schedule is faded out before it fades in (Otherwise it blinks before it fades in)
-				$('#schedule').fadeOut(0);
-				
-				// Fade in the Schedule
-				$('#schedule').fadeIn(500);
-				$("#schedule").css({"transform": "none", "opacity": 1});
+				var errorMessage = data['result']['data']['message'];
+				console.log("<!-- ERROR --> Found in response!");
 			}
-			
-			
-			
-			// toUrl['id'] = idnumber;
-			// toUrl['week'] = week;
-			// toUrl['day'] = dayTEMP;
-			// if (!privateURL){
-			// 	UpdateEntryInUrlArguments('id',idnumber);
-			// }
-			// window.history.pushState("", "", $.param(toUrl));
 
-		})
-		// Stops arrows from blinking
-		$('.arrow').removeClass('arrow-loading');
+			console.log(errorMessage);
+			updateScheduleHTML(errorMessage, errorMessage=true);
+		}
+		else{
+			if (saveIdToCookie){
+				//If we got here, that means that the schedule should have loaded successfully, and we want to save the ID in the cookie
+				createCookie("idnumber", idnumber, 360);
+				console.log("Saved ID to cookie");
+			}
+			else{
+				console.log("Did not save ID to cookie, because saveIdToCookie is false")
+			}
+
+			updateScheduleHTML(data['result']['html']);
+		}
 
 		// Updates the button with the right week number
 		$(".arrow-center-text").text(week);
-
 	}
 	else{
+		updateScheduleHTML("Inget ID skrivit", errorMessage=true);
 		console.log("updateTimetable did not run (ID was less then 1 lenght)");
 	}
 

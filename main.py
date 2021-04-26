@@ -58,7 +58,7 @@ def searchInDict(listInput, keyInput, valueInput):
         if y[keyInput] == valueInput:
             return x
     return None
-def getSchoolByID(schoolID):
+def getSchoolByID(schoolID) -> tuple[bool, dict]:
     """
         Returns `True, {school data}` if `schoolID` was an int\n
         Returns `False, {school data}` if `schoolID` was an string, and if it existed in the school list\n
@@ -68,13 +68,14 @@ def getSchoolByID(schoolID):
         b = searchInDict(allSchoolsList,'id',int(schoolID))
         try:
             return True, allSchools[allSchoolsList[b]['name']]
-        except:
-            return None,None
-    except:
+        except Exception as e:
+            return None,None,-1,str(e)
+    except Exception as e:
         try:
+            # Tests if schoolID was just the school name
             return False, allSchools[schoolID]
         except:
-            return None,None
+            return None,None,-2,str(e)
 def SetLogging(path="", filename="log.log", format='%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s'):
     """
         Changes logging settings.
@@ -286,7 +287,12 @@ class GetTime:
         self._day = _day
         self._year = _year
         self._resolution = _resolution
-        self._school = _school
+        if type(_school) == int:
+            # If user has entered the school ID instead, then this converts it back to the name
+            # (SHOULD BE THE OTHER WAY AROUND BUT THAT WILL TAKE SOME MORE TIME TO FIX)
+            self._school = getSchoolByID(_school)[1]['name']
+        else:
+            self._school = _school
     def getHash(self) -> str:
         """
             Generates a sha256 hash of all the settings of this object.
@@ -309,8 +315,13 @@ class GetTime:
 
         if self._id == None:
             logger.info("Returning None because _id was None")
-            return {"status":-7,"message":"_id was None (No ID specified)","data":None} #If ID is not set then it returns None by default
+            return {"status":-7,"message":"_id was None (No ID specified)","data":None} # If ID is not set then it returns None by default
         
+        # Default values
+        response1 = ""
+        response2 = ""
+        response3 = ""
+
         myHash = self.getHash()
         if allowCache and myHash in dataCache and time.time() - dataCache[myHash]['age'] < dataCache[myHash]['maxage']:
             logger.info("Using cache!")
@@ -408,17 +419,24 @@ class GetTime:
                 #endregion
                 toReturn = {"status":0,"message":"OK","data":response3}
             except Exception as e:
-                toReturn = {"status":-99,"message":"GENERAL ERROR","data":traceback.format_exc}
+                toReturn = {"status":-99,"message":"GENERAL ERROR","data":traceback.format_exc()}
                 logger.info(str(toReturn))
+                return toReturn
             logger.info("Request 3 is finished. Will now check for errors")
             #Error Checking
+            if response1 == "":
+                return {"status":-30.1,"message":"response1 was empty","data":None}
+            if response2 == "":
+                return {"status":-30.2,"message":"response2 was empty","data":None}
+            if response3 == "":
+                return {"status":-30.3,"message":"response3 was empty","data":None}
             try:
                 if response3['error'] != None:
-                    toReturn = {'status':-5,'message':"error was not None","data":response3}
+                    return {'status':-5,'message':"error was not None","data":response3}
                 if len(response3['validation']) > 0:
-                    toReturn = {'status':-6,'message':','.join([x['message'] for x in response3['validation']]),"data":response3,"validation":response3['validation']}
+                    return {'status':-6,'message':','.join([x['message'] for x in response3['validation']]),"data":response3,"validation":response3['validation']}
             except:
-                toReturn = {'status':-8,'message':f"An error occured when trying to check for other errors! Here is the traceback : {traceback.format_exc()}","data":response3}
+                return {'status':-8,'message':f"An error occured when trying to check for other errors! (Yes, really.) Here is the traceback : {traceback.format_exc()}","data":response3}
             
             if allowCache:
                 dataCache[myHash] = {'maxage':getDataMaxAge,'age':time.time(),'data':toReturn}
@@ -679,11 +697,8 @@ class GetTime:
         """
         return getFood(allowCache=allowCache,week=self._week)
 #endregion
-if __name__ == "__main__":
-    #region INIT
-    # Sets default logging settings (before cfg file has been loaded in)
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s") 
-
+#region Load data
+def init_Load():
     # Set working dir to path of main.py
     os.chdir(os.path.dirname(os.path.realpath(__file__))) 
 
@@ -699,6 +714,14 @@ if __name__ == "__main__":
     allSchoolsList = [allSchools[x] for x in allSchools]
     allSchoolsNames=[x for x in allSchools]
     allSchoolsNames.sort()
+
+    return configfile, allSchools, allSchoolsList, allSchoolsNames
+configfile, allSchools, allSchoolsList, allSchoolsNames = init_Load()
+#endregion
+if __name__ == "__main__":
+    #region INIT
+    # Sets default logging settings (before cfg file has been loaded in)
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s") 
 
     # Change logging to go to file
     if configfile['logToFile']:
@@ -721,7 +744,9 @@ if __name__ == "__main__":
     #region Flask Routes
     [app.url_map.add(x) for x in (
         #INDEX
-        Rule('/', endpoint='index'),
+        Rule('/', endpoint='INDEX'),
+        Rule('/contact', endpoint='INDEX_CONTACT'),
+        Rule('/about', endpoint='INDEX_CONTACT'),
 
         #API
         Rule('/API/QR_CODE', endpoint='API_QR_CODE'),
@@ -974,8 +999,8 @@ if __name__ == "__main__":
             ]
         }
     ]
-    @app.endpoint('index')
-    def index(alternativeArgs=None):
+    @app.endpoint('INDEX')
+    def INDEX(alternativeArgs=None):
         logger = FunctionLogger(functionName='index')
 
         # alternativeArgs can be used to pass in URL arguments.
@@ -1112,13 +1137,13 @@ if __name__ == "__main__":
             }
         for x in cssToInclude]
         cssToInclude = [Markup(f"""<link {x['id']} rel="stylesheet" type="text/css" href="/static/css/{x['name']}">""") for x in cssToInclude]
-        #endregion
-
+        
         if configfile['DEBUGMODE']:
             ignorejsmin = True
             ignorecssmin = True
             ignorehtmlmin = True
-        
+        #endregion
+
         return render_template(
             template_name_or_list="sodschema.html" if ignorehtmlmin else "min/sodschema.min.html",
             contacts=contacts,
@@ -1147,6 +1172,11 @@ if __name__ == "__main__":
             oldPrivateUrl=oldPrivateUrl,
             allSchoolsNames=allSchoolsNames
         )
+    @app.endpoint('INDEX_CONTACT')
+    def INDEX_CONTACT():
+        a = dict(request.args)
+        a['contact'] = "1"
+        return INDEX(alternativeArgs=a)
     #endregion
     #region API
     @app.endpoint('API_QR_CODE')
