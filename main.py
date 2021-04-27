@@ -330,6 +330,7 @@ class GetTime:
             toReturn = dataCache[myHash]['data']
         else:
             try:
+                logger.info(self._school)
                 #region Request 1
                 logger.info("Request 1")
                 headers1 = {
