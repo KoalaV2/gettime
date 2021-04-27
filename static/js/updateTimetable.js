@@ -33,16 +33,19 @@ function updateTimetable(_callback, ignoreSameURL=false){
 
 	//If cookie information hasnt been closed then ignore this request.
 	if (readCookie("infoClosed") != "closed") {
-		console.log("infoClosed was not closed yet! (Cookies not accepted)")
-		return;
+		if (ignorecookiepolicy){
+			console.log("infoClosed was not closed yet, but ignorecookiepolicy was true.");
+		}
+		else{
+			console.log("infoClosed was not closed yet! (Cookies not accepted)");
+			return;
+		}
 	}
 
 	//If school is not set, and no school was specified, then bring up the school selector.
 	if (isNaN(school) || school == null || school == "" || school == "null"){
 		console.log("School not set!")
-		// if (mobileRequest){
 		textBoxOpen('#text_school_selector');
-		// }
 		return;
 	}
 
