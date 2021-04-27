@@ -4,7 +4,8 @@
 		<!-- GetTime -->
 		<script>
 			/* This is where some constants and settings are stored */
-			const requestURL = "{{requestURL}}",
+			const version = "{{version}}",
+				requestURL = "{{requestURL}}",
 				privateURL = {{"true" if privateURL else "false"}},
 				saveIdToCookie = {{"true" if saveIdToCookie else "false"}},
 				mobileRequest = {{"true" if mobileRequest else "false"}},
@@ -242,7 +243,11 @@
 
 			<!-- Contact information -->
 			<div id="text_contact_info" class="text_box contact_info">
+
+				<h1>GetTime (v.{{version}})</h1>
 				
+				<br>
+
 				<h1>Kontaktinformation</h1>
 
 				<h2>Hittat en bug?</h2>
