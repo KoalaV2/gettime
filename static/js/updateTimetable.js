@@ -117,7 +117,7 @@ function updateTimetable(_callback, ignoreSameURL=false){
 		if (!ignoreSameURL){
 			if (url == oldURL){
 				console.log("URL and oldURL matched. Canceling...");
-				updateScheduleHTML("",justTheEnd=true);
+				updateScheduleHTML("",errorMessage=false,justTheEnd=true);
 				return;
 			}
 			else{

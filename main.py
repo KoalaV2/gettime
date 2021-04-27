@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-version = "1.0.0 BETA"
+version = "1.2.2.1 BETA"
 #region ASCII ART
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #               _   _   _                    __            _          _                             #
@@ -66,6 +66,7 @@ def getSchoolByID(schoolID):
         Returns `False, {school data}` if `schoolID` was an string, and if it existed in the school list\n
         Returns `None, None` if `schoolID` was not in the school list at all.
     """
+    global allSchools, allSchoolsList
     try:
         b = searchInDict(allSchoolsList,'id',int(schoolID))
         try:
@@ -78,7 +79,7 @@ def getSchoolByID(schoolID):
             return False, allSchools[schoolID]
         except:
             return None,None,-2,str(e)
-def SetLogging(path="", filename="log.log", format='%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s'):
+def SetLogging(path="", filename="log.log", format="%(asctime)s %(levelname)10s %(funcName)15s() : %(message)s"): # '%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s'
     """
         Changes logging settings.
     """
@@ -100,7 +101,6 @@ def CurrentTime():
             'weekday2' returns 1-5, but 0 if its Saturday or Sunday.\n
             'week2' returns the current week, but if its Saturday or Sunday, it returns the next week.\n
     """
-    #logger = FunctionLogger(functionName='CurrentTime')
     now = datetime.datetime.now()
     a = {
         'secound':now.second,
@@ -230,22 +230,6 @@ def invertColor(color):
     return color_convert((color,typeToReturn),reverse=True)
 #endregion
 #region CLASSES
-class FunctionLogger:
-    """
-        Object that helps make logfiles slightly easier to read\n
-        In the beginning of a function you create a FunctionLogger object\n
-        with "functionName" set to whatever name the function is.\n
-        Then you log like normal, but instead of using logging.info(), you use FunctionLogger.info()
-    """
-    def __init__(self, functionName):
-        self.functionName = functionName
-        logging.info(f"{self.functionName} : FunctionLogger Object created.")
-    def info(self, *message):
-        message = [str(x) for x in message]
-        logging.info(f"{self.functionName}() : {str(' '.join(message))}")
-    def exception(self, *message):
-        message = [str(x) for x in message]
-        logging.exception(f"{self.functionName}() : {str(' '.join(message))}")
 class HTMLObject:
     def __init__(self, tag, arguments):
         self.tag = tag
@@ -289,12 +273,14 @@ class GetTime:
         self._day = _day
         self._year = _year
         self._resolution = _resolution
-        if type(_school) == int:
+        try:
             # If user has entered the school ID instead, then this converts it back to the name
             # (SHOULD BE THE OTHER WAY AROUND BUT THAT WILL TAKE SOME MORE TIME TO FIX)
+            int(_school)
             self._school = getSchoolByID(_school)[1]['name']
-        else:
-            self._school = _school
+        except:
+            self._school = _school  
+                
     def getHash(self) -> str:
         """
             Generates a sha256 hash of all the settings of this object.
@@ -313,10 +299,9 @@ class GetTime:
             Returns:
                 <JSON> object with the data inside
         """
-        logger = FunctionLogger(functionName='GetTime.getData')
 
         if self._id == None:
-            logger.info("Returning None because _id was None")
+            logging.info("Returning None because _id was None")
             return {"status":-7,"message":"_id was None (No ID specified)","data":None} # If ID is not set then it returns None by default
         
         # Default values
@@ -326,12 +311,13 @@ class GetTime:
 
         myHash = self.getHash()
         if allowCache and myHash in dataCache and time.time() - dataCache[myHash]['age'] < dataCache[myHash]['maxage']:
-            logger.info("Using cache!")
+            logging.info("Using cache!")
             toReturn = dataCache[myHash]['data']
         else:
             try:
+                logging.info(self._school)
                 #region Request 1
-                logger.info("Request 1")
+                logging.info("Request 1")
                 headers1 = {
                     "Connection": "keep-alive",
                     "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:85.0) Gecko/20100101 Firefox/85.0",
@@ -355,11 +341,11 @@ class GetTime:
                     
                 try:response1 = json.loads(response1.text)['data']['signature']
                 except Exception as e:
-                    logger.info(f"Response 1 Error : {str(e)}")
+                    logging.info(f"Response 1 Error : {str(e)}")
                     return {"status":-2,"message":f"Response 1 Error : {str(e)}","data":str(response1)}
                 #endregion
                 #region Request 2
-                logger.info("Request 2")
+                logging.info("Request 2")
                 headers2 = {
                     "Host": "web.skola24.se",
                     "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:85.0) Gecko/20100101 Firefox/85.0",
@@ -384,11 +370,11 @@ class GetTime:
                 except TimeoutError:
                     return {"status":-11,"message":"Response 2 Error (TimeoutError)","data":""}
                 except Exception as e:
-                    logger.info(f"Response 2 Error : {str(e)}")
+                    logging.info(f"Response 2 Error : {str(e)}")
                     return {"status":-3,"message":f"Response 2 Error : {str(e)}","data":str(response2)}
                 #endregion
                 #region Request 3
-                logger.info("Request 3")
+                logging.info("Request 3")
                 headers3 = headers2
                 url3 = 'https://web.skola24.se/api/render/timetable'
                 payload3 = {
@@ -416,15 +402,15 @@ class GetTime:
                 except TimeoutError:
                     return {"status":-12,"message":"Response 3 Error (TimeoutError)","data":""}
                 except Exception as e:
-                    logger.info(f"Response 3 Error : {str(e)}")
+                    logging.info(f"Response 3 Error : {str(e)}")
                     return {"status":-4,"message":f"Response 3 Error : {str(e)}","data":str(response3)}
                 #endregion
                 toReturn = {"status":0,"message":"OK","data":response3}
             except Exception as e:
                 toReturn = {"status":-99,"message":"GENERAL ERROR","data":traceback.format_exc()}
-                logger.info(str(toReturn))
+                logging.info(str(toReturn))
                 return toReturn
-            logger.info("Request 3 is finished. Will now check for errors")
+            logging.info("Request 3 is finished. Will now check for errors")
             #Error Checking
             if response1 == "":
                 return {"status":-30.1,"message":"response1 was empty","data":None}
@@ -452,18 +438,17 @@ class GetTime:
             Returns:
                 List with <lesson> objects
         """
-        logger = FunctionLogger(functionName='GetTime.fetch')
         toReturn = []
         response = self.getData(allowCache=allowCache)
         if response['status'] < 0:
-            logger.info('ERROR!',response)
+            logging.info('ERROR!',response)
             return response
 
         try:
             if response['data']['data']['lessonInfo'] == None:
                 return [] # No lessions this day
         except Exception as e:
-            logger.info(f"Before i die! : {str(response)}")
+            logging.info(f"Before i die! : {str(response)}")
             raise e
 
         for x in response['data']['data']['lessonInfo']:
@@ -489,8 +474,6 @@ class GetTime:
                 {'html':(SVG HTML CODE),'timestamp':timeStamp}
         """
         #region init
-        logger = FunctionLogger(functionName='GetTime.handleHTML')
-
         toReturn = []
         timeTakenToFetchData = time.time()
         j = self.getData(allowCache=allowCache)
@@ -507,7 +490,7 @@ class GetTime:
         #region Start of the SVG 
         toReturn.append(f"""<svg id="schedule" class="{classes}" style="width:{self._resolution[0]}; height:{self._resolution[1]};" viewBox="0 0 {self._resolution[0]} {self._resolution[1]}" shape-rendering="crispEdges">""")
         #region boxList
-        logger.info("Looping through boxList...")
+        logging.info("Looping through boxList...")
         toReturn_boxList = []
         for current in j['data']['data']['boxList']:
             # Saves the color in a seperate variable so that we can modify it
@@ -544,7 +527,7 @@ class GetTime:
         #endregion
         #region textList
         scriptBuilder = {}
-        logger.info("Looping through textList...")
+        logging.info("Looping through textList...")
         toReturn_textList = []
         for current in j['data']['data']['textList']:
             # Saves the color in a seperate variable so that we can modify it
@@ -602,7 +585,7 @@ class GetTime:
                 )
         #endregion
         #region lineList
-        logger.info("Looping through lineList...")
+        logging.info("Looping through lineList...")
         toReturn_lineList = []
         for current in j['data']['data']['lineList']:
             color = current['color']
@@ -713,8 +696,8 @@ def init_Load():
     with open("schools.json", encoding="utf-8") as f:
         try:allSchools = json.load(f)
         except:allSchools = {}
-    allSchoolsList = [allSchools[x] for x in allSchools]
-    allSchoolsNames = [x for x in allSchools]
+    allSchoolsList = [allSchools[x] for x in allSchools] # Contains all the school objects, but in a list
+    allSchoolsNames = [x for x in allSchools] # Contains all the names, sorted by alphabetical order
     allSchoolsNames.sort()
 
     return configfile, allSchools, allSchoolsList, allSchoolsNames
@@ -723,7 +706,7 @@ configfile, allSchools, allSchoolsList, allSchoolsNames = init_Load()
 if __name__ == "__main__":
     #region INIT
     # Sets default logging settings (before cfg file has been loaded in)
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s") 
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)10s %(funcName)15s() : %(message)s") #%(levelname)s %(name)s
 
     # Change logging to go to file
     if configfile['logToFile']:
@@ -747,8 +730,6 @@ if __name__ == "__main__":
     [app.url_map.add(x) for x in (
         #INDEX
         Rule('/', endpoint='INDEX'),
-        Rule('/contact', endpoint='INDEX_CONTACT'),
-        Rule('/about', endpoint='INDEX_CONTACT'),
 
         #API
         Rule('/API/QR_CODE', endpoint='API_QR_CODE'),
@@ -768,6 +749,9 @@ if __name__ == "__main__":
         Rule('/theo', endpoint='TheoCredit'),
         Rule('/pierre', endpoint='PierreCredit'),
         Rule('/ඞ', endpoint='ඞ'),
+        Rule('/contact', endpoint='CONTACT'),
+        Rule('/about', endpoint='CONTACT'),
+        Rule('/form', endpoint='FORM'),
 
         # Obsolete/Old formats
         Rule('/terminal/schedule', endpoint='API_TERMINAL_SCHEDULE'),
@@ -1003,8 +987,6 @@ if __name__ == "__main__":
     ]
     @app.endpoint('INDEX')
     def INDEX(alternativeArgs=None):
-        logger = FunctionLogger(functionName='index')
-
         # alternativeArgs can be used to pass in URL arguments.
         if alternativeArgs != None:
             request.args = alternativeArgs
@@ -1065,7 +1047,7 @@ if __name__ == "__main__":
         if 'id' in request.args:
             initID = request.args['id']
             saveIdToCookie = False
-            logger.info(f"Custom ID argument found ({initID})")
+            logging.info(f"Custom ID argument found ({initID})")
         if 'a' in request.args:
             temp = DecodeString(configfile['key'],request.args['a'])
             if "½" in temp:
@@ -1078,7 +1060,7 @@ if __name__ == "__main__":
             
             privateURL = True
             saveIdToCookie = False
-            logger.info(f"Custom Encoded ID argument found ({initID})")
+            logging.info(f"Custom Encoded ID argument found ({initID})")
         
         if 'school' in request.args:
             initSchool = request.args['school']
@@ -1175,11 +1157,6 @@ if __name__ == "__main__":
             oldPrivateUrl=oldPrivateUrl,
             allSchoolsNames=allSchoolsNames
         )
-    @app.endpoint('INDEX_CONTACT')
-    def INDEX_CONTACT():
-        a = dict(request.args)
-        a['contact'] = "1"
-        return INDEX(alternativeArgs=a)
     #endregion
     #region API
     @app.endpoint('API_QR_CODE')
@@ -1200,21 +1177,15 @@ if __name__ == "__main__":
         """
             This function generates the finished HTML code for the schedule (Used by the website to generate the image you see)
         """
-        #logger = FunctionLogger(functionName='API_GENERATE_HTML')
         
         #Checks if school was the school ID, and if so, grabs the name
-        try:
-            b = searchInDict(allSchoolsList,'id',int(request.args['school']))
-            initSchool = allSchoolsList[b]['name']
-        except:
-            initSchool = request.args['school']
 
         myRequest = GetTime(
             _id = request.args['id'],
             _week = int(request.args['week']),
             _day = int(request.args['day']),
             _resolution = (int(request.args['width']),int(request.args['height'])),
-            _school=initSchool
+            _school=getSchoolByID(str(request.args['school']))[1]['name']
         )
         if 'classes' in request.args: 
             classes = request.args['classes']
@@ -1238,7 +1209,6 @@ if __name__ == "__main__":
                 return result
     @app.endpoint('API_JSON')
     def API_JSON():
-        #logger = FunctionLogger(functionName='API_JSON')
 
         # Custom API (gets the whole JSON file for the user to mess with)
         # This is what the Skola24 website seems to get.
@@ -1327,7 +1297,6 @@ if __name__ == "__main__":
         return getFood(week=week)
     @app.endpoint('FOOD_REDIRECT')
     def FOOD_REDIRECT():
-        logger = FunctionLogger(functionName='FOOD_REDIRECT')
         request.args["school"]
         try:
             b = searchInDict(allSchoolsList,'id',int(request.args["school"]))
@@ -1335,20 +1304,18 @@ if __name__ == "__main__":
         except:
             flink = allSchools[request.args["school"]]
         if "lunchLink" in flink:
-            logger.info(flink)
+            logging.info(flink)
             return redirect(flink["lunchLink"])
         return("Finns ingen matlänk för din skola, om detta är fel kontakta gärna oss på https://gettime.ga/?contact=1")
     #endregion
     #region Logs
     @app.endpoint('logfile')
     def logfile():
-        #logger = FunctionLogger(functionName='logfile')
         if request.args['key'] == configfile['key']:
             with open(logFileLocation+logFileName,"r") as f:
                 return f"<pre>{logFileLocation+logFileName}</pre><pre>{''.join(f.readlines())}</pre>"
     @app.endpoint('discord_logfile')
     def discord_logfile():
-        #logger = FunctionLogger(functionName='discord_logfile')
         if request.args['key'] == configfile['key']:
             with open(logFileLocation+'discord_logfile.log',"r") as f:
                 return f"<pre>{logFileLocation+logFileName}</pre><pre>{''.join(f.readlines())}</pre>"
@@ -1363,14 +1330,21 @@ if __name__ == "__main__":
     @app.endpoint('ඞ')
     def ඞ():
         return render_template('AmongUs.html')
+    @app.endpoint('CONTACT')
+    def CONTACT():
+        a = dict(request.args)
+        a['contact'] = "1"
+        return INDEX(alternativeArgs=a)
+    @app.endpoint('FORM')
+    def FORM():
+        return redirect(configfile['formLink'])
     #endregion
     #region Redirects (For dead links)
     @app.route("/schema/<a>")
     @app.route("/schema/")
     @app.route("/schema")
     def routeToIndex(**a):
-        logger = FunctionLogger(functionName='routeToIndex')
-        logger.info(f"routeToIndex : Request landed in the redirects, sending to mainLink ({configfile['mainLink']})")
+        logging.info(f"routeToIndex : Request landed in the redirects, sending to mainLink ({configfile['mainLink']})")
         return redirect(configfile['mainLink'])
     #endregion   
     #endregion
@@ -1380,7 +1354,6 @@ if __name__ == "__main__":
         """
             Checks for outdated cached data and deletes it to save on memory.
         """
-        logger = FunctionLogger('cacheClearer')
         while 1:
             try:
                 toDelete = []
@@ -1388,13 +1361,13 @@ if __name__ == "__main__":
                     if time.time() - dataCache[x]['age'] > dataCache[x]['maxage']:
                         toDelete.append(x)
                 for x in toDelete:
-                    logger.info(f"Deleting {x} from cache")
+                    logging.info(f"Deleting {x} from cache")
                     del dataCache[x]
             except RuntimeError as e:
-                logger.info(e)
+                logging.info(e)
                 pass
             except:
-                logger.exception(traceback.format_exc())
+                logging.exception(traceback.format_exc())
                 pass
             time.sleep(1)
 
