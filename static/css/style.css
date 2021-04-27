@@ -438,6 +438,7 @@ a:hover{
 }
 
 #scheduleBox{
+	transition: all .15s ease-in-out;
 	position: fixed;
 	text-shadow: none;
 }

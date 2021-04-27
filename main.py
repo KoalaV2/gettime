@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-version = "1.2.2.1 BETA"
+version = "1.2.2.2 BETA"
 #region ASCII ART
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #               _   _   _                    __            _          _                             #
@@ -279,8 +279,7 @@ class GetTime:
             int(_school)
             self._school = getSchoolByID(_school)[1]['name']
         except:
-            self._school = _school  
-                
+            self._school = _school              
     def getHash(self) -> str:
         """
             Generates a sha256 hash of all the settings of this object.
