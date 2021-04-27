@@ -33,12 +33,12 @@ def minimize_this(path, fileType):
         Returns the path to the new, minimized file.
     """
     # Fixes the path so that it works
-    path = path.replace("/","\\")
+    path = path.replace("\\","/")
     if not path.startswith(original_directory):
-        if path.startswith("\\"):
+        if path.startswith("/"):
             path = original_directory + path
         else:
-            path = original_directory + "\\" + path
+            path = original_directory + "/" + path
     
     # Changes the working dir to the path with the un-minified files
     os.chdir(path)
@@ -46,15 +46,15 @@ def minimize_this(path, fileType):
     try:os.mkdir("min") # Tries to make a folder, nothing happens if it allready exists
     except:pass
 
-    print(f"\n-- Starting new path:{path}, fileType:{fileType}")
+    print(f"\n-- Starting new path: {path}, fileType: {fileType}")
     
     for filename in os.listdir(path):
         if filename.endswith(fileType) and not filename.endswith(f'.min{fileType}'):
             print("- Minifying",filename)
             
             try:
-                oldFileName = f"{path}\\{filename}"
-                newFileName = f'{path}\\min\\{filename[:-len(fileType)]}.min{fileType}'
+                oldFileName = f"{path}/{filename}"
+                newFileName = f'{path}/min/{filename[:-len(fileType)]}.min{fileType}'
 
                 with open(oldFileName, "r", encoding="utf8") as f:
                     file_data = f.read()
@@ -81,7 +81,7 @@ def minimize_this(path, fileType):
                 print(e + ", skipping...")
                 continue
 
-    print(f"-- Finished path:{path}, fileType:{fileType}")
+    print(f"-- Finished path: {path}, fileType: {fileType}")
     return newFileName
 
 if __name__ == "__main__":
