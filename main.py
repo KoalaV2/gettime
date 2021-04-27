@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-version = "1.2.1 BETA"
+version = "1.2.2 BETA"
 #region ASCII ART
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #               _   _   _                    __            _          _                             #
@@ -66,6 +66,7 @@ def getSchoolByID(schoolID):
         Returns `False, {school data}` if `schoolID` was an string, and if it existed in the school list\n
         Returns `None, None` if `schoolID` was not in the school list at all.
     """
+    global allSchools, allSchoolsList
     try:
         b = searchInDict(allSchoolsList,'id',int(schoolID))
         try:
@@ -272,12 +273,14 @@ class GetTime:
         self._day = _day
         self._year = _year
         self._resolution = _resolution
-        if type(_school) == int:
+        try:
             # If user has entered the school ID instead, then this converts it back to the name
             # (SHOULD BE THE OTHER WAY AROUND BUT THAT WILL TAKE SOME MORE TIME TO FIX)
+            int(_school)
             self._school = getSchoolByID(_school)[1]['name']
-        else:
-            self._school = _school
+        except:
+            self._school = _school  
+                
     def getHash(self) -> str:
         """
             Generates a sha256 hash of all the settings of this object.
@@ -693,8 +696,8 @@ def init_Load():
     with open("schools.json", encoding="utf-8") as f:
         try:allSchools = json.load(f)
         except:allSchools = {}
-    allSchoolsList = [allSchools[x] for x in allSchools]
-    allSchoolsNames = [x for x in allSchools]
+    allSchoolsList = [allSchools[x] for x in allSchools] # Contains all the school objects, but in a list
+    allSchoolsNames = [x for x in allSchools] # Contains all the names, sorted by alphabetical order
     allSchoolsNames.sort()
 
     return configfile, allSchools, allSchoolsList, allSchoolsNames
@@ -1176,18 +1179,13 @@ if __name__ == "__main__":
         """
         
         #Checks if school was the school ID, and if so, grabs the name
-        try:
-            b = searchInDict(allSchoolsList,'id',int(request.args['school']))
-            initSchool = allSchoolsList[b]['name']
-        except:
-            initSchool = request.args['school']
 
         myRequest = GetTime(
             _id = request.args['id'],
             _week = int(request.args['week']),
             _day = int(request.args['day']),
             _resolution = (int(request.args['width']),int(request.args['height'])),
-            _school=initSchool
+            _school=getSchoolByID(str(request.args['school']))[1]['name']
         )
         if 'classes' in request.args: 
             classes = request.args['classes']

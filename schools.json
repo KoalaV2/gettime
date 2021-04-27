@@ -42,6 +42,12 @@
         "Referer": "https://web.skola24.se/timetable/timetable-viewer/huddinge.skola24.se/Widerstr%C3%B6mska%20gymnasiet/",
         "host": "huddinge.skola24.se",
         "unitGuid": "Zjc2MGRhNmQtZWMwNS1mNjk5LWE4ODYtODY5ODUwOTY0ZGYy"
+    },
+    "Tullinge gymnasium": {
+        "id": 6,
+        "name": "Tullinge gymnasium",
+        "Referer": "https://web.skola24.se/timetable/timetable-viewer/botkyrka.skola24.se/Tullinge%20gymnasium/",
+        "host": "botkyrka.skola24.se",
+        "unitGuid": "Y2ViMjQ5MDYtMzg5MC1mOWNmLTllMjgtNDk4Zjg5NzUwOGJi"
     }
-
 }
