@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+version = "1.0.0 BETA"
 #region IMPORT
 import os
 import time
@@ -85,6 +87,11 @@ async def on_message(message):
                 else:
                     return None
 
+        if userMessage[1].lower() in ('v', 'version'):
+            return await EmbedMessage(
+                title=f"GetTimeBot (v.{version})",
+                description='*"Whats wrong with it this time"* / Tay'
+            ).send(message.channel)
         if userMessage[1].lower() in ('reg','notify'):
             
             if userMessage[2] == "help":

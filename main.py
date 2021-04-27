@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+version = "1.0.0 BETA"
 #region ASCII ART
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #               _   _   _                    __            _          _                             #
@@ -1146,6 +1148,7 @@ if __name__ == "__main__":
 
         return render_template(
             template_name_or_list="sodschema.html" if ignorehtmlmin else "min/sodschema.min.html",
+            version=version,
             contacts=contacts,
             parseCode=parseCode,
             requestURL=requestURL,
