@@ -119,6 +119,7 @@ a:hover{
 	right: 180px;
 	height: 40px;
 	border-radius: 2rem;
+	padding-left: 10px;
 
 	font-family: "Rubik", sans-serif;
 	color: rgba(67,67,178,1);
