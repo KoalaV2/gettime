@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-version = "1.0.0 BETA"
+version = "1.1.0 BETA"
 #region IMPORT
 import os
 import time
@@ -101,7 +101,7 @@ async def on_message(message):
                         f"Användning :\n{configfile['discordPrefix']} {userMessage[1].lower()} `<DITT ID HÄR>` `<DIN SKOL-ID HÄR>` `<HUR MÅNGA MINUTER I FÖRVÄG DU VILL BLI NOTIFIERAD>`",
                         "",
                         "SKOL-ID's :\n",
-                        "\n".join([f"{allSchools[x]['name']} : {allSchools[x]['id']}" for x in allSchools])
+                        "\n".join([f"{allSchools[x]['name']} : `{allSchools[x]['id']}`" for x in allSchoolsNames])
                     )
                 )).send(message.channel)
                 

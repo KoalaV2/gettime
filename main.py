@@ -714,7 +714,7 @@ def init_Load():
         try:allSchools = json.load(f)
         except:allSchools = {}
     allSchoolsList = [allSchools[x] for x in allSchools]
-    allSchoolsNames=[x for x in allSchools]
+    allSchoolsNames = [x for x in allSchools]
     allSchoolsNames.sort()
 
     return configfile, allSchools, allSchoolsList, allSchoolsNames
