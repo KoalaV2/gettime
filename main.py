@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-version = "1.1.0 BETA"
+version = "1.2.0 BETA"
 #region ASCII ART
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #               _   _   _                    __            _          _                             #
@@ -747,8 +747,6 @@ if __name__ == "__main__":
     [app.url_map.add(x) for x in (
         #INDEX
         Rule('/', endpoint='INDEX'),
-        Rule('/contact', endpoint='INDEX_CONTACT'),
-        Rule('/about', endpoint='INDEX_CONTACT'),
 
         #API
         Rule('/API/QR_CODE', endpoint='API_QR_CODE'),
@@ -768,6 +766,9 @@ if __name__ == "__main__":
         Rule('/theo', endpoint='TheoCredit'),
         Rule('/pierre', endpoint='PierreCredit'),
         Rule('/ඞ', endpoint='ඞ'),
+        Rule('/contact', endpoint='CONTACT'),
+        Rule('/about', endpoint='CONTACT'),
+        Rule('/form', endpoint='FORM'),
 
         # Obsolete/Old formats
         Rule('/terminal/schedule', endpoint='API_TERMINAL_SCHEDULE'),
@@ -1175,11 +1176,6 @@ if __name__ == "__main__":
             oldPrivateUrl=oldPrivateUrl,
             allSchoolsNames=allSchoolsNames
         )
-    @app.endpoint('INDEX_CONTACT')
-    def INDEX_CONTACT():
-        a = dict(request.args)
-        a['contact'] = "1"
-        return INDEX(alternativeArgs=a)
     #endregion
     #region API
     @app.endpoint('API_QR_CODE')
@@ -1363,6 +1359,14 @@ if __name__ == "__main__":
     @app.endpoint('ඞ')
     def ඞ():
         return render_template('AmongUs.html')
+    @app.endpoint('CONTACT')
+    def CONTACT():
+        a = dict(request.args)
+        a['contact'] = "1"
+        return INDEX(alternativeArgs=a)
+    @app.endpoint('FORM')
+    def FORM():
+        return redirect(configfile['formLink'])
     #endregion
     #region Redirects (For dead links)
     @app.route("/schema/<a>")
