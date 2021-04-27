@@ -1,20 +1,23 @@
-function updateScheduleHTML(newHTML, errorMessage=false){
-	let tdElement = document.getElementById('schedule');
-	let trElement = tdElement.parentNode;
-	trElement.removeChild(tdElement);
-	
-	if (errorMessage){
-		trElement.innerHTML = '<p id="schedule" class="errorMessage">' + newHTML + "</p>" + trElement.innerHTML;
-		$("#scheduleBox").addClass('errorBox');
+function updateScheduleHTML(newHTML, errorMessage=false, justTheEnd=false){
+	if (!justTheEnd){
+		let tdElement = document.getElementById('schedule');
+		let trElement = tdElement.parentNode;
+		trElement.removeChild(tdElement);
+		
+		if (errorMessage){
+			trElement.innerHTML = '<p id="schedule" class="errorMessage">' + newHTML + "</p>" + trElement.innerHTML;
+			$("#scheduleBox").addClass('errorBox');
+		}
+		else{
+			trElement.innerHTML = newHTML + trElement.innerHTML;
+			$("#scheduleBox").removeClass('errorBox');
+		}
 	}
-	else{
-		trElement.innerHTML = newHTML + trElement.innerHTML;
-		$("#scheduleBox").removeClass('errorBox');
-	}
+
 	//Hides the schedule at first, and then fades it in.
 	$('#schedule').fadeOut(0);
 	$('#schedule').fadeIn(500);
-
+	
 	//Does some shit
 	$("#schedule").css({"transform": "none", "opacity": 1});
 
@@ -25,8 +28,8 @@ function updateScheduleHTML(newHTML, errorMessage=false){
 	$('.arrow').removeClass('arrow-loading');
 };
 
-function updateTimetable(_callback){
-	console.log("updateTimetable was excecuted.");
+function updateTimetable(_callback, ignoreSameURL=false){
+	console.log("updateTimetable was excecuted. " + ignoreSameURL);
 
 	//If cookie information hasnt been closed then ignore this request.
 	if (readCookie("infoClosed") != "closed") {
@@ -108,14 +111,15 @@ function updateTimetable(_callback){
 		][0];
 
 		//Checks if URL has changed
-		if (url == oldURL){
-			console.log("URL and oldURL matched. Canceling...");
-			$('#schedule').fadeIn(500);
-			$("#schedule").css({"transform": "none", "opacity": 1});
-			return;
-		}
-		else{
-			oldURL = url;
+		if (!ignoreSameURL){
+			if (url == oldURL){
+				console.log("URL and oldURL matched. Canceling...");
+				updateScheduleHTML("",justTheEnd=true);
+				return;
+			}
+			else{
+				oldURL = url;
+			}
 		}
 
 		console.log("Requesting schedule with " + ( privateURL ? "private ID..." : "this url : " + url ))
