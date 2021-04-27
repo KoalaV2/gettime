@@ -135,3 +135,7 @@ settings.json
 *.lnk
 Minimize All.bat
 min all.bat
+
+static/js/min/
+static/css/min/
+templates/min/

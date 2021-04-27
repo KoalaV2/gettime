@@ -1,1 +1,0 @@
-python ../min.py ".html"
