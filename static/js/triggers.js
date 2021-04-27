@@ -134,7 +134,7 @@ $(window).on("load", function(){
     });
 
     // hide divs and remove focus from inputs when timetable is clicked
-    $('#schedule').on('click', function(){
+    $('#scheduleBox').on('click', function(){
         hideControls();
         $(".input-idnumber").blur();
         $(".savedIDs").fadeOut("fast");
