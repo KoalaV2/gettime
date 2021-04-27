@@ -73,9 +73,10 @@ $(window).on("load", function(){
             if ($("#input-day").is(':checked')){
                 $('#input-day').prop('checked', false);
             }
-            week = initWeek;
+            week = new Date().getWeek() - 1;
             $(".input-week").val(initWeek);
-            updateTimetable();
+            console.log("blink arrow and go move week on timetable");
+            updateTimetable(null,true);
         });
     });
 
