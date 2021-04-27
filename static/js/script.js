@@ -273,20 +273,13 @@ function f_hideNavbar(){
 
 function schoolSelected(schoolName){
 	school = schoolName;
-
-	// let tdElement = document.getElementById('schedule');
-	// let trElement = tdElement.parentNode;
-	// trElement.removeChild(tdElement);
-	// trElement.innerHTML = '<svg id="schedule"></svg>' + trElement.innerHTML;
-
-	// $("#id-input-box").val("");
-	// $("#id-input-box2").val("");
-
 	createCookie('school',schoolName,365);
 	textBoxClose('#text_school_selector');
+	$('#school-select-box').val(school);
+	
 	updateTimetable();
 
-	$("#background-roller").fadeOut("fast");
+	// $("#background-roller").fadeOut("fast");
 }
 
 //events on load & event triggers.
@@ -324,30 +317,25 @@ $(window).on("load", function(){
 	}
 	
 	//set school
-	if (initSchool == "null"){
-		if (!(!ignorecookiepolicy && readCookie("infoClosed") != "closed")){
-			textBoxOpen('#text_school_selector');
-		}
+	
+	if (initSchool != ""){ //If school was specified in the URL:
+		school = initSchool;
+		$('#school-select-box').val(school);
 	}
 	else{
-		//If school was specified in the URL
-		if (initSchool != ""){
-			school = initSchool;
+		let schoolNow = readCookie("school");
+
+		if (isNaN(schoolNow) || schoolNow == null){ //if cookie did not contain a number, or nothing at all:
+			if (!(!ignorecookiepolicy && readCookie("infoClosed") != "closed")){
+				textBoxOpen('#text_school_selector');
+			}
 		}
 		else{
-			let schoolNow = readCookie("school");
-
-			if (isNaN(schoolNow) || schoolNow == null){
-				if (!(!ignorecookiepolicy && readCookie("infoClosed") != "closed")){
-					textBoxOpen('#text_school_selector');
-				}
-			}
-			else{
-				school = schoolNow;
-			}
+			school = schoolNow;
+			$('#school-select-box').val(school);
 		}
 	}
-
+	
 	//hide all textboxes
 	$('.text_box').hide();
 
@@ -397,9 +385,14 @@ $(window).on("load", function(){
 	console.log("script.js is done");
 });
 
-// Moves the timetable down so it doesnt overlay the navbar
 $(document).ready(function() {
-    $("#scheduleBox").css("top", $(".navbar").height());
+	//Updates the width of the input box so that it will fit with the school select box.
+	if (!mobileRequest){
+		$('.input-idnumber').width(`calc(calc(100vw - 215px) - ${$('#school-select-box').width()}px)`);
+	}
+
+	// Moves the timetable down so it doesnt overlay the navbar
+    $("#scheduleBox").css("top", "50px");
 });
 
 // function is_heightIsMoreThenWidth(){

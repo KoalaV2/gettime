@@ -37,7 +37,9 @@ function updateTimetable(_callback){
 	//If school is not set, and no school was specified, then bring up the school selector.
 	if (isNaN(school) || school == null || school == "" || school == "null"){
 		console.log("School not set!")
+		// if (mobileRequest){
 		textBoxOpen('#text_school_selector');
+		// }
 		return;
 	}
 

@@ -127,8 +127,17 @@
 		height: 83vh;
 	}
 
+	#text_school_selector{
+		height: 95vh !important;
+	}
+
 	.text_box_close{
 		bottom: 5vh;
 		font-size: 1rem;
+	}
+
+	#school-select-box{
+		width: 0px !important;
+		display: none !important;
 	}
 }
