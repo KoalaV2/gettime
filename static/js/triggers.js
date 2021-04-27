@@ -8,7 +8,6 @@ $(window).on("load", function(){
 
     //update timetable to fit new window size
     var update_timetable_to_fit_new_window_size = debounce(function() {
-        // hasMobileBeenRotated();
         console.log("update timetable to fit new window size");
         $("#schedule").fadeOut(500);
         updateMenuButtonsBasedOnSize();
@@ -161,6 +160,10 @@ $(window).on("load", function(){
     // hide controls when save button is clicked
     $('.savebutton').on("click", function(){
         hideControls();
+    });
+
+    $("#school-select-box").change(function(){
+        schoolSelected(document.getElementById("school-select-box").value);
     });
 
     // close saveIDs if clicked outside of div

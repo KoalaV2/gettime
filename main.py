@@ -1115,7 +1115,7 @@ if __name__ == "__main__":
                 darkModeSetting = 4
         hideNavbar = 'fullscreen' in request.args
 
-        dropDownButtons = [buttons[x].render() for x in (menus['private'] if privateURL else menus['normal'])]
+        dropDownButtons = [buttons[x].render() for x in (menus['private' if privateURL else 'normal'])]
 
         #CSS
         cssToInclude.append({'name':"style.css",'id':''})

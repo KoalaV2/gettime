@@ -6,20 +6,16 @@ import logging
 import discord
 import traceback
 from discord.ext import tasks
-configfile = {}
-allSchoolsList = []
-allSchoolsNames = []
-import main
-configfile, allSchools, allSchoolsList, allSchoolsNames = main.init_Load()
-
 from main import GetTime # type: ignore
 from main import SetLogging # type: ignore
 from main import CurrentTime # type: ignore
 from main import GenerateHiddenURL # type: ignore
 from main import TinyUrlShortener # type: ignore
 from urllib3.exceptions import MaxRetryError
-#endregion
 
+from main import init_Load
+configfile, allSchools, allSchoolsList, allSchoolsNames = init_Load()
+#endregion
 #region INIT
 os.chdir(os.path.dirname(os.path.realpath(__file__))) # Set working dir to path of main.py
 
@@ -43,9 +39,15 @@ client = discord.Client()
 
 discordColor = discord.Colour.from_rgb(configfile['discordRGB'][0],configfile['discordRGB'][1],configfile['discordRGB'][2])
 #endregion
-
+#region FUNCTIONS
 def urlEmbed(text,url) -> str: 
     return f"[{text}]({url})"
+def updateUserFile():
+    global idsToCheck
+    with open("users.json", "w") as outfile: 
+        json.dump(idsToCheck, outfile) 
+#endregion
+#region CLASSES
 class EmbedMessage:
     def __init__(self,title="",description=""):
         self.title = title
@@ -58,13 +60,10 @@ class EmbedMessage:
                 description=self.description
             )
         )
-def updateUserFile():
-    global idsToCheck
-    with open("users.json", "w") as outfile: 
-        json.dump(idsToCheck, outfile) 
+#endregion
 
 @client.event
-async def on_message(message):   
+async def on_message(message):
     if message.author==client.user:return # Keeps bot from responding to itself
     if message.content.lower().startswith(configfile['discordPrefix']):
         userMessage = message.content.split(' ')
@@ -85,38 +84,6 @@ async def on_message(message):
                     return int(idsToCheck[str(message.author.id)]['school'])
                 else:
                     return None
-
-        # if userMessage[1].lower() in ('help','?'):
-        #     c = (
-
-        #     )
-
-
-        #     commandsList = (
-        #         {
-        #             "commandName":"help",
-        #             "commandBrief":"Visar detta hjälpmeddelande.",
-        #             "commandExample":None
-        #         },
-        #         {
-        #             "commandName":"schema/today/me",
-        #             "commandBrief":"Visar ditt schema.",
-        #             "commandExample":"19_tek_a"
-        #         }
-        #     )
-
-        #     a = ""
-        #     for x in commandsList:
-        #         a += f"`{configfile['discordPrefix']} {x['commandName']}`\n{x['commandBrief']}\n\n"
-        #         if x['commandExample'] != None:
-        #             a += f"Exempel: `{configfile['discordPrefix']} {x['commandName']} {x['commandExample']}`\n"
-                
-
-        #     embed = discord.Embed(
-        #         color=messageColor,
-        #         title="GetTime Hjälp",
-        #         description=a
-        #     );await message.channel.send(embed=embed)
 
         if userMessage[1].lower() in ('reg','notify'):
             
@@ -238,7 +205,7 @@ async def on_ready():
     logging.error("Tasks started")
 
 # Still needs alot of optimazation!
-cacheAgeMax = 5*60 #Secounds
+cacheAgeMax = 5*60 # Secounds
 cachedResponses = {}
 backup_cachedResponses = {}
 @tasks.loop(seconds=6)
@@ -289,6 +256,7 @@ async def lessonStart():
                             _day=currentTimeTemp['weekday'],
                             _week=currentTimeTemp['week']
                         ).fetch()
+
                         if 'status' in a and a['status'] < 0:
                             userDM = await client.fetch_user(user_id=int(currentID['discordID']))
                             return await userDM.send(f"⚠️ OKÄNT FEL : {str(a)}")
@@ -331,3 +299,35 @@ async def lessonStart():
 if __name__ == "__main__":
     logging.error("Starting Discord Bot...")
     client.run(configfile['discordKey'])
+    
+# if userMessage[1].lower() in ('help','?'):
+#     c = (
+
+#     )
+
+
+#     commandsList = (
+#         {
+#             "commandName":"help",
+#             "commandBrief":"Visar detta hjälpmeddelande.",
+#             "commandExample":None
+#         },
+#         {
+#             "commandName":"schema/today/me",
+#             "commandBrief":"Visar ditt schema.",
+#             "commandExample":"19_tek_a"
+#         }
+#     )
+
+#     a = ""
+#     for x in commandsList:
+#         a += f"`{configfile['discordPrefix']} {x['commandName']}`\n{x['commandBrief']}\n\n"
+#         if x['commandExample'] != None:
+#             a += f"Exempel: `{configfile['discordPrefix']} {x['commandName']} {x['commandExample']}`\n"
+        
+
+#     embed = discord.Embed(
+#         color=messageColor,
+#         title="GetTime Hjälp",
+#         description=a
+#     );await message.channel.send(embed=embed)

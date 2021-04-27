@@ -113,6 +113,20 @@ a:hover{
 	box-shadow: 2px 2px 1px rgba(0,0,0,0.25);
 }
 
+#school-select-box{
+	position: absolute;
+	top: 5px;
+	right: 180px;
+	height: 40px;
+	border-radius: 2rem;
+
+	font-family: "Rubik", sans-serif;
+	color: rgba(67,67,178,1);
+	box-shadow: 2px 2px 1px rgb(0 0 0 / 25%);
+	outline: 0;
+	border: 0;
+}
+
 /* Uncomment this to get back the white fade out thingy */
 /* .input-idnumber:focus, .input-idnumber:hover{
 	background: white;

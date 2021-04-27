@@ -116,9 +116,16 @@
 					-->
 					<input id="id-input-box2" onclick="void(0)" class="input-idnumber control" type="text" placeholder="Privat ID"/>
 				{% endif %}
-				
+
 				<!-- Main input, personal id, class etc -->
 				<input id="id-input-box" onclick="void(0)" class="input-idnumber control" type="text" name="idnumber" placeholder="PERSONNR/KLASS"/>
+				
+				<select id="school-select-box">
+					<option value="" selected disabled hidden>Byt skola</option>
+					{% for x in allSchoolsNames %}
+						<option value="{{allSchools[x]['id']}}">{{x}}</option>
+					{% endfor %}
+				</select>
 
 				<!-- Arrows for fast date navigation -->
 				<i class="fas arrow arrow-left fa-angle-left" title="Last week"></i>
