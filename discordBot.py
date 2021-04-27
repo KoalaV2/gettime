@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-version = "1.0.0 BETA"
+version = "1.1.0 BETA"
 #region IMPORT
 import os
 import time
