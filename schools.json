@@ -1,6 +1,6 @@
 {
     "NTI Södertörn": {
-        "id": 0, 
+        "id": 0,
         "name": "NTI Södertörn",
         "Referer": "https://web.skola24.se/timetable/timetable-viewer/it-gymnasiet.skola24.se/IT-Gymnasiet%20S%C3%B6dert%C3%B6rn/",
         "host": "it-gymnasiet.skola24.se",
@@ -49,5 +49,12 @@
         "Referer": "https://web.skola24.se/timetable/timetable-viewer/botkyrka.skola24.se/Tullinge%20gymnasium/",
         "host": "botkyrka.skola24.se",
         "unitGuid": "Y2ViMjQ5MDYtMzg5MC1mOWNmLTllMjgtNDk4Zjg5NzUwOGJi"
+    },
+    "Sjödalsgymnasiet": {
+        "id": 7,
+        "name": "Sjödalsgymnasiet",
+        "Referer": "https://web.skola24.se/timetable/timetable-viewer/huddinge.skola24.se/Sj%C3%B6dalsgymnasiet/",
+        "host": "huddinge.skola24.se",
+        "unitGuid": "MDExNTZjOTItY2E5Yy1mMjVkLTljOTktZjMwMmJlMDM4Nzll"
     }
 }
