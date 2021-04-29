@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-version = "1.3.0 BETA"
+version = "1.3.1 BETA"
 #region ASCII ART
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #               _   _   _                    __            _          _                             #
@@ -679,6 +679,40 @@ class GetTime:
                 dict: dictionary with all the food information. 
         """
         return getFood(allowCache=allowCache,week=self._week)
+class DropDown_Button:
+    def __init__(self, button_text={'short':'','long':''}, button_icon="", button_type="link", button_arguments={}, button_id="") -> None:
+        self.button_text = button_text #Max : 17 characters long
+        self.button_icon = button_icon
+        self.button_type = button_type
+        self.button_arguments = button_arguments
+        self.button_id = button_id
+    def checkVariables(self):
+        if type(self.button_text) == str:
+            self.button_text = {'short':self.button_text,'long':self.button_text}
+    def render(self):
+        self.checkVariables()
+
+        arguments = " ".join([f'{key}="{self.button_arguments[key]}"' for key in self.button_arguments])
+
+        types = {
+            'link':f"""
+            <a {arguments} class="control control-container">
+                <span id="{self.button_id}" class="menu-option-text" shortText="{self.button_text['short']}&nbsp;&nbsp;" longText="{self.button_text['long']}&nbsp;&nbsp;">{self.button_text['long']}&nbsp;&nbsp;</span>
+                <i class="{self.button_icon} control-right"></i>
+            </a>
+            """,
+            
+            'switch':f"""
+                <label class="toggleBox control-container" for="{self.button_id}">
+                    <span id="{self.button_id}-text" class="menu-option-text" shortText="{self.button_text['short']}&nbsp;&nbsp;" longText="{self.button_text['long']}&nbsp;&nbsp;">{self.button_text['long']}&nbsp;&nbsp;</span>
+                    <label class="switch">
+                        <input type="checkbox" {arguments} class="input-switch" name="{self.button_id}" id="{self.button_id}"/>
+                        <span class="slider round control control-right"></span>
+                    </label>
+                </label>
+            """
+        }
+        return Markup(types[self.button_type])
 #endregion
 #region Load data
 def init_Load():
@@ -690,6 +724,11 @@ def init_Load():
         try:configfile = json.load(f)
         except:configfile = {}
 
+    # Load contacts
+    with open("contacts.json") as f:
+        try:contacts = json.load(f)
+        except:contacts = {}
+
     # Load schools file
     with open("schools.json", encoding="utf-8") as f:
         try:allSchools = json.load(f)
@@ -698,8 +737,8 @@ def init_Load():
     allSchoolsNames = [x for x in allSchools] # Contains all the names, sorted by alphabetical order
     allSchoolsNames.sort()
 
-    return configfile, allSchools, allSchoolsList, allSchoolsNames
-configfile, allSchools, allSchoolsList, allSchoolsNames = init_Load()
+    return configfile, allSchools, allSchoolsList, allSchoolsNames, contacts
+configfile, allSchools, allSchoolsList, allSchoolsNames, contacts = init_Load()
 #endregion
 if __name__ == "__main__":
     #region INIT
@@ -799,41 +838,6 @@ if __name__ == "__main__":
             raise e
     #endregion
     #region INDEX
-    class DropDown_Button:
-        def __init__(self, button_text={'short':'','long':''}, button_icon="", button_type="link", button_arguments={}, button_id="") -> None:
-            self.button_text = button_text #Max : 17 characters long
-            self.button_icon = button_icon
-            self.button_type = button_type
-            self.button_arguments = button_arguments
-            self.button_id = button_id
-        def checkVariables(self):
-            if type(self.button_text) == str:
-                self.button_text = {'short':self.button_text,'long':self.button_text}
-        def render(self):
-            self.checkVariables()
-
-            arguments = " ".join([f'{key}="{self.button_arguments[key]}"' for key in self.button_arguments])
-
-            types = {
-                'link':f"""
-                <a {arguments} class="control control-container">
-                    <span id="{self.button_id}" class="menu-option-text" shortText="{self.button_text['short']}&nbsp;&nbsp;" longText="{self.button_text['long']}&nbsp;&nbsp;">{self.button_text['long']}&nbsp;&nbsp;</span>
-                    <i class="{self.button_icon} control-right"></i>
-                </a>
-                """,
-                
-                'switch':f"""
-                    <label class="toggleBox control-container" for="{self.button_id}">
-                        <span id="{self.button_id}-text" class="menu-option-text" shortText="{self.button_text['short']}&nbsp;&nbsp;" longText="{self.button_text['long']}&nbsp;&nbsp;">{self.button_text['long']}&nbsp;&nbsp;</span>
-                        <label class="switch">
-                            <input type="checkbox" {arguments} class="input-switch" name="{self.button_id}" id="{self.button_id}"/>
-                            <span class="slider round control control-right"></span>
-                        </label>
-                    </label>
-                """
-            }
-            return Markup(types[self.button_type])
-
     buttons = {
         # Redirect to school lunch link
         'food':DropDown_Button(
@@ -1010,33 +1014,6 @@ if __name__ == "__main__":
             ]
         }
     }
-    contacts = [
-        {
-            'name':'Isak Karlsen (19_tek_a)',
-            'info':'GetTime\'s huvudprogrammerare. Konverterade den gamla sodschema koden till en Flask backend.',
-            'email':'isak@gettime.ga',
-            'links':[
-                ('GitHub','https://github.com/TayIsAsleep') #You can add multiple arrays here with 2 strings, first string is the text you see, and secound string is the URL it should lead too
-            ]
-        },
-        {
-            'name':'Theodor Johanson (20_el_a)',
-            'info':'Hostar gettime.ga och skapade den nya fetch koden som gör sidan snabbare än någonsin.',
-            'email':'theo@gettime.ga',
-            'links':[
-                ('GitHub','https://github.com/KoalaV2'),
-                ('Hemsida','https://koalathe.dev/')
-            ]
-        },
-        {
-            'name':'Pierre Le Fevre (16_tek_cs)',
-            'info':'Skapade sodschema.ga/schema.sodapps.io, vilket som är grunden till vad GetTime är nu.',
-            'email':'pierre@gettime.ga',
-            'links':[
-                ('GitHub','https://github.com/PierreLeFevre') 
-            ]
-        }
-    ]
     @app.endpoint('INDEX')
     def INDEX(alternativeArgs=None):
         # alternativeArgs can be used to pass in URL arguments.
