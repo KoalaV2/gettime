@@ -445,12 +445,6 @@ a:hover{
 #scheduleBox text{
 	font-family: 'JetBrains Mono', monospace;
 }
-.text-ClockAxisBox, .text-HeadingDay{
-	filter: drop-shadow(0px 0px 3px white);
-}
-.text-ClockFrameStart, .text-ClockFrameEnd{
-	filter: drop-shadow(0px 0px 3px black);
-}
 
 #scheduleBox rect:not(.rect-ClockFrameStart):not(.rect-ClockFrameEnd){
 	stroke: black;
@@ -469,4 +463,14 @@ a:hover{
 }
 .errorMessage{
 	font-family: "Rubik", sans-serif;
+}
+
+/* Code from https://stackoverflow.com/a/2310809 */
+.unselectable, #scheduleBox, .menu-option-text, #school-select-box, #school-select-box option{
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }

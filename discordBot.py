@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-version = "1.1.0 BETA"
+version = "1.1.1 BETA"
 #region IMPORT
 import os
 import time
@@ -67,9 +67,9 @@ class EmbedMessage:
 @client.event
 async def on_message(message):
     if message.author==client.user:return # Keeps bot from responding to itself
-    if message.content.lower().startswith(configfile['discordPrefix']):
-        userMessage = message.content.split(' ')
-        
+    userMessage = message.content.split(' ')
+    if userMessage[0] == configfile['discordPrefix']:
+
         def GetIdFromUser(messageIndex=2):
             try:
                 return userMessage[messageIndex]

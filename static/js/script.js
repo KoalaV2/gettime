@@ -227,19 +227,10 @@ function getShareableURL(){
 }
 
 function updateMenuButtonsBasedOnSize(){
-	if (window.innerWidth < 450){
-		$("#button-text-day").html("Visa dag");
-		$("#button-text-qr").html("QR kod");
-		$("#button-text-private").html("Privat länk");
-		$("#button-text-copy").html("Kopiera länk");
-		$("#button-text-saved").html("Länkar");
-	}else{
-		$("#button-text-day").html("Visa bara dag&nbsp;&nbsp;");
-		$("#button-text-qr").html("Skapa QR kod&nbsp;&nbsp;");
-		$("#button-text-private").html("Skapa privat länk&nbsp;&nbsp;");
-		$("#button-text-copy").html("Kopiera privat länk&nbsp;&nbsp;");
-		$("#button-text-saved").html("Sparade länkar&nbsp;&nbsp;");
-	}
+	let t = $('.menu-option-text');
+	$('.menu-option-text').attr(((window.innerWidth < 450) ? "shortText" : "longText"),function(i, x){
+		t[i].innerHTML = x;
+	});
 }
 
 function clickOn_QRCODE(){

@@ -1,0 +1,10 @@
+MAJOR / IMPORTANT:
+Fix the timing for the animation on the dark mode toggle
+
+MINOR / SIDEPROJECT:
+Fix the timing for the animation on the background blur (Mostly when opening the menu, closing it looks fine)
+Fix the blur on the schedule bleeding into the navbar
+Fix https://www.beta.gettime.ga/
+
+FEATURES / NEW THINGS:
+Add a help command for the discord bot
