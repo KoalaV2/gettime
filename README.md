@@ -1,5 +1,5 @@
 # GetTime/Sodschema
-A schedule viewer for Skola24 compatable schools.
+A schedule viewer for Skola24 compatible schools.
 
 ***
 
