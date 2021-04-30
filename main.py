@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-version = "1.3.2 BETA"
+version = "1.3.3 BETA"
 #region ASCII ART
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #               _   _   _                    __            _          _                             #
@@ -47,11 +47,6 @@ from flask_mobility import Mobility
 from werkzeug.routing import Rule
 from werkzeug.exceptions import NotFound
 #endregion
-#region CACHE SETTINGS
-getDataMaxAge = 5*60 # Secounds
-getFoodMaxAge = 60*60 # Secounds
-dataCache = {}
-#endregion
 #region FUNCTIONS
 def searchInDict(listInput, keyInput, valueInput):
     #Code from https://stackoverflow.com/a/8653568
@@ -79,10 +74,12 @@ def getSchoolByID(schoolID):
             return False, allSchools[schoolID]
         except:
             return None,None,-2,str(e)
-def SetLogging(path="", filename="log.log", format="%(asctime)s %(levelname)10s %(funcName)15s() : %(message)s"): # '%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s'
+def SetLogging(path="", filename="log.log", format=None): # '%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s'
     """
         Changes logging settings.
     """
+    if format == None:
+        format = configfile['loggingFormat']
     try:os.mkdir(path)
     except:pass
     open(path+filename, 'w').close() # Clear Logfile
@@ -180,7 +177,7 @@ def getFood(allowCache=True, week=None):
             except:pass
 
     if allowCache:
-        dataCache[myHash] = {'maxage':getFoodMaxAge,'age':time.time(),'data':toReturn}
+        dataCache[myHash] = {'maxage':configfile['getFoodMaxAge'],'age':time.time(),'data':toReturn}
     return toReturn
 def color_convert(color, reverse=False):
     if reverse:
@@ -425,7 +422,7 @@ class GetTime:
                 return {'status':-8,'message':f"An error occured when trying to check for other errors! (Yes, really.) Here is the traceback : {traceback.format_exc()}","data":response3}
             
             if allowCache:
-                dataCache[myHash] = {'maxage':getDataMaxAge,'age':time.time(),'data':toReturn}
+                dataCache[myHash] = {'maxage':configfile['getDataMaxAge'],'age':time.time(),'data':toReturn}
         return toReturn
     def fetch(self, allowCache=True) -> list:
         """
@@ -716,6 +713,9 @@ class DropDown_Button:
 #endregion
 #region Load data
 def init_Load():
+    """
+        This function loads in all of the external files (such as .json files)
+    """
     # Set working dir to path of main.py
     os.chdir(os.path.dirname(os.path.realpath(__file__))) 
 
@@ -729,6 +729,11 @@ def init_Load():
         try:contacts = json.load(f)
         except:contacts = {}
 
+    # Load menus
+    with open("menus.json") as f:
+        try:menus = json.load(f)
+        except:menus = {}
+
     # Load schools file
     with open("schools.json", encoding="utf-8") as f:
         try:allSchools = json.load(f)
@@ -737,13 +742,28 @@ def init_Load():
     allSchoolsNames = [x for x in allSchools] # Contains all the names, sorted by alphabetical order
     allSchoolsNames.sort()
 
-    return configfile, allSchools, allSchoolsList, allSchoolsNames, contacts
-configfile, allSchools, allSchoolsList, allSchoolsNames, contacts = init_Load()
+    return {
+        'configfile':configfile,
+        "allSchools":allSchools,
+        "allSchoolsList":allSchoolsList,
+        "allSchoolsNames":allSchoolsNames,
+        "contacts":contacts,
+        "menus":menus
+    }
+l = init_Load()
+configfile = l['configfile']
+allSchools = l['allSchools']
+allSchoolsList = l['allSchoolsList']
+allSchoolsNames = l['allSchoolsNames']
+contacts = l['contacts']
+menus = l['menus']
+
+dataCache = {}
 #endregion
 if __name__ == "__main__":
     #region INIT
     # Sets default logging settings (before cfg file has been loaded in)
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)10s %(funcName)15s() : %(message)s") #%(levelname)s %(name)s
+    logging.basicConfig(level=logging.INFO, format=configfile['loggingFormat']) #%(levelname)s %(name)s
 
     # Change logging to go to file
     if configfile['logToFile']:
@@ -946,8 +966,8 @@ if __name__ == "__main__":
         # Toggle Dark mode
         'darkmode':DropDown_Button(
             button_text={
-                'short':'Dark',
-                'long':"Darkmode"
+                'short':'Mörk',
+                'long':"Mörkt läge"
                 },
             button_type="switch",
             button_id='input-darkmode',
@@ -969,50 +989,6 @@ if __name__ == "__main__":
                 'onclick':"""textBoxOpen('#text_school_selector');"""
             }
         )
-    }
-    menus = {
-        'desktop':{
-            'normal':[
-                'dayMode',
-                'darkmode',
-                'food',
-                'generateSavableLink',
-                'generateQrCode',
-                'showSaved',
-                'contact'  
-            ],
-            'private':[
-                'dayMode',
-                'darkmode',
-                'food',
-                'generateSavableLink', #'copySavableLink',
-                'generateQrCode',
-                'mainPage',
-                'contact' 
-            ]
-        },
-        'mobile':{
-            'normal':[
-                'dayMode',
-                'darkmode',
-                'food',
-                'generateSavableLink',
-                'generateQrCode',
-                'showSaved',
-                'changeSchool',
-                'contact'  
-                ],
-            'private':[
-                'dayMode',
-                'darkmode',
-                'food',
-                'generateSavableLink', #'copySavableLink',
-                'generateQrCode',
-                'mainPage',
-                'changeSchool',
-                'contact' 
-            ]
-        }
     }
     @app.endpoint('INDEX')
     def INDEX(alternativeArgs=None):

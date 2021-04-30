@@ -5,6 +5,7 @@ var darkmode = initDarkMode;
 var hideNavbar = initHideNavbar;
 var oldURL = "";
 var school = initSchool;
+var screenSize = [0,0];
 
 //#region toggleDarkMode
 // Idea from https://tinyurl.com/yhsukrs9
@@ -94,13 +95,14 @@ function inputExceeded(){
 }
 
 var lastKnownID = "ඞ";
+var lastKnownScreenSize = screenSize;
 function checkIfIDTextFits(){
-	var el = $('#id-input-box');
-	if (el.val() != lastKnownID || inputExceeded()){
+	let el = $('#id-input-box');
+	if (el.val() != lastKnownID || inputExceeded() || screenSize != lastKnownScreenSize){
 		if (inputExceeded()){
 			while(inputExceeded()){
-				var oldSize = parseInt(el.css("--font-size"),10);
-				var newSize = oldSize - 1;
+				let oldSize = parseInt(el.css("--font-size"),10);
+				let newSize = oldSize - 1;
 				
 				if(newSize < 1){
 					break;
@@ -111,8 +113,8 @@ function checkIfIDTextFits(){
 		}
 		else{
 			while(!inputExceeded()){
-				var oldSize = parseInt(el.css("--font-size"),10);
-				var newSize = oldSize + 1;
+				let oldSize = parseInt(el.css("--font-size"),10);
+				let newSize = oldSize + 1;
 				
 				if(newSize > 24){
 					break;
@@ -122,6 +124,7 @@ function checkIfIDTextFits(){
 			}
 		}
 		lastKnownID = el.val();
+		lastKnownScreenSize = screenSize;
 	}
 	
 }
@@ -369,6 +372,8 @@ $(document).ready(function() {
 
 	// Moves the timetable down so it doesnt overlay the navbar
     $("#scheduleBox").css("top", "50px");
+
+	screenSize = [$(window).width(),$(window).height()];
 });
 
 // // Code from https://stackoverflow.com/a/15032300

@@ -9,6 +9,7 @@ $(window).on("load", function(){
     //update timetable to fit new window size
     var update_timetable_to_fit_new_window_size = debounce(function() {
         console.log("update timetable to fit new window size");
+        screenSize = [$(window).width(),$(window).height()];
         $("#schedule").fadeOut(500);
         updateMenuButtonsBasedOnSize();
         updateTimetable();
@@ -23,10 +24,10 @@ $(window).on("load", function(){
             updateTimetable();
         });
     }, 450);
-    $('#id-input-box').on('input', update_timetable_on_related_input)
+    $('#id-input-box').on('input', update_timetable_on_related_input);
 
     //If private ID, then this textbox shows up, so that the user can change the ID
-    var update_timetable_on_related_input = debounce(function() {
+    var update_timetable_on_related_input2 = debounce(function() {
         $("#schedule").fadeOut(500, function(){
             $('#id-input-box').val($('#id-input-box2').val());
 
@@ -42,7 +43,7 @@ $(window).on("load", function(){
             updateTimetable();
         });
     }, 450);
-    $('#id-input-box2').on('input', update_timetable_on_related_input)
+    $('#id-input-box2').on('input', update_timetable_on_related_input2);
 
     //blink arrow and go move week on timetable
     $(".arrow-left").on("click", function(){

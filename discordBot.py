@@ -16,17 +16,22 @@ from main import TinyUrlShortener # type: ignore
 from urllib3.exceptions import MaxRetryError
 
 from main import init_Load
-configfile, allSchools, allSchoolsList, allSchoolsNames = init_Load()
+l = init_Load()
+configfile = l['configfile']
+allSchools = l['allSchools']
+allSchoolsList = l['allSchoolsList']
+allSchoolsNames = l['allSchoolsNames']
 #endregion
 #region INIT
 os.chdir(os.path.dirname(os.path.realpath(__file__))) # Set working dir to path of main.py
 
 logFileName = "discord_logfile.log"
 logFileLocation = configfile['logFileLocation']
+
 if configfile['logToFile']:
-    SetLogging(path=logFileLocation,filename=logFileName)
+    SetLogging(path=logFileLocation,filename=logFileName, format=configfile['loggingFormat'])
 else:
-    logging.basicConfig(level=logging.DEBUG, format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s")
+    logging.basicConfig(level=logging.DEBUG, format=configfile['loggingFormat'])
 
 # Creates JSON file if it doesnt exist
 if not os.path.isfile("users.json"):

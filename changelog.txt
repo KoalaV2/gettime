@@ -12,6 +12,8 @@ Changed:
   * Redesigned the way the dropdown button text changes when the screen becomes to small
   * Removed the drop shadow from the schedule
   * Restructured some code for the URI manipulation
+  * Moved cache settings to settings.json
+  * Moved menus to menus.json
 
 Fixed:
   * Fixed a bug where the Discord Bot would respond to any prefix that started with its own
@@ -20,7 +22,7 @@ Fixed:
   * Fixed so that you cant select any text on the schedule
   * Fixed a bug where if you clicked on a lesson while having the drop down meny opened, it would first ask for a URL and then close, instead of just closing.
   * Fixed the transition effect on the schedule (Fading blur) so that it wont glitch out when an error message appears
-
+  * Fixed a bug where the ID text would not fix itself after the screen resizes
 
 Sidenotes:
 The first major 1.0 release of GetTime is here!

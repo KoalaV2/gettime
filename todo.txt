@@ -1,5 +1,6 @@
 MAJOR / IMPORTANT:
 Fix the timing for the animation on the dark mode toggle
+Fix the private ID input feild not rezising text
 
 MINOR / SIDEPROJECT:
 Fix cheat menu (addURLArgument used to also remove the argument if it allready existed, but now it doesnt)
