@@ -121,10 +121,6 @@ $(window).on("load", function(){
     //update timetable on related button click
     $('#input-day').on('click', function() {
         console.log('update timetable on related button click');
-        // if ($("#input-day").is(':checked')){
-        // 	day = initDay;
-        // 	week = initWeek;
-        // }
         updateTimetable();
     });
 
@@ -177,34 +173,33 @@ $(window).on("load", function(){
             container.fadeOut("fast");
         }
     });
+
+    //Code from https://stackoverflow.com/a/1846733
+    document.onkeypress = function(evt) {
+        if (mobileRequest || document.activeElement == document.getElementById('id-input-box') || document.activeElement == document.getElementById('id-input-box2')){
+            return;
+        }
+        else
+        {
+            evt = evt || window.event;
+            var charCode = evt.keyCode || evt.which;
+            var charStr = String.fromCharCode(charCode);
+
+            if (charStr.toLowerCase() == "f"){
+                if (hideNavbar){
+                    f_showNavbar();
+                }
+                else{
+                    f_hideNavbar();
+                }
+            }
+        }
+    };
+
 });
-
-
 
 // //update timetable on related button click
 // $('#roundedMode').on('click', function() {
 // 	console.log('update timetable on related button click 2');
 // 	updateTimetable();
 // });
-
-// //Code from https://stackoverflow.com/a/1846733
-// document.onkeypress = function(evt) {
-// 	if (mobileRequest || document.activeElement == document.getElementById('id-input-box') || document.activeElement == document.getElementById('id-input-box2')){
-// 		return;
-// 	}
-// 	else
-// 	{
-// 		evt = evt || window.event;
-// 		var charCode = evt.keyCode || evt.which;
-// 		var charStr = String.fromCharCode(charCode);
-
-// 		if (charStr.toLowerCase() == "f"){
-// 			if (hideNavbar){
-// 				f_showNavbar();
-// 			}
-// 			else{
-// 				f_hideNavbar();
-// 			}
-// 		}
-// 	}
-// };

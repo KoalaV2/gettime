@@ -160,7 +160,9 @@
 
 			<!-- Main timetable object -->
 			<div id="scheduleBox">
-				<svg id="schedule"></svg>
+				<div id="scheduleBLUR">
+					<svg id="schedule"></svg>
+				</div>
 			</div>
 
 			<!-- GDPR and cookies info div -->
@@ -244,7 +246,7 @@
 			<!-- Contact information -->
 			<div id="text_contact_info" class="text_box contact_info">
 
-				<h1>GetTime (v.{{version}})</h1>
+				<h1>GetTime (v{{version}})</h1>
 				
 				<br>
 
@@ -318,13 +320,13 @@
 				<p>You can click on these to turn the effect on/off</p>
 				<ul>
 					<li>
-						<p><a onclick="addURLArgument('filter','grayscale');">&filter=grayscale</a></p>
+						<p><a onclick="window.location.href = addURLArgument('filter','grayscale');">&filter=grayscale</a></p>
 					</li>
 					<li>
-						<p><a onclick="addURLArgument('filter','invert');">&filter=invert</a></p>
+						<p><a onclick="window.location.href = addURLArgument('filter','invert');">&filter=invert</a></p>
 					</li>
 					<li>
-						<p><a onclick="addURLArgument('filter','flat');">&filter=flat</a></p>
+						<p><a onclick="window.location.href = addURLArgument('filter','flat');">&filter=flat</a></p>
 					</li> 
 				</ul>
 

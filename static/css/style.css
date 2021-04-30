@@ -438,17 +438,19 @@ a:hover{
 }
 
 #scheduleBox{
-	transition: all .15s ease-in-out;
+	/* transition: all .15s ease-in-out; */
 	position: fixed;
 	text-shadow: none;
 }
 #scheduleBox text{
 	font-family: 'JetBrains Mono', monospace;
 }
-
 #scheduleBox rect:not(.rect-ClockFrameStart):not(.rect-ClockFrameEnd){
 	stroke: black;
 	stroke-width: 1;
+}
+#scheduleBLUR{
+	transition: all .15s ease-in-out;
 }
 
 #text_tricks a{
@@ -456,6 +458,7 @@ a:hover{
 }
 
 .errorBox{
+	transition: none !important;
 	position: absolute !important;
     top: 50% !important;
     left: 50% !important;

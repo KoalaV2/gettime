@@ -42,7 +42,7 @@ client = discord.Client()
 discordColor = discord.Colour.from_rgb(configfile['discordRGB'][0],configfile['discordRGB'][1],configfile['discordRGB'][2])
 #endregion
 #region FUNCTIONS
-def urlEmbed(text,url) -> str: 
+def urlEmbed(text, url) -> str: 
     return f"[{text}]({url})"
 def updateUserFile():
     global idsToCheck
@@ -51,10 +51,10 @@ def updateUserFile():
 #endregion
 #region CLASSES
 class EmbedMessage:
-    def __init__(self,title="",description=""):
+    def __init__(self,title="", description=""):
         self.title = title
         self.description = description
-    def send(self,sendTo):
+    def send(self, sendTo):
         return sendTo.send(
             embed=discord.Embed(
                 color=discordColor,
