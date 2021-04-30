@@ -39,13 +39,17 @@ function removeURLArgument(key,urlInput=null){
 }
 
 //takes list with 2 strings, and changes the url to match
-function addURLArgument(key,value=""){
-	let currentURL = window.location.href;
+function addURLArgument(key,value="",urlInput=null){
+	// If no url was passed in then it uses the current url instead
+	if (urlInput==null){urlInput = window.location.href;}
+
+	let currentURL = urlInput;
 	let newURL = currentURL;
 	let argument = key + ((value != "") ? ("=" + value) : ("")); //Contains "key=value" (or just "key" if no value was passed)
 
 	// If includes the key, with the same value.
 	if (currentURL.includes(argument)){
+		return newURL;
 		newURL = newURL.replace(newURL[newURL.indexOf(argument)-1] + argument,'');
 		newURL = fixURLArgumentIcons(newURL);
 	}
@@ -57,7 +61,6 @@ function addURLArgument(key,value=""){
 		}
 		
 		newURL = newURL.replace(key + "=" + a, key + "=" + value);
-		console.log(a);
 	}
 	// If does not include key or value.
 	else{
@@ -69,7 +72,7 @@ function addURLArgument(key,value=""){
 		newURL = removeURLArgument('id',urlInput=newURL);
 	}
 
-	window.location.href = newURL;
+	return newURL;
 }
 
 var getParams = function (url) {
@@ -96,4 +99,24 @@ function UpdateEntryInUrlArguments(key,value,update=false){
 		}
 		window.history.pushState("", "", "?"+$.param(urlArguments));
 	}
+}
+
+function getLinkForThisSchedule(update=false){
+	let a = requestURL;
+	
+	a = addURLArgument("id",$("#id-input-box").val(),a);
+	
+	a = addURLArgument("school",school,a);
+	
+	if ($('#input-day').prop('checked')){
+		a = addURLArgument("day",day,a);
+	};
+	
+	a = addURLArgument("week",week,a);
+	
+	if (update){
+		window.history.pushState(null, null, a);
+	}
+	
+	return a;
 }

@@ -5,33 +5,32 @@ var darkmode = initDarkMode;
 var hideNavbar = initHideNavbar;
 var oldURL = "";
 var school = initSchool;
-  
+var screenSize = [0,0];
+
+//#region toggleDarkMode
 // Idea from https://tinyurl.com/yhsukrs9
+var toggleDarkMode_on = '';
+var toggleDarkModeAll_on = '';
+if (ignorecssmin){
+	toggleDarkModeAll_on = '/static/css/darkmode-all.css';
 
-function toggleDarkMode(disableAnimation=false,saveToCookie=true,updateTimeTableAfter=true){
-	//This code is messy
-	let toggleDarkMode_on = '';
-	let toggleDarkModeAll_on = '';
-	if (ignorecssmin){
-		toggleDarkModeAll_on = '/static/css/darkmode-all.css';
+	if (mobileRequest){
+		toggleDarkMode_on = '/static/css/darkmode-mobile.css';}
+	else{
+		toggleDarkMode_on = '/static/css/darkmode-desktop.css';
+	}
+}
+else{
+	toggleDarkModeAll_on = '/static/css/min/darkmode-all.min.css';
 
-		if (mobileRequest){
-			toggleDarkMode_on = '/static/css/darkmode-mobile.css';}
-		else{
-			toggleDarkMode_on = '/static/css/darkmode-desktop.css';
-		}
+	if (mobileRequest){
+		toggleDarkMode_on = '/static/css/min/darkmode-mobile.min.css';
 	}
 	else{
-		toggleDarkModeAll_on = '/static/css/min/darkmode-all.min.css';
-
-		if (mobileRequest){
-			toggleDarkMode_on = '/static/css/min/darkmode-mobile.min.css';
-		}
-		else{
-			toggleDarkMode_on = '/static/css/min/darkmode-desktop.min.css';
-		}	
-	}
-
+		toggleDarkMode_on = '/static/css/min/darkmode-desktop.min.css';
+	}	
+}
+function toggleDarkMode(disableAnimation=false,saveToCookie=true,updateTimeTableAfter=true){
 	//Set the dark mode switch first
 	darkmode = $('#input-darkmode').prop('checked')
 
@@ -72,6 +71,7 @@ function toggleDarkMode(disableAnimation=false,saveToCookie=true,updateTimeTable
 		$(".loader-main").slideToggle(500);
 	}
 }
+//#endregion
 
 function inputExceeded(){
 	// Modified code from https://stackoverflow.com/a/4836059
@@ -95,13 +95,14 @@ function inputExceeded(){
 }
 
 var lastKnownID = "ඞ";
+var lastKnownScreenSize = screenSize;
 function checkIfIDTextFits(){
-	var el = $('#id-input-box');
-	if (el.val() != lastKnownID || inputExceeded()){
+	let el = $('#id-input-box');
+	if (el.val() != lastKnownID || inputExceeded() || screenSize != lastKnownScreenSize){
 		if (inputExceeded()){
 			while(inputExceeded()){
-				var oldSize = parseInt(el.css("--font-size"),10);
-				var newSize = oldSize - 1;
+				let oldSize = parseInt(el.css("--font-size"),10);
+				let newSize = oldSize - 1;
 				
 				if(newSize < 1){
 					break;
@@ -112,8 +113,8 @@ function checkIfIDTextFits(){
 		}
 		else{
 			while(!inputExceeded()){
-				var oldSize = parseInt(el.css("--font-size"),10);
-				var newSize = oldSize + 1;
+				let oldSize = parseInt(el.css("--font-size"),10);
+				let newSize = oldSize + 1;
 				
 				if(newSize > 24){
 					break;
@@ -123,6 +124,7 @@ function checkIfIDTextFits(){
 			}
 		}
 		lastKnownID = el.val();
+		lastKnownScreenSize = screenSize;
 	}
 	
 }
@@ -164,7 +166,6 @@ function textBoxOpen(idToOpen){
 	$('.navbar').fadeOut();
 	$('#scheduleBox').fadeOut();
 }
-
 //close textBox
 function textBoxClose(idToClose){
 	$(idToClose).fadeOut();
@@ -185,10 +186,10 @@ function hideControls(){
 	$('.controls').slideUp('fast', function() {
 	    if ($(this).is(':visible')){
 	        $(this).css('display','flex');
-			$('#scheduleBox').addClass("menuBgBlur");
+			$('#scheduleBLUR').addClass("menuBgBlur");
 	        $(".menuIcon").removeClass("fa-bars").addClass("fa-times");
 	    }else{
-			$('#scheduleBox').removeClass("menuBgBlur");
+			$('#scheduleBLUR').removeClass("menuBgBlur");
 	        $(".menuIcon").removeClass("fa-times").addClass("fa-bars");
 	    };
 	});
@@ -199,10 +200,10 @@ function showControls(){
 		$('.controls-container').fadeIn(0);
 		if ($(this).is(':visible')){
 			$(this).css('display','flex');
-			$('#scheduleBox').addClass("menuBgBlur");
+			$('#scheduleBLUR').addClass("menuBgBlur");
 			$(".menuIcon").removeClass("fa-bars").addClass("fa-times");
 		}else{
-			$('#scheduleBox').removeClass("menuBgBlur");
+			$('#scheduleBLUR').removeClass("menuBgBlur");
 			$(".menuIcon").removeClass("fa-times").addClass("fa-bars");
 		};
 	});
@@ -227,19 +228,10 @@ function getShareableURL(){
 }
 
 function updateMenuButtonsBasedOnSize(){
-	if (window.innerWidth < 450){
-		$("#button-text-day").html("Visa dag");
-		$("#button-text-qr").html("QR kod");
-		$("#button-text-private").html("Privat länk");
-		$("#button-text-copy").html("Kopiera länk");
-		$("#button-text-saved").html("Länkar");
-	}else{
-		$("#button-text-day").html("Visa bara dag&nbsp;&nbsp;");
-		$("#button-text-qr").html("Skapa QR kod&nbsp;&nbsp;");
-		$("#button-text-private").html("Skapa privat länk&nbsp;&nbsp;");
-		$("#button-text-copy").html("Kopiera privat länk&nbsp;&nbsp;");
-		$("#button-text-saved").html("Sparade länkar&nbsp;&nbsp;");
-	}
+	let t = $('.menu-option-text');
+	$('.menu-option-text').attr(((window.innerWidth < 450) ? "shortText" : "longText"),function(i, x){
+		t[i].innerHTML = x;
+	});
 }
 
 function clickOn_QRCODE(){
@@ -284,20 +276,7 @@ function schoolSelected(schoolName){
 
 //events on load & event triggers.
 $(window).on("load", function(){
-
-	// Code from https://stackoverflow.com/a/15032300
-	if (autoReloadSchedule){
-		var lastRefresh = new Date(); // If the user just loaded the page you don't want to refresh either
-		setInterval(function(){
-			//first, check time, if it is 0 AM, reload the page
-			var now = new Date();
-			if (now.getHours() == 0 && new Date() - lastRefresh > 1000 * 60 * 60 * 1.5) { // If it is between 9 and ten AND the last refresh was longer ago than 1.5 hours refresh the page.
-				location.reload();
-			}
-		},10000);
-	}
-
-	//Dark mode
+	//#region Dark mode
 	if (initDarkMode == null){
 		if (readCookie('darkmode') == null){
 			darkmode = false;
@@ -310,14 +289,8 @@ $(window).on("load", function(){
 		toggleDarkMode(disableAnimation=true,saveToCookie=false,updateTimeTableAfter=false);
 	}
 	$('#input-darkmode').prop('checked', darkmode);
-
-	//Hides the main input if the URL is private
-	if (privateURL){
-		$('#id-input-box').css("display", "none");
-	}
-	
-	//set school
-	
+	//#endregion	
+	//#region School
 	if (initSchool != ""){ //If school was specified in the URL:
 		school = initSchool;
 		$('#school-select-box').val(school);
@@ -335,7 +308,13 @@ $(window).on("load", function(){
 			$('#school-select-box').val(school);
 		}
 	}
+	//#endregion 
 	
+	//Hides the main input if the URL is private
+	if (privateURL){
+		$('#id-input-box').css("display", "none");
+	}
+
 	//hide all textboxes
 	$('.text_box').hide();
 
@@ -393,7 +372,21 @@ $(document).ready(function() {
 
 	// Moves the timetable down so it doesnt overlay the navbar
     $("#scheduleBox").css("top", "50px");
+
+	screenSize = [$(window).width(),$(window).height()];
 });
+
+// // Code from https://stackoverflow.com/a/15032300
+// if (autoReloadSchedule){
+// 	var lastRefresh = new Date(); // If the user just loaded the page you don't want to refresh either
+// 	setInterval(function(){
+// 		//first, check time, if it is 0 AM, reload the page
+// 		var now = new Date();
+// 		if (now.getHours() == 0 && new Date() - lastRefresh > 1000 * 60 * 60 * 1.5) { // If it is between 9 and ten AND the last refresh was longer ago than 1.5 hours refresh the page.
+// 			location.reload();
+// 		}
+// 	},10000);
+// }
 
 // function is_heightIsMoreThenWidth(){
 // 	return $(window).height() > $(window).width();

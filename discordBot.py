@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-version = "1.1.0 BETA"
+version = "1.1.1 BETA"
 #region IMPORT
 import os
 import time
@@ -16,17 +16,22 @@ from main import TinyUrlShortener # type: ignore
 from urllib3.exceptions import MaxRetryError
 
 from main import init_Load
-configfile, allSchools, allSchoolsList, allSchoolsNames = init_Load()
+l = init_Load()
+configfile = l['configfile']
+allSchools = l['allSchools']
+allSchoolsList = l['allSchoolsList']
+allSchoolsNames = l['allSchoolsNames']
 #endregion
 #region INIT
 os.chdir(os.path.dirname(os.path.realpath(__file__))) # Set working dir to path of main.py
 
 logFileName = "discord_logfile.log"
 logFileLocation = configfile['logFileLocation']
+
 if configfile['logToFile']:
-    SetLogging(path=logFileLocation,filename=logFileName)
+    SetLogging(path=logFileLocation,filename=logFileName, format=configfile['loggingFormat'])
 else:
-    logging.basicConfig(level=logging.DEBUG, format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s")
+    logging.basicConfig(level=logging.DEBUG, format=configfile['loggingFormat'])
 
 # Creates JSON file if it doesnt exist
 if not os.path.isfile("users.json"):
@@ -42,7 +47,7 @@ client = discord.Client()
 discordColor = discord.Colour.from_rgb(configfile['discordRGB'][0],configfile['discordRGB'][1],configfile['discordRGB'][2])
 #endregion
 #region FUNCTIONS
-def urlEmbed(text,url) -> str: 
+def urlEmbed(text, url) -> str: 
     return f"[{text}]({url})"
 def updateUserFile():
     global idsToCheck
@@ -51,10 +56,10 @@ def updateUserFile():
 #endregion
 #region CLASSES
 class EmbedMessage:
-    def __init__(self,title="",description=""):
+    def __init__(self,title="", description=""):
         self.title = title
         self.description = description
-    def send(self,sendTo):
+    def send(self, sendTo):
         return sendTo.send(
             embed=discord.Embed(
                 color=discordColor,
@@ -67,9 +72,9 @@ class EmbedMessage:
 @client.event
 async def on_message(message):
     if message.author==client.user:return # Keeps bot from responding to itself
-    if message.content.lower().startswith(configfile['discordPrefix']):
-        userMessage = message.content.split(' ')
-        
+    userMessage = message.content.split(' ')
+    if userMessage[0] == configfile['discordPrefix']:
+
         def GetIdFromUser(messageIndex=2):
             try:
                 return userMessage[messageIndex]

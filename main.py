@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-version = "1.2.2.2 BETA"
+version = "1.3.3 BETA"
 #region ASCII ART
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #               _   _   _                    __            _          _                             #
@@ -47,11 +47,6 @@ from flask_mobility import Mobility
 from werkzeug.routing import Rule
 from werkzeug.exceptions import NotFound
 #endregion
-#region CACHE SETTINGS
-getDataMaxAge = 5*60 # Secounds
-getFoodMaxAge = 60*60 # Secounds
-dataCache = {}
-#endregion
 #region FUNCTIONS
 def searchInDict(listInput, keyInput, valueInput):
     #Code from https://stackoverflow.com/a/8653568
@@ -79,10 +74,12 @@ def getSchoolByID(schoolID):
             return False, allSchools[schoolID]
         except:
             return None,None,-2,str(e)
-def SetLogging(path="", filename="log.log", format="%(asctime)s %(levelname)10s %(funcName)15s() : %(message)s"): # '%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s'
+def SetLogging(path="", filename="log.log", format=None): # '%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s'
     """
         Changes logging settings.
     """
+    if format == None:
+        format = configfile['loggingFormat']
     try:os.mkdir(path)
     except:pass
     open(path+filename, 'w').close() # Clear Logfile
@@ -180,7 +177,7 @@ def getFood(allowCache=True, week=None):
             except:pass
 
     if allowCache:
-        dataCache[myHash] = {'maxage':getFoodMaxAge,'age':time.time(),'data':toReturn}
+        dataCache[myHash] = {'maxage':configfile['getFoodMaxAge'],'age':time.time(),'data':toReturn}
     return toReturn
 def color_convert(color, reverse=False):
     if reverse:
@@ -314,7 +311,6 @@ class GetTime:
             toReturn = dataCache[myHash]['data']
         else:
             try:
-                logging.info(self._school)
                 #region Request 1
                 logging.info("Request 1")
                 headers1 = {
@@ -426,7 +422,7 @@ class GetTime:
                 return {'status':-8,'message':f"An error occured when trying to check for other errors! (Yes, really.) Here is the traceback : {traceback.format_exc()}","data":response3}
             
             if allowCache:
-                dataCache[myHash] = {'maxage':getDataMaxAge,'age':time.time(),'data':toReturn}
+                dataCache[myHash] = {'maxage':configfile['getDataMaxAge'],'age':time.time(),'data':toReturn}
         return toReturn
     def fetch(self, allowCache=True) -> list:
         """
@@ -680,9 +676,46 @@ class GetTime:
                 dict: dictionary with all the food information. 
         """
         return getFood(allowCache=allowCache,week=self._week)
+class DropDown_Button:
+    def __init__(self, button_text={'short':'','long':''}, button_icon="", button_type="link", button_arguments={}, button_id="") -> None:
+        self.button_text = button_text #Max : 17 characters long
+        self.button_icon = button_icon
+        self.button_type = button_type
+        self.button_arguments = button_arguments
+        self.button_id = button_id
+    def checkVariables(self):
+        if type(self.button_text) == str:
+            self.button_text = {'short':self.button_text,'long':self.button_text}
+    def render(self):
+        self.checkVariables()
+
+        arguments = " ".join([f'{key}="{self.button_arguments[key]}"' for key in self.button_arguments])
+
+        types = {
+            'link':f"""
+            <a {arguments} class="control control-container">
+                <span id="{self.button_id}" class="menu-option-text" shortText="{self.button_text['short']}&nbsp;&nbsp;" longText="{self.button_text['long']}&nbsp;&nbsp;">{self.button_text['long']}&nbsp;&nbsp;</span>
+                <i class="{self.button_icon} control-right"></i>
+            </a>
+            """,
+            
+            'switch':f"""
+                <label class="toggleBox control-container" for="{self.button_id}">
+                    <span id="{self.button_id}-text" class="menu-option-text" shortText="{self.button_text['short']}&nbsp;&nbsp;" longText="{self.button_text['long']}&nbsp;&nbsp;">{self.button_text['long']}&nbsp;&nbsp;</span>
+                    <label class="switch">
+                        <input type="checkbox" {arguments} class="input-switch" name="{self.button_id}" id="{self.button_id}"/>
+                        <span class="slider round control control-right"></span>
+                    </label>
+                </label>
+            """
+        }
+        return Markup(types[self.button_type])
 #endregion
 #region Load data
 def init_Load():
+    """
+        This function loads in all of the external files (such as .json files)
+    """
     # Set working dir to path of main.py
     os.chdir(os.path.dirname(os.path.realpath(__file__))) 
 
@@ -690,6 +723,16 @@ def init_Load():
     with open("settings.json") as f:
         try:configfile = json.load(f)
         except:configfile = {}
+
+    # Load contacts
+    with open("contacts.json") as f:
+        try:contacts = json.load(f)
+        except:contacts = {}
+
+    # Load menus
+    with open("menus.json") as f:
+        try:menus = json.load(f)
+        except:menus = {}
 
     # Load schools file
     with open("schools.json", encoding="utf-8") as f:
@@ -699,13 +742,28 @@ def init_Load():
     allSchoolsNames = [x for x in allSchools] # Contains all the names, sorted by alphabetical order
     allSchoolsNames.sort()
 
-    return configfile, allSchools, allSchoolsList, allSchoolsNames
-configfile, allSchools, allSchoolsList, allSchoolsNames = init_Load()
+    return {
+        'configfile':configfile,
+        "allSchools":allSchools,
+        "allSchoolsList":allSchoolsList,
+        "allSchoolsNames":allSchoolsNames,
+        "contacts":contacts,
+        "menus":menus
+    }
+l = init_Load()
+configfile = l['configfile']
+allSchools = l['allSchools']
+allSchoolsList = l['allSchoolsList']
+allSchoolsNames = l['allSchoolsNames']
+contacts = l['contacts']
+menus = l['menus']
+
+dataCache = {}
 #endregion
 if __name__ == "__main__":
     #region INIT
     # Sets default logging settings (before cfg file has been loaded in)
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)10s %(funcName)15s() : %(message)s") #%(levelname)s %(name)s
+    logging.basicConfig(level=logging.INFO, format=configfile['loggingFormat']) #%(levelname)s %(name)s
 
     # Change logging to go to file
     if configfile['logToFile']:
@@ -800,40 +858,13 @@ if __name__ == "__main__":
             raise e
     #endregion
     #region INDEX
-    class DropDown_Button:
-        def __init__(self, button_text="", button_icon="", button_type="link", button_arguments={}, button_id="") -> None:
-            self.button_text = button_text
-            self.button_icon = button_icon
-            self.button_type = button_type
-            self.button_arguments = button_arguments
-            self.button_id = button_id
-        
-        def render(self):
-            arguments = " ".join([f'{key}="{self.button_arguments[key]}"' for key in self.button_arguments])
-
-            types = {
-                'link':f"""
-                <a {arguments} class="control control-container">
-                    <span id="{self.button_id}" class="menu-option-text">{self.button_text}&nbsp;&nbsp;</span>
-                    <i class="{self.button_icon} control-right"></i>
-                </a>
-                """,
-                
-                'switch':f"""
-                    <label class="toggleBox control-container" for="{self.button_id}">
-                        <span id="{self.button_id}-text" class="menu-option-text">{self.button_text}&nbsp;&nbsp;</span>
-                        <label class="switch">
-                            <input type="checkbox" {arguments} class="input-switch" name="{self.button_id}" id="{self.button_id}"/>
-                            <span class="slider round control control-right"></span>
-                        </label>
-                    </label>
-                """
-            }
-            return Markup(types[self.button_type])
     buttons = {
         # Redirect to school lunch link
         'food':DropDown_Button(
-            button_text="Mat",
+            button_text={
+                'short':'Mat',
+                'long':'Skollunch'
+                },
             button_icon="fas fa-utensils",
             button_type="link",
             button_id='button-text-food',
@@ -844,7 +875,10 @@ if __name__ == "__main__":
 
         # Generate savable link
         'generateSavableLink':DropDown_Button(
-            button_text="Skapa privat länk",
+            button_text={
+                'short':'Privat länk',
+                'long':'Skapa privat länk'
+                },
             button_icon="fas fa-user-lock",
             button_type="link",
             button_id="button-text-private",
@@ -855,7 +889,10 @@ if __name__ == "__main__":
 
         # Copy savable link
         'copySavableLink':DropDown_Button(
-            button_text="Kopiera privat länk",
+            button_text={
+                'short':'Kopiera länk',
+                'long':'Kopiera privat länk'
+                },
             button_icon="fas fa-user-lock",
             button_type="link",
             button_id="button-text-copy",
@@ -866,7 +903,10 @@ if __name__ == "__main__":
 
         # Generate QR code
         'generateQrCode':DropDown_Button(
-            button_text="Skapa QR kod",
+            button_text={
+                'short':'QR kod',
+                'long':'Skapa QR kod'
+                },
             button_icon="fas fa-qrcode",
             button_type="link",
             button_id="button-text-qr",
@@ -887,14 +927,20 @@ if __name__ == "__main__":
 
         # Day only mode toggle switch
         'dayMode':DropDown_Button(
-            button_text="Dag",
+            button_text={
+                'short':'Dag',
+                'long':'Visa bara dag'
+                },
             button_type="switch",
             button_id='input-day'
         ),
 
         # Contact button
         'contact':DropDown_Button(
-            button_text="Kontakta oss",
+            button_text={
+                'short':'Om oss',
+                'long':'Om GetTime'
+                },
             button_icon="far fa-address-book",
             button_type="link",
             button_id="button-text-gotostart",
@@ -905,7 +951,10 @@ if __name__ == "__main__":
 
         # Show saved timetables button
         'showSaved':DropDown_Button(
-            button_text="Sparade länkar",
+            button_text={
+                'short':'Länkar',
+                'long':"Sparade länkar"
+                },
             button_icon="far fa-save",
             button_type="link",
             button_id="button-text-saved",
@@ -916,7 +965,10 @@ if __name__ == "__main__":
 
         # Toggle Dark mode
         'darkmode':DropDown_Button(
-            button_text="Dark Mode",
+            button_text={
+                'short':'Mörk',
+                'long':"Mörkt läge"
+                },
             button_type="switch",
             button_id='input-darkmode',
             button_arguments={
@@ -926,7 +978,10 @@ if __name__ == "__main__":
 
         # Toggle Dark mode
         'changeSchool':DropDown_Button(
-            button_text="Byt skola",
+            button_text={
+                'short':'Skola',
+                'long':"Byt skola"
+                },
             button_type="link",
             button_icon="fas fa-school",
             button_id='input-change-school',
@@ -935,55 +990,6 @@ if __name__ == "__main__":
             }
         )
     }
-    menus = {
-        'normal':(
-            'dayMode',
-            'darkmode',
-            'food',
-            'generateSavableLink',
-            'generateQrCode',
-            'showSaved',
-            'changeSchool',
-            'contact'  
-        ),
-        'private':(
-            'dayMode',
-            'darkmode',
-            'food',
-            'generateSavableLink', #'copySavableLink',
-            'generateQrCode',
-            'mainPage',
-            'changeSchool',
-            'contact'            
-        )
-    }
-    contacts = [
-        {
-            'name':'Isak Karlsen (19_tek_a)',
-            'info':'GetTime\'s huvudprogrammerare. Konverterade den gamla sodschema koden till en Flask backend.',
-            'email':'isak@gettime.ga',
-            'links':[
-                ('GitHub','https://github.com/TayIsAsleep') #You can add multiple arrays here with 2 strings, first string is the text you see, and secound string is the URL it should lead too
-            ]
-        },
-        {
-            'name':'Theodor Johanson (20_el_a)',
-            'info':'Hostar gettime.ga och skapade den nya fetch koden som gör sidan snabbare än någonsin.',
-            'email':'theo@gettime.ga',
-            'links':[
-                ('GitHub','https://github.com/KoalaV2'),
-                ('Hemsida','https://koalathe.dev/')
-            ]
-        },
-        {
-            'name':'Pierre Le Fevre (16_tek_cs)',
-            'info':'Skapade sodschema.ga/schema.sodapps.io, vilket som är grunden till vad GetTime är nu.',
-            'email':'pierre@gettime.ga',
-            'links':[
-                ('GitHub','https://github.com/PierreLeFevre') 
-            ]
-        }
-    ]
     @app.endpoint('INDEX')
     def INDEX(alternativeArgs=None):
         # alternativeArgs can be used to pass in URL arguments.
@@ -992,32 +998,6 @@ if __name__ == "__main__":
 
         #region Default values
         t = CurrentTime()
-        #Fix this later
-        # arguments = {
-        #     'parseCode': "",
-        #     'requestURL': configfile['mainLink'],
-        #     'hideNavbar': False,
-        #     'initID': "",
-        #     'initSchool': None, #If set to "null" then it will ALWAYS ask what shcool it should use
-        #     'initDayMode': False,
-        #     'initWeek': t['week2'],
-        #     'initDay': t['weekday3'],
-        #     'initDarkMode': "null",
-        #     'darkModeSetting': 1,
-        #     'debugmode': False,
-        #     'privateURL': False,
-        #     'saveIdToCookie': True,
-        #     'mobileRequest': request.MOBILE,
-        #     'showContactOnLoad': False,
-        #     'autoReloadSchedule': False,
-        #     'dropDownButtons': [],
-        #     'ignorecookiepolicy': False,
-        #     'ignorejsmin': False,
-        #     'ignorecssmin': False,
-        #     'ignorehtmlmin': False,
-        #     'cssToInclude': [],
-        #     'oldPrivateUrl': False
-        # }
         parseCode = ""
         requestURL = configfile['mainLink']
         hideNavbar = False
@@ -1098,7 +1078,7 @@ if __name__ == "__main__":
                 darkModeSetting = 4
         hideNavbar = 'fullscreen' in request.args
 
-        dropDownButtons = [buttons[x].render() for x in (menus['private' if privateURL else 'normal'])]
+        dropDownButtons = [buttons[x].render() for x in (menus['mobile' if mobileRequest else 'desktop']['private' if privateURL else 'normal'])]
 
         #CSS
         cssToInclude.append({'name':"style.css",'id':''})

@@ -1,5 +1,5 @@
 # GetTime/Sodschema
-Get schedule for NTI gymnasiet söderntörn.
+A schedule viewer for Skola24 compatible schools.
 
 ***
 
@@ -19,12 +19,14 @@ Get schedule for NTI gymnasiet söderntörn.
     "discordKey": "",
     "discordPrefix": "!gt",
     "discordRGB": [138,194,241],
-    "formLink": ""
+    "formLink": "",
+    "getDataMaxAge": 300,
+    "getFoodMaxAge": 3600
 }
 ```
 
 ### DEBUGMODE
-Enables or disables debug mode. This should always be set to false on the live server.
+Enables or disables debug mode. This should always be set to `false` on the live server.
 
 ### ip
 The IP address the server will run on.
@@ -33,22 +35,22 @@ The IP address the server will run on.
 The port that the server will run on.
 
 ### logToFile
-If set to true, then all the logging will be sent to a file, instead of the console window. This applies to both the main program and the Discord bot
+If set to `true`, then all the logging will be sent to a file, instead of the console window. This applies to both the main program and the Discord bot
 
 ### logToSameFile
-If set to true, then it will create one log file, and overwrite it every time you start the server. If you set it to false, then it will instead create new files for every time you run it, with the current date as the filename. 
+If set to `true`, then it will create one log file, and overwrite it every time you start the server. If you set it to `false`, then it will instead create new files for every time you run it, with the current date as the filename. 
 
 ### logFileLocation
-Where the log files should go (Default is “logs/”)
+Where the log files should go (Default is `"logs/"`)
 
 ### mainLink
-This is where you put the URL that the server will run on. (So for the live server it should be https://www.gettime.ga/, but if you are running it on your own computer for testing, then it should be the same as your IP:port with “http://” in front and “/” at the end) If this is not set correctly, then many features will break!
+This is where you put the URL that the server will run on. (So for the live server it should be `"https://www.gettime.ga/"`, but if you are running it on your own computer for testing, then it should be the same as your IP:port with "http://" in front and "/" at the end) If this is not set correctly, then many features will break!
 
 ### key
 Key is just a random string of characters. It is used in some places to create hashes and stuff, and if it is changed, then no private URLs will work anymore (And probably some other stuff too).
 
 ### enableErrorHandler
-This enables or disables the custom error catcher. Most of the time, when something goes wrong with the Python backend, it should display the traceback, which helps programmers to know what went wrong without having to find the error in the logs. I don’t know why you would want to turn it off, but if you do, then it will instead just display the regular “Server is busy or unresponsive” error page. The only exception to this error handler is 404 errors (missing files), as the default 404 error page is easier to understand than what the error handler spits out.
+This enables or disables the custom error catcher. Most of the time, when something goes wrong with the Python backend, it should display the traceback, which helps programmers to know what went wrong without having to find the error in the logs. I don’t know why you would want to turn it off, but if you do, then it will instead just display the regular "Server is busy or unresponsive" error page. The only exception to this error handler is 404 errors (missing files), as the default 404 error page is easier to understand than what the error handler spits out.
 
 ### discordKey
 API key to the Discord bot.
@@ -61,6 +63,12 @@ The RGB code that the Discord bot will use in most places.
 
 ### formLink
 Link to a Google form, where users can request their school to be added.
+
+### getDataMaxAge
+The maximum age for the cache of schedule data. Default is 300 secounds (5 minutes)
+
+### getFoodMaxAge
+The maximum age for the cache of food data. Default is 3600 secounds (60 minutes). This can be set higher then `getDataMaxAge` because it should not change as often, and its less important then the schedule information.
 
 ***
 
