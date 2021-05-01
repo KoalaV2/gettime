@@ -1,3 +1,4 @@
+#region INIT
 # Minifies all files in the directory, then places the files in a subfolder called "min".
 # Example CMD usage:
 # python min.py "\\static\\js" ".js"
@@ -10,6 +11,7 @@
 import os
 from sys import argv
 from requests import post
+import scssCompiler
 
 # Saves the dir to path of min.py
 original_directory = os.path.dirname(os.path.realpath(__file__))
@@ -18,15 +20,53 @@ original_directory = os.path.dirname(os.path.realpath(__file__))
 urlLookupTable = {
     '.js':'https://javascript-minifier.com/raw',
     '.css':'https://cssminifier.com/raw',
+    '.scss':"",
     '.html':'https://html-minifier.com/raw'
 }
 
 ignoresNewLine = (
     '.js',
     '.css',
+    '.scss',
     '.html'
 )
+#endregion
 
+def sha256(a):
+    from hashlib import sha256 as s
+    # Code from https://tinyurl.com/2k3ds62p
+    return s(a.encode()).hexdigest()
+def inTemp(fileName):
+    from tempfile import gettempdir
+    return f"{gettempdir()}\\{fileName}"
+
+def minimize_file(path, fileType):
+    with open(path, "r", encoding="utf8") as f:
+        file_data = f.read()
+        file_data = file_data.encode("utf-8") # This might be overkill
+
+    a = post(
+        url=urlLookupTable[fileType],
+        data={
+            'input':file_data
+        }
+    )
+
+    if a.status_code == 404:
+        print("Statuscode was 404, skipping...")
+        return -1
+
+    a = a.text
+    if fileType in ignoresNewLine:
+        a = "".join(a.split("\n")) # Removes any new lines if filetype supports it
+    return a
+def minimize_code(code, fileType):
+    fn = inTemp(sha256(code))
+    with open(fn,"w") as f:
+        f.write(code)
+    a = minimize_file(fn,fileType)
+    os.remove(fn)
+    return a
 def minimize_this(path, fileType):
     """
         Takes a path and a fileType and minimizes the file into a folder called "min".
@@ -39,7 +79,7 @@ def minimize_this(path, fileType):
             path = original_directory + path
         else:
             path = original_directory + "/" + path
-    
+
     # Changes the working dir to the path with the un-minified files
     os.chdir(path)
 
@@ -53,32 +93,23 @@ def minimize_this(path, fileType):
             print("- Minifying",filename)
             
             try:
+                
                 oldFileName = f"{path}/{filename}"
+
+                if fileType == ".scss":
+                    fileType = ".css"
+                    scss_ = scssCompiler.scss(oldFileName)
+                    a = scss_.convertToCSS(minimize=True)
+                else:
+                    a = minimize_file(oldFileName, fileType)
+
                 newFileName = f'{path}/min/{filename[:-len(fileType)]}.min{fileType}'
 
-                with open(oldFileName, "r", encoding="utf8") as f:
-                    file_data = f.read()
-                    file_data = file_data.encode("utf-8") # This might be overkill
-
-                a = post(
-                    url=urlLookupTable[fileType],
-                    data={
-                        'input':file_data
-                    }
-                )
-                if a.status_code == 404:
-                    print("Statuscode was 404, skipping...")
-                    continue
-
-                a = a.text
-                if fileType in ignoresNewLine:
-                    a = "".join(a.split("\n")) # Removes any new lines if filetype supports it
-                
                 with open(newFileName, "w", encoding="utf-8") as f:
                     f.write(a)
             
             except Exception as e:
-                print(e + ", skipping...")
+                print(str(e) + ", skipping...")
                 continue
 
     print(f"-- Finished path: {path}, fileType: {fileType}")

@@ -3,7 +3,8 @@
 js=("static/js")
 css=("static/css")
 html=("templates")
+scss=("static/scss")
 
 c() { echo "$(printf " %s " "$@")" | sed 's/,$//g' ; }
 
-python min.py $(c "${js[@]}") ".js" $(c "${css[@]}") ".css" $(c "${html[@]}") ".html"
+python min.py $(c "${js[@]}") ".js" $(c "${css[@]}") ".css" $(c "${html[@]}") ".html" $(c "${scss[@]}") ".scss"

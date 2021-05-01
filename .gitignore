@@ -128,14 +128,12 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-settings.cfg
-private.txt
+
 users.json
 settings.json
 *.lnk
-Minimize All.bat
-min all.bat
 
 static/js/min/
 static/css/min/
+static/scss/min/
 templates/min/
