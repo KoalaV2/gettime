@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-version = "1.3.3 BETA"
+version = {'main':"1.3.3 BETA",'discord':"1.1.1 BETA"}
 #region ASCII ART
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #               _   _   _                    __            _          _                             #
@@ -27,6 +27,7 @@ import json
 import base64
 import logging
 import hashlib
+import discord
 import datetime
 import requests
 import traceback
@@ -46,6 +47,8 @@ from flask_minify import minify
 from flask_mobility import Mobility
 from werkzeug.routing import Rule
 from werkzeug.exceptions import NotFound
+from urllib3.exceptions import MaxRetryError
+from discord.ext import tasks
 #endregion
 #region FUNCTIONS
 def searchInDict(listInput, keyInput, valueInput):
@@ -225,6 +228,12 @@ def invertColor(color):
     color = (255-color[0],255-color[1],255-color[2])
 
     return color_convert((color,typeToReturn),reverse=True)
+def urlEmbed(text, url) -> str: 
+    return f"[{text}]({url})"
+def updateUserFile():
+    global idsToCheck
+    with open("users.json", "w") as outfile: 
+        json.dump(idsToCheck, outfile) 
 #endregion
 #region CLASSES
 class HTMLObject:
@@ -710,6 +719,18 @@ class DropDown_Button:
             """
         }
         return Markup(types[self.button_type])
+class EmbedMessage:
+    def __init__(self,title="", description=""):
+        self.title = title
+        self.description = description
+    def send(self, sendTo):
+        return sendTo.send(
+            embed=discord.Embed(
+                color=discordColor,
+                title=self.title,
+                description=self.description
+            )
+        )
 #endregion
 #region Load data
 def init_Load():
@@ -734,6 +755,12 @@ def init_Load():
         try:menus = json.load(f)
         except:menus = {}
 
+    # Loads subscribed users into dict (from json file)
+    if not os.path.isfile("users.json"):open("users.json",'w').close() # Creates the JSON file if it doesnt exist
+    with open("users.json") as f:
+        try:idsToCheck = json.load(f)
+        except:idsToCheck = {}
+
     # Load schools file
     with open("schools.json", encoding="utf-8") as f:
         try:allSchools = json.load(f)
@@ -748,7 +775,8 @@ def init_Load():
         "allSchoolsList":allSchoolsList,
         "allSchoolsNames":allSchoolsNames,
         "contacts":contacts,
-        "menus":menus
+        "menus":menus,
+        "idsToCheck":idsToCheck
     }
 l = init_Load()
 configfile = l['configfile']
@@ -757,8 +785,11 @@ allSchoolsList = l['allSchoolsList']
 allSchoolsNames = l['allSchoolsNames']
 contacts = l['contacts']
 menus = l['menus']
+idsToCheck = l['idsToCheck']
 
 dataCache = {}
+cachedResponses = {}
+backup_cachedResponses = {}
 #endregion
 if __name__ == "__main__":
     #region INIT
@@ -782,7 +813,248 @@ if __name__ == "__main__":
     minify(app=app, html=True, js=False, cssless=True, passive=True)
     Mobility(app) # Mobile features
     CORS(app) # Behövs så att man kan skicka requests till serven (for some reason idk)
+    
+    # Setup Discord bot
+    client = discord.Client()
+    discordColor = discord.Colour.from_rgb(configfile['discordRGB'][0],configfile['discordRGB'][1],configfile['discordRGB'][2])
+    
     #endregion  
+    #region Discord bot events
+    @client.event
+    async def on_message(message):
+        if message.author==client.user:return # Keeps bot from responding to itself
+        userMessage = message.content.split(' ')
+        if userMessage[0] == configfile['discordPrefix']:
+
+            def GetIdFromUser(messageIndex=2):
+                try:
+                    return userMessage[messageIndex]
+                except:
+                    if str(message.author.id) in idsToCheck:
+                        return idsToCheck[str(message.author.id)]['id']
+                    else:
+                        return None
+            def GetSchoolFromUser(messageIndex=3):
+                try:
+                    return int(userMessage[messageIndex])
+                except:
+                    if str(message.author.id) in idsToCheck:
+                        return int(idsToCheck[str(message.author.id)]['school'])
+                    else:
+                        return None
+
+            if userMessage[1].lower() in ('v', 'version'):
+                return await EmbedMessage(
+                    title=f"GetTimeBot (v.{version['discord']})",
+                    description='*"Whats wrong with it this time"* / Tay'
+                ).send(message.channel)
+            if userMessage[1].lower() in ('reg','notify'):
+                
+                if userMessage[2] == "help":
+                    return await EmbedMessage(
+                        title=f"{configfile['discordPrefix']} {userMessage[1].lower()} hjälp",
+                        description="\n".join((
+                            f"Användning :\n{configfile['discordPrefix']} {userMessage[1].lower()} `<DITT ID HÄR>` `<DIN SKOL-ID HÄR>` `<HUR MÅNGA MINUTER I FÖRVÄG DU VILL BLI NOTIFIERAD>`",
+                            "",
+                            "SKOL-ID's :\n",
+                            "\n".join([f"{allSchools[x]['name']} : `{allSchools[x]['id']}`" for x in allSchoolsNames])
+                        )
+                    )).send(message.channel)
+                    
+
+                idToCheck = GetIdFromUser()
+                schoolToCheck = GetSchoolFromUser()
+
+                if None in (idsToCheck, schoolToCheck):
+                    await EmbedMessage(
+                        title=f"Fel användning av `{configfile['discordPrefix']} {userMessage[1].lower()}`\nSkriv `{configfile['discordPrefix']} {userMessage[1].lower()} help` för mer info."
+                    ).send(message.channel)
+                    await message.channel.send(f"> Fel användning av `{configfile['discordPrefix']} {userMessage[1].lower()}` (Inget ID)")
+                    return
+
+                try:remindThisManyMinutes = int(userMessage[4])
+                except:remindThisManyMinutes = 5 # Default value is 5 minutes
+                
+                #Tries to fetch the ID to see if its valid
+                try:
+                    checkIDisValid = GetTime(_id=idToCheck,_school=schoolToCheck).getData()
+                except MaxRetryError:
+                    await message.channel.send(f"> Försök igen senare! (MaxRetryError)")
+                    return
+                
+                if checkIDisValid['status'] < 0:
+                    if checkIDisValid['status'] == -6:
+                        await message.channel.send(f"> Något gick fel! ({checkIDisValid['validation'][0]['message']})")
+                    else:
+                        await message.channel.send(f"> Något gick fel! ({checkIDisValid['message']})")
+                else:
+                    if str(message.author.id) in idsToCheck:
+                        idsToCheck[str(message.author.id)] = {
+                            'id':idToCheck,
+                            'school':schoolToCheck,
+                            'discordID':message.author.id,
+                            'minutes':remindThisManyMinutes
+                        }
+                        updateUserFile()
+                        await EmbedMessage(title="Dina nya inställningar är sparade!").send(message.channel)
+                    else:
+                        idsToCheck[str(message.author.id)] = {
+                            "id":idToCheck,
+                            'school':schoolToCheck,
+                            "discordID":message.author.id,
+                            "minutes":remindThisManyMinutes
+                        }
+
+                        updateUserFile()
+                        await message.channel.send(f"> Du kommer nu bli notifierad {remindThisManyMinutes} {'minut' if remindThisManyMinutes == 1 else 'minuter'} innan varje lektion!")
+            if userMessage[1].lower() in ('unreg','unnotify'):
+                if str(message.author.id) in idsToCheck:
+                    del idsToCheck[str(message.author.id)]
+                    updateUserFile()
+                    await message.channel.send("> Du kommer inte längre bli notifierad innan en lektion börjar.")
+                else:
+                    await message.channel.send("> Du har inte registrerat dig!")
+            if userMessage[1].lower() in ('schema','today','me'):
+                userID = GetIdFromUser()
+                if userID == None:
+                    await message.channel.send(f"> Fel användning av `{configfile['discordPrefix']} {userMessage[1].lower()}` (Inget ID)")
+                
+                currentTimeTemp = CurrentTime()
+                myRequest = GetTime(
+                    _id=userID,
+                    _day=currentTimeTemp['weekday3'],
+                    _week=currentTimeTemp['week2']
+                )
+
+                getTimeURL = GenerateHiddenURL(configfile['key'], myRequest._id, configfile['mainLink'])[0] + f"&week={myRequest._week}&day={myRequest._day}"
+                try:
+                    await EmbedMessage(
+                        f"Här är ditt schema för {currentTimeTemp['dayNames'][myRequest._day-1].capitalize()}, v.{myRequest._week}!\n",
+                        myRequest.GenerateTextSummary(mode="discord") + f"\n{urlEmbed('Öppna schemat online',getTimeURL)}"
+                    ).send(message.channel)
+                except MaxRetryError:
+                    return await message.channel.send(f"> Försök igen senare! (MaxRetryError)")
+            if userMessage[1].lower() in ('next'):
+                idToCheck = GetIdFromUser()
+                if idsToCheck == None:
+                    await message.channel.send(f"> Fel användning av `{configfile['discordPrefix']} {userMessage[1].lower()}` (Inget ID)")
+                else:
+                    currentTimeTemp = CurrentTime()
+                    try:
+                        a = GetTime(
+                            _id=idToCheck,
+                            _day=currentTimeTemp['weekday']
+                        ).fetch(allowCache=False)
+                    except MaxRetryError:
+                        return await message.channel.send(f"> Försök igen senare! (MaxRetryError)")
+
+                    timeScore = (currentTimeTemp['hour'] * 60) + currentTimeTemp['minute']
+                    for x in a:
+                        lessonTimeScore = x.GetTimeScore(start=True)
+                        minutesBeforeStart = lessonTimeScore-timeScore
+                        if minutesBeforeStart > 0:
+                            await EmbedMessage(
+                                title=f"Nästa lektion är '{x.lessonName}' som börjar kl {x.timeStart[:-3]}{' i ' + x.classroomName if x.classroomName != '' else ''}!"
+                            ).send(message.channel)
+                            return
+
+    @tasks.loop(seconds=6)
+    async def lessonStart():
+        try:
+            global timeNow, cachedResponses, backup_cachedResponses, timeScore
+            currentTimeTemp = CurrentTime()
+
+            #Checks if time is after 8PM or before 6AM, and then skips it
+            if currentTimeTemp['hour'] > 20 or currentTimeTemp['hour'] < 6:
+                return
+
+            #Checks if its monday - friday OR if debugmode is on
+            if currentTimeTemp['weekday'] in (1,2,3,4,5) or configfile['DEBUGMODE'] == True:
+
+                #Checks if the minute has changed
+                if currentTimeTemp['minute'] == timeNow['minute']:
+                    #logging.info('Minute had not changed yet')
+                    return
+                
+                timeNow = currentTimeTemp
+                timeScore = (currentTimeTemp['hour'] * 60) + currentTimeTemp['minute']
+                
+                # Iterates through all the ID's
+                for currentKey in idsToCheck:
+                    currentID = idsToCheck[currentKey]
+                    logging.info(f"Checking id: {currentID}...")           
+                    
+                    a = None
+                    # Check if there is data cached...
+                    if str(currentID['discordID']) in cachedResponses:
+                        logging.info(str(currentID['discordID']) + ' was cached, checking age...')
+
+                        if time.time() - cachedResponses[str(currentID['discordID'])]['age'] < configfile['discordCacheAgeMax']:
+                            a = cachedResponses[str(currentID['discordID'])]['data']
+                            logging.info('used cache from ' + str(currentID['discordID']))
+                        else:
+                            logging.info(str(currentID['discordID']) + ' was to old!')
+                            del cachedResponses[str(currentID['discordID'])]
+                    else:
+                        logging.info(str(currentID['discordID']) + ' was NOT cached')
+
+                    if a == None:
+                        logging.info("Running request...")
+                        try:
+                            a = GetTime(
+                                _id=currentID['id'],
+                                _day=currentTimeTemp['weekday'],
+                                _week=currentTimeTemp['week']
+                            ).fetch()
+
+                            if 'status' in a and a['status'] < 0:
+                                userDM = await client.fetch_user(user_id=int(currentID['discordID']))
+                                return await userDM.send(f"⚠️ OKÄNT FEL : {str(a)}")
+    
+                            cachedResponses[str(currentID['discordID'])] = {'data':a,'age':time.time()}
+                        except MaxRetryError:
+                            userDM = await client.fetch_user(user_id=int(currentID['discordID']))
+                            return await userDM.send(f"> Försök igen senare! (MaxRetryError)")
+
+                    # if 'status' in a and a['status'] < 0:
+                    #     if str(currentID['discordID']) in cachedResponses:
+                    #         a = backup_cachedResponses[str(currentID['discordID'])]['data']
+                    #     else:
+                    #         userDM = await client.fetch_user(user_id=int(currentID['discordID']))
+                    #         await EmbedMessage(
+                    #             title=f"Could not fetch your next lession! (Sorry!)"
+                    #         ).send(userDM)
+
+                    # #Backup to backup_cachedResponses
+                    # if not str(currentID['discordID']) in backup_cachedResponses:
+                    #     logging.info(f"Had to use backup_cachedResponses! Fine for now, but schedule could be outdated.")
+                    #     backup_cachedResponses[str(currentID['discordID'])] = {'data':a}
+
+                    for x in a:
+                        lessonTimeScore = x.GetTimeScore(start=True)
+                        minutesBeforeStart = lessonTimeScore-timeScore
+                        if minutesBeforeStart == currentID['minutes'] or currentID['minutes'] == "always":
+                            userDM = await client.fetch_user(user_id=int(currentID['discordID']))
+                            await EmbedMessage(
+                                title=f"'{x.lessonName}' börjar om {minutesBeforeStart} {'minut' if minutesBeforeStart == 1 else 'minuter'}{' i ' + x.classroomName if x.classroomName != '' else ''}!"
+                            ).send(userDM)
+                        else:
+                            pass
+                            #logging.info(f"minutesBeforeStart was {minutesBeforeStart}, not {currentID['minutes']}")
+
+                logging.info('Waiting for minute to change...')
+        except:
+            logging.error(traceback.format_exc()) # Catches any error and puts it in the log file (need to fix proper logging)
+    
+    @client.event
+    async def on_ready():
+        global timeNow
+        logging.info(f'\nLogged in as\n{client.user.name}\n{client.user.id}\n')
+
+        timeNow = {'minute':69.420} # Defaults to a impossible value so that it will run the check at startup every time
+        lessonStart.start()
+        logging.info("Tasks started")
+    #endregion
     #region Flask Routes
     [app.url_map.add(x) for x in (
         #INDEX
@@ -1109,7 +1381,7 @@ if __name__ == "__main__":
 
         return render_template(
             template_name_or_list="sodschema.html" if ignorehtmlmin else "min/sodschema.min.html",
-            version=version,
+            version=version['main'],
             contacts=contacts,
             parseCode=parseCode,
             requestURL=requestURL,
@@ -1328,11 +1600,12 @@ if __name__ == "__main__":
     #endregion   
     #endregion
 
-    # NEEDS CLEANUP/REDESIGN
-    def cacheClearer():
+    #region START
+    def start_cacheClearer():
         """
             Checks for outdated cached data and deletes it to save on memory.
         """
+        logging.info("CacheClearer was started.")
         while 1:
             try:
                 toDelete = []
@@ -1343,15 +1616,21 @@ if __name__ == "__main__":
                     logging.info(f"Deleting {x} from cache")
                     del dataCache[x]
             except RuntimeError as e:
-                logging.info(e)
+                logging.exception(e)
                 pass
             except:
                 logging.exception(traceback.format_exc())
                 pass
             time.sleep(1)
+    def start_discordBot():
+        logging.info("Starting Discord Bot...")
+        client.run(configfile['discordKey'])   
+    threading.Thread(target=start_discordBot, args=(), daemon=True).start()
+    threading.Thread(target=start_cacheClearer, args=(), daemon=True).start()
 
-    # Makes it so that the cacheclearer runs at the same time (probably needs reworking)
-    threading.Thread(target=cacheClearer, args=(), daemon=True).start()
-    app.run(debug=configfile['DEBUGMODE'], host=configfile['ip'], port=configfile['port']) # Run website
+    # https://stackoverflow.com/a/47329270 is why "use_reloader=False". It restarted the discordbot impropperly
+    app.run(debug=configfile['DEBUGMODE'], host=configfile['ip'], port=configfile['port'], use_reloader=False) # Website has to be ran at main
+    
+    #endregion
 else:
     logging.info("main.py was imported")

@@ -21,7 +21,8 @@ A schedule viewer for Skola24 compatible schools.
     "discordRGB": [138,194,241],
     "formLink": "",
     "getDataMaxAge": 300,
-    "getFoodMaxAge": 3600
+    "getFoodMaxAge": 3600,
+    "discordCacheAgeMax": 300
 }
 ```
 
@@ -65,10 +66,13 @@ The RGB code that the Discord bot will use in most places.
 Link to a Google form, where users can request their school to be added.
 
 ### getDataMaxAge
-The maximum age for the cache of schedule data. Default is 300 secounds (5 minutes)
+The maximum age for the cache of schedule data. Default is 300 secounds (5 minutes).
 
 ### getFoodMaxAge
 The maximum age for the cache of food data. Default is 3600 secounds (60 minutes). This can be set higher then `getDataMaxAge` because it should not change as often, and its less important then the schedule information.
+
+### discordCacheAgeMax
+Similar to `getDataMaxAge`, but it's just for the Discord bot.
 
 ***
 
