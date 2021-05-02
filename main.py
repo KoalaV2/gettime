@@ -626,11 +626,12 @@ class GetTime:
         timeTakenToHandleData = time.time() - timeTakenToHandleData
         #endregion
         #region Comments 
-        toReturn.append("<!-- THIS SCHEDULE WAS MADE POSSIBLE BY https://github.com/KoalaV2 -->")
-        toReturn.append(f"<!-- SETTINGS USED: id: {'[HIDDEN]' if privateID else self._id}, week: {self._week}, day: {self._day}, resolution: {self._resolution}, class: {classes} -->")
-        toReturn.append(f"<!-- Time taken (Requesting data): {timeTakenToFetchData} secounds -->")
-        toReturn.append(f"<!-- Time taken (Schedule generation): {timeTakenToHandleData} secounds -->")
-        toReturn.append(f"<!-- Time taken (TOTAL): {(timeTakenToFetchData + timeTakenToHandleData)} secounds -->")
+        if configfile['DEBUGMODE']:
+            toReturn.append("<!-- THIS SCHEDULE WAS MADE POSSIBLE BY https://github.com/KoalaV2 -->")
+            toReturn.append(f"<!-- SETTINGS USED: id: {'[HIDDEN]' if privateID else self._id}, week: {self._week}, day: {self._day}, resolution: {self._resolution}, class: {classes} -->")
+            toReturn.append(f"<!-- Time taken (Requesting data): {timeTakenToFetchData} secounds -->")
+            toReturn.append(f"<!-- Time taken (Schedule generation): {timeTakenToHandleData} secounds -->")
+            toReturn.append(f"<!-- Time taken (TOTAL): {(timeTakenToFetchData + timeTakenToHandleData)} secounds -->")
         #endregion
 
         toReturn.append("</svg>")
@@ -1430,7 +1431,6 @@ if __name__ == "__main__":
         """
         
         #Checks if school was the school ID, and if so, grabs the name
-
         myRequest = GetTime(
             _id = request.args['id'],
             _week = int(request.args['week']),
