@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-version = "1.3.3 BETA"
+version = "1.3.3.1 BETA"
 #region ASCII ART
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #               _   _   _                    __            _          _                             #

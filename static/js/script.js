@@ -371,7 +371,9 @@ $(document).ready(function() {
 	}
 
 	// Moves the timetable down so it doesnt overlay the navbar
-    $("#scheduleBox").css("top", "50px");
+	if (!hideNavbar){
+		$("#scheduleBox").css("top", "50px");
+	}
 
 	screenSize = [$(window).width(),$(window).height()];
 });
