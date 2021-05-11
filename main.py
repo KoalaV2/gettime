@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-version = "1.3.3.1 BETA"
+version = "1.3.3.2 BETA"
 #region ASCII ART
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #               _   _   _                    __            _          _                             #
@@ -33,6 +33,7 @@ import traceback
 import threading
 import feedparser
 import numpy as np
+from functools import lru_cache
 from urllib.parse import urlencode
 from operator import attrgetter
 from flask import Flask
@@ -55,6 +56,7 @@ def searchInDict(listInput, keyInput, valueInput):
         if y[keyInput] == valueInput:
             return x
     return None
+@lru_cache(maxsize=32)
 def getSchoolByID(schoolID):
     """
         Returns `True, {school data}` if `schoolID` was an int\n
@@ -119,6 +121,7 @@ def CurrentTime():
     return a
 def TinyUrlShortener(url, alias="") -> str:
     return requests.get(f"https://www.tinyurl.com/api-create.php?{urlencode({'url':url,'alias':alias})}").text
+@lru_cache(maxsize=32)
 def EncodeString(key, clear):
     # Code from https://stackoverflow.com/a/16321853
     enc = []
@@ -127,6 +130,7 @@ def EncodeString(key, clear):
         enc_c = chr((ord(clear[i]) + ord(key_c)) % 256)
         enc.append(enc_c)
     return base64.urlsafe_b64encode("".join(enc).encode()).decode()
+@lru_cache(maxsize=32)
 def DecodeString(key, enc):
     # Code from https://stackoverflow.com/a/16321853
     dec = []
@@ -136,9 +140,11 @@ def DecodeString(key, enc):
         dec_c = chr((256 + ord(enc[i]) - ord(key_c)) % 256)
         dec.append(dec_c)
     return "".join(dec)
+@lru_cache(maxsize=32)
 def GenerateHiddenURL(key, idInput, schoolInput, mainLink):
     a = EncodeString(key,idInput + "½" + str(getSchoolByID(schoolInput)[1]['id']))
     return mainLink + f"?a={a}",a
+@lru_cache(maxsize=32)
 def sha256(hash_string):
     # Code from https://tinyurl.com/2k3ds62p
     return hashlib.sha256(hash_string.encode()).hexdigest()
@@ -179,6 +185,7 @@ def getFood(allowCache=True, week=None):
     if allowCache:
         dataCache[myHash] = {'maxage':configfile['getFoodMaxAge'],'age':time.time(),'data':toReturn}
     return toReturn
+@lru_cache(maxsize=32)
 def color_convert(color, reverse=False):
     if reverse:
         if color[1] == "hex":
@@ -199,6 +206,7 @@ def color_convert(color, reverse=False):
     elif type(color) == tuple and len(color) == 3: # Assuming its RGB in the right format
         typeToReturn = "rgb"
     return color,typeToReturn
+@lru_cache(maxsize=32)
 def fadeColor(color, percent):
     """
         if `0 > percent >= -1` then it fades to black.\n
@@ -212,6 +220,7 @@ def fadeColor(color, percent):
     x = (round(x[0]) if x[0] > 0 else 0 ,round(x[1]) if x[1] > 0 else 0 ,round(x[2]) if x[2] > 0 else 0 )
     
     return color_convert((color,typeToReturn),reverse=True)
+@lru_cache(maxsize=32)
 def grayscale(color):
     color,typeToReturn = color_convert(color)
 
@@ -219,6 +228,7 @@ def grayscale(color):
     color = (x,x,x)
 
     return color_convert((color,typeToReturn),reverse=True)
+@lru_cache(maxsize=32)
 def invertColor(color):
     color,typeToReturn = color_convert(color)
     
@@ -249,6 +259,7 @@ class Lesson:
             self.classroomName = classroomName
             self.timeStart = timeStart
             self.timeEnd = timeEnd
+    @lru_cache(maxsize=32)
     def GetTimeScore(self, start=True, end=False):
         if end == True:start = False
         #KNOWN ISSUE: 
@@ -720,17 +731,17 @@ def init_Load():
     os.chdir(os.path.dirname(os.path.realpath(__file__))) 
 
     # Load config file
-    with open("settings.json") as f:
+    with open("settings.json", encoding="utf-8") as f:
         try:configfile = json.load(f)
         except:configfile = {}
 
     # Load contacts
-    with open("contacts.json") as f:
+    with open("contacts.json", encoding="utf-8") as f:
         try:contacts = json.load(f)
         except:contacts = {}
 
     # Load menus
-    with open("menus.json") as f:
+    with open("menus.json", encoding="utf-8") as f:
         try:menus = json.load(f)
         except:menus = {}
 
@@ -781,7 +792,8 @@ if __name__ == "__main__":
     app = Flask(__name__)
     minify(app=app, html=True, js=False, cssless=True, passive=True)
     Mobility(app) # Mobile features
-    CORS(app) # Behövs så att man kan skicka requests till serven (for some reason idk)
+    cors = CORS(app, resources={r"/API/*": {"origins": "*"}}) #CORS(app) # Behövs så att man kan skicka requests till serven (for some reason idk)
+    
     #endregion  
     #region Flask Routes
     [app.url_map.add(x) for x in (
@@ -1008,7 +1020,7 @@ if __name__ == "__main__":
         initDay = t['weekday3']
         initDarkMode = "null"
         darkModeSetting = 1
-        debugmode = False
+        debugmode = False # Not the actual debugmode, but the debug console window thingy
         privateURL = False
         saveIdToCookie = True
         mobileRequest = request.MOBILE
@@ -1110,6 +1122,8 @@ if __name__ == "__main__":
         return render_template(
             template_name_or_list="sodschema.html" if ignorehtmlmin else "min/sodschema.min.html",
             version=version,
+            limpMode=configfile['limpMode'],
+            DEBUGMODE=configfile['DEBUGMODE'],
             contacts=contacts,
             parseCode=parseCode,
             requestURL=requestURL,

@@ -5,3 +5,5 @@ flask_minify
 flask_mobility
 discord
 werkzeug
+feedparser
+numpy

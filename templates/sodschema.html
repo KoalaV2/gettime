@@ -164,7 +164,7 @@
 					<svg id="schedule"></svg>
 				</div>
 			</div>
-
+			
 			<!-- GDPR and cookies info div -->
 			<div id="text_cookies_info" class="text_box">
 				<h1>GetTime Cookie Policy</h1>
@@ -247,7 +247,7 @@
 			<div id="text_contact_info" class="text_box contact_info">
 
 				<h1>GetTime (v{{version}})</h1>
-				
+					
 				<br>
 
 				<h1>Kontaktinformation</h1>
@@ -345,40 +345,53 @@
 
 		{{parseCode}}
 
-		{% if debugmode %}
-			<!-- This code is for debugging and testing! !! DO NOT REMOVE !! -->
-			<script>
-				/* Code from https://tinyurl.com/4ectw2cz */
-				const origConsoleLog = console.log;
-				const logArr = [];
-				console.log = (...args) => {
-					origConsoleLog.apply(console, args);
-					logArr.push(args);
-				};
-				const logAll = () => {
-					origConsoleLog.call(console, logArr.join('\n'));
-				};
-				
-				/* Code from https://tinyurl.com/ybvdtuv7 */
-				window.onerror = function(msg, url, line, col, error) {
-					/* Note that col & error are new to the HTML 5 spec and may not be supported in every browser.  It worked for me in Chrome. */
-					var extra = !col ? '' : '\ncolumn: ' + col;
-					extra += !error ? '' : '\nerror: ' + error;
-					/* You can view the information in an alert to see things working like this: */
-					alert("Error: " + msg + "\nurl: " + url + "\nline: " + line + extra);
-					/* TODO: Report this error via ajax so you can keep track of what pages have JS issues */
-					var suppressErrorAlert = true;
-					/* If you return true, then error alerts (like in older versions of Internet Explorer) will be suppressed. */
-					return suppressErrorAlert;
-				};
+		<!-- All the code below is for debuging and error messages. DO NOT TOUCH -->
+		<div id="debug-div">
+			{% if debugmode %}
+				<script>
+					/* Code from https://tinyurl.com/4ectw2cz */
+					const origConsoleLog = console.log;
+					const logArr = [];
+					console.log = (...args) => {
+						origConsoleLog.apply(console, args);
+						logArr.push(args);
+					};
+					const logAll = () => {
+						origConsoleLog.call(console, logArr.join('\n'));
+					};
+					
+					/* Code from https://tinyurl.com/ybvdtuv7 */
+					window.onerror = function(msg, url, line, col, error) {
+						/* Note that col & error are new to the HTML 5 spec and may not be supported in every browser.  It worked for me in Chrome. */
+						var extra = !col ? '' : '\ncolumn: ' + col;
+						extra += !error ? '' : '\nerror: ' + error;
+						/* You can view the information in an alert to see things working like this: */
+						alert("Error: " + msg + "\nurl: " + url + "\nline: " + line + extra);
+						/* TODO: Report this error via ajax so you can keep track of what pages have JS issues */
+						var suppressErrorAlert = true;
+						/* If you return true, then error alerts (like in older versions of Internet Explorer) will be suppressed. */
+						return suppressErrorAlert;
+					};
 
-				console.log("THIS IS A DEBUG LOG<br><br>!!YOU CAN HIDE THIS BOX BY CLICKING IT!!<br>")
-				setInterval(function () {
-					document.getElementById("debuglog").innerHTML = logArr.join('<br>');
-				}, 1000);
-			</script>
-			<p id="debuglog" style="position: fixed;left: 0;bottom: 0;color: black; background: rgba(255,255,255,0.5);" onclick="$(this).hide();"></p>
-		{% endif %}
+					console.log("THIS IS A DEBUG LOG<br><br>!!YOU CAN HIDE THIS BOX BY CLICKING IT!!<br>")
+					setInterval(function () {
+						document.getElementById("debuglog").innerHTML = logArr.join('<br>');
+					}, 1000);
+				</script>
+				<p id="debuglog" onclick="$(this).hide();"></p>
+			{% endif %}
 
+			{% if limpMode or DEBUGMODE %}
+				<p id="errorMessage">
+					{% if limpMode %}
+						⚠ GETTIME IS IN LIMP MODE<br>
+					{% endif %}
+					{% if DEBUGMODE %}
+						⚠ GETTIME IS IN DEBUG MODE<br>
+					{% endif %}
+				</p>
+			{% endif %}
+		</div>
+		
 	</body>
 </html>

@@ -14,6 +14,7 @@ Changed:
   * Restructured some code for the URI manipulation
   * Moved cache settings to settings.json
   * Moved menus to menus.json
+  * Changed some debug features
 
 Fixed:
   * Fixed a bug where the Discord Bot would respond to any prefix that started with its own

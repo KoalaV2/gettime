@@ -477,3 +477,32 @@ a:hover{
     -ms-user-select: none;
     user-select: none;
 }
+
+/* DEBUG STUFF */
+#debug-div{
+	position: fixed;
+	left: 0px;
+	bottom: 0px;
+	margin: 0px;
+	z-index: 999999999;
+	display: flex;
+	align-items: flex-start;
+	justify-content: center;
+	flex-direction: column;
+}
+#debug-div *{
+	margin: 0px;
+}
+#debuglog{
+	color: black;
+	background-color: rgba(255,255,255,0.5);
+	max-width: 90vw;
+}
+#errorMessage{
+	z-index: 99999999999;
+	color: red !important;
+	-webkit-text-fill-color:red !important;
+	background-color: rgba(0,0,0,0.5);
+	padding: 10px;
+}
+/* DEBUG STUFF */

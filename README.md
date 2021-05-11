@@ -8,6 +8,7 @@ A schedule viewer for Skola24 compatible schools.
 ```json
 {
     "DEBUGMODE": false,
+    "limpMode": false,
     "ip": "0.0.0.0",
     "port": "5000",
     "logToFile": true,
@@ -27,6 +28,9 @@ A schedule viewer for Skola24 compatible schools.
 
 ### DEBUGMODE
 Enables or disables debug mode. This should always be set to `false` on the live server.
+
+### limpMode
+Enables or disables limp mode. This should always be set to `false` on the main server, but on any backup server, this should be true (All this does is shows an error message on the website, so that developers can tell if the main server is working)
 
 ### ip
 The IP address the server will run on.
