@@ -438,22 +438,19 @@ a:hover{
 }
 
 #scheduleBox{
+	/* transition: all .15s ease-in-out; */
 	position: fixed;
 	text-shadow: none;
 }
 #scheduleBox text{
 	font-family: 'JetBrains Mono', monospace;
 }
-.text-ClockAxisBox, .text-HeadingDay{
-	filter: drop-shadow(0px 0px 3px white);
-}
-.text-ClockFrameStart, .text-ClockFrameEnd{
-	filter: drop-shadow(0px 0px 3px black);
-}
-
 #scheduleBox rect:not(.rect-ClockFrameStart):not(.rect-ClockFrameEnd){
 	stroke: black;
 	stroke-width: 1;
+}
+#scheduleBLUR{
+	transition: all .15s ease-in-out;
 }
 
 #text_tricks a{
@@ -461,6 +458,7 @@ a:hover{
 }
 
 .errorBox{
+	transition: none !important;
 	position: absolute !important;
     top: 50% !important;
     left: 50% !important;
@@ -469,3 +467,42 @@ a:hover{
 .errorMessage{
 	font-family: "Rubik", sans-serif;
 }
+
+/* Code from https://stackoverflow.com/a/2310809 */
+.unselectable, #scheduleBox, .menu-option-text, #school-select-box, #school-select-box option{
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+/* DEBUG STUFF */
+#debug-div{
+	position: fixed;
+	left: 0px;
+	bottom: 0px;
+	margin: 0px;
+	z-index: 999999999;
+	display: flex;
+	align-items: flex-start;
+	justify-content: center;
+	flex-direction: column;
+}
+#debug-div *{
+	margin: 0px;
+}
+#debuglog{
+	color: black;
+	background-color: rgba(255,255,255,0.5);
+	max-width: 90vw;
+}
+#errorMessage{
+	z-index: 99999999999;
+	color: red !important;
+	-webkit-text-fill-color:red !important;
+	background-color: rgba(0,0,0,0.5);
+	padding: 10px;
+}
+/* DEBUG STUFF */

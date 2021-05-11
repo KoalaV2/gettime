@@ -5,12 +5,12 @@ function updateScheduleHTML(newHTML, errorMessage=false, justTheEnd=false){
 		trElement.removeChild(tdElement);
 		
 		if (errorMessage){
-			trElement.innerHTML = '<p id="schedule" class="errorMessage">' + newHTML + "</p>" + trElement.innerHTML;
 			$("#scheduleBox").addClass('errorBox');
+			trElement.innerHTML = '<p id="schedule" class="errorMessage">' + newHTML + "</p>" + trElement.innerHTML;
 		}
 		else{
-			trElement.innerHTML = newHTML + trElement.innerHTML;
 			$("#scheduleBox").removeClass('errorBox');
+			trElement.innerHTML = newHTML + trElement.innerHTML;
 		}
 	}
 
@@ -30,7 +30,8 @@ function updateScheduleHTML(newHTML, errorMessage=false, justTheEnd=false){
 
 function updateTimetable(_callback, ignoreSameURL=false){
 	console.log("updateTimetable was excecuted. " + ignoreSameURL);
-
+	//#region INIT
+	//#region fast returns
 	//If cookie information hasnt been closed then ignore this request.
 	if (readCookie("infoClosed") != "closed") {
 		if (ignorecookiepolicy){
@@ -48,8 +49,8 @@ function updateTimetable(_callback, ignoreSameURL=false){
 		textBoxOpen('#text_school_selector');
 		return;
 	}
-
-	//Prevent XSS
+	//#endregion
+	//#region Prevent XSS
 	let bannedCharacters = "<>/!@#$%^&*()=";
 	let idnumber = "";
 	let idnumberBeforeScan = $("#id-input-box").val();
@@ -63,31 +64,27 @@ function updateTimetable(_callback, ignoreSameURL=false){
 
 	//Updates the input boxes with the XSS cleaned input
 	$("#id-input-box").val(idnumber);
-	//$("#id-input-box2").val(idnumber);
+	//#endregion
 
 	checkIfIDTextFits();
 
 	width = $(window).width() + 6;
 	height = window.innerHeight + 2; // Sets height of schedule to the full screen size...
-	height -= $(".navbar").height(); //...minus the navigation bar at the top
-
-	if (idnumber.length > 0){
-		$("#background-roller").fadeIn("fast");
+	if (!hideNavbar){
+		height -= $(".navbar").height(); //...minus the navigation bar at the top
 	}
 
 	savePosition = $(".savebutton").offset();
 
+	$(".savedIDs").css("left", "auto");
+	$(".savedIDs").css("top", "auto");
 	if(width > 820){
 		$(".savedIDs").css("right", 0);
 		$(".savedIDs").css("top", 50);
-		$(".savedIDs").css("transform", "none");
 	}
-	else{
-		$(".savedIDs").css("left", "auto");
-		$(".savedIDs").css("top", "auto");
-		$(".savedIDs").css("transform", "none");
-	}
+	$(".savedIDs").css("transform", "none");
 
+	//#region Special cases/Secrets
 	if (idnumber.toLowerCase() == "its dangerous to go alone"){
 		textBoxOpen('#text_tricks');
 		return;
@@ -96,9 +93,11 @@ function updateTimetable(_callback, ignoreSameURL=false){
 		window.location.href = requestURL + "ඞ";
 		return;
 	}
-
+	//#endregion
+	//#endregion
 	if (idnumber.length > 0){
-		
+		$("#background-roller").fadeIn("fast");
+
 		let url = [
 			requestURL + 
 			'API/GENERATE_HTML?id=' + encodeURI(idnumber) + 
@@ -117,13 +116,18 @@ function updateTimetable(_callback, ignoreSameURL=false){
 		if (!ignoreSameURL){
 			if (url == oldURL){
 				console.log("URL and oldURL matched. Canceling...");
-				updateScheduleHTML("",justTheEnd=true);
+				$('#schedule').fadeIn(0);
+				$("#background-roller").fadeOut(0);
+				$('.arrow').removeClass('arrow-loading');
 				return;
 			}
 			else{
 				oldURL = url;
 			}
 		}
+
+		// Updates the button with the right week number
+		$(".arrow-center-text").text(week);
 
 		console.log("Requesting schedule with " + ( privateURL ? "private ID..." : "this url : " + url ))
 		let data = send_API_request(url); /* This code asks the server to generate a new schedule for you */
@@ -152,9 +156,6 @@ function updateTimetable(_callback, ignoreSameURL=false){
 
 			updateScheduleHTML(data['result']['html']);
 		}
-
-		// Updates the button with the right week number
-		$(".arrow-center-text").text(week);
 	}
 	else{
 		updateScheduleHTML("Inget ID skrivit", errorMessage=true);

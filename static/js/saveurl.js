@@ -18,6 +18,11 @@ function checkMyUrl(theID,className) {
 }
 
 function iWasClicked(theID,className){
+    if (document.getElementById('scheduleBox').classList.contains("menuBgBlur")){
+        console.log("iWasClicked() ran, but was stopped because scheduleBox was blurred (menu is opened)");
+        return;
+    }
+
     var parentBlock = $("#"+theID.toString());
     var cookieLoad = readCookie("URL_" + className);
     

@@ -21,13 +21,14 @@ function range(size, startAt = 0) {
 }
 
 // Code from https://tinyurl.com/j7axshp7
-function sleep(milliseconds,_callback){
+async function sleep(milliseconds,_callback){
 	const date = Date.now();
 	let currentDate = null;
 	do{
 	  	currentDate = Date.now();
 	}while (currentDate - date < milliseconds);
 	try{_callback();}catch{}
+	return "";
 }
 
 // Code from https://tinyurl.com/ttd83xe6

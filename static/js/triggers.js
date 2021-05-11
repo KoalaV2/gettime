@@ -9,6 +9,7 @@ $(window).on("load", function(){
     //update timetable to fit new window size
     var update_timetable_to_fit_new_window_size = debounce(function() {
         console.log("update timetable to fit new window size");
+        screenSize = [$(window).width(),$(window).height()];
         $("#schedule").fadeOut(500);
         updateMenuButtonsBasedOnSize();
         updateTimetable();
@@ -23,10 +24,10 @@ $(window).on("load", function(){
             updateTimetable();
         });
     }, 450);
-    $('#id-input-box').on('input', update_timetable_on_related_input)
+    $('#id-input-box').on('input', update_timetable_on_related_input);
 
     //If private ID, then this textbox shows up, so that the user can change the ID
-    var update_timetable_on_related_input = debounce(function() {
+    var update_timetable_on_related_input2 = debounce(function() {
         $("#schedule").fadeOut(500, function(){
             $('#id-input-box').val($('#id-input-box2').val());
 
@@ -42,7 +43,7 @@ $(window).on("load", function(){
             updateTimetable();
         });
     }, 450);
-    $('#id-input-box2').on('input', update_timetable_on_related_input)
+    $('#id-input-box2').on('input', update_timetable_on_related_input2);
 
     //blink arrow and go move week on timetable
     $(".arrow-left").on("click", function(){
@@ -121,10 +122,6 @@ $(window).on("load", function(){
     //update timetable on related button click
     $('#input-day').on('click', function() {
         console.log('update timetable on related button click');
-        // if ($("#input-day").is(':checked')){
-        // 	day = initDay;
-        // 	week = initWeek;
-        // }
         updateTimetable();
     });
 
@@ -134,7 +131,7 @@ $(window).on("load", function(){
     });
 
     // hide divs and remove focus from inputs when timetable is clicked
-    $('#schedule').on('click', function(){
+    $('#scheduleBox').on('click', function(){
         hideControls();
         $(".input-idnumber").blur();
         $(".savedIDs").fadeOut("fast");
@@ -177,34 +174,33 @@ $(window).on("load", function(){
             container.fadeOut("fast");
         }
     });
+
+    //Code from https://stackoverflow.com/a/1846733
+    document.onkeypress = function(evt) {
+        if (mobileRequest || document.activeElement == document.getElementById('id-input-box') || document.activeElement == document.getElementById('id-input-box2')){
+            return;
+        }
+        else
+        {
+            evt = evt || window.event;
+            var charCode = evt.keyCode || evt.which;
+            var charStr = String.fromCharCode(charCode);
+
+            if (charStr.toLowerCase() == "f"){
+                if (hideNavbar){
+                    f_showNavbar();
+                }
+                else{
+                    f_hideNavbar();
+                }
+            }
+        }
+    };
+
 });
-
-
 
 // //update timetable on related button click
 // $('#roundedMode').on('click', function() {
 // 	console.log('update timetable on related button click 2');
 // 	updateTimetable();
 // });
-
-// //Code from https://stackoverflow.com/a/1846733
-// document.onkeypress = function(evt) {
-// 	if (mobileRequest || document.activeElement == document.getElementById('id-input-box') || document.activeElement == document.getElementById('id-input-box2')){
-// 		return;
-// 	}
-// 	else
-// 	{
-// 		evt = evt || window.event;
-// 		var charCode = evt.keyCode || evt.which;
-// 		var charStr = String.fromCharCode(charCode);
-
-// 		if (charStr.toLowerCase() == "f"){
-// 			if (hideNavbar){
-// 				f_showNavbar();
-// 			}
-// 			else{
-// 				f_hideNavbar();
-// 			}
-// 		}
-// 	}
-// };

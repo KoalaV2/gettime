@@ -1,0 +1,44 @@
+{
+    "desktop": {
+        "normal": [
+            "dayMode",
+            "darkmode",
+            "food",
+            "generateSavableLink",
+            "generateQrCode",
+            "showSaved",
+            "contact"
+        ],
+        "private": [
+            "dayMode",
+            "darkmode",
+            "food",
+            "generateSavableLink",
+            "generateQrCode",
+            "mainPage",
+            "contact"
+        ]
+    },
+    "mobile": {
+        "normal": [
+            "dayMode",
+            "darkmode",
+            "food",
+            "generateSavableLink",
+            "generateQrCode",
+            "showSaved",
+            "changeSchool",
+            "contact"
+        ],
+        "private": [
+            "dayMode",
+            "darkmode",
+            "food",
+            "generateSavableLink",
+            "generateQrCode",
+            "mainPage",
+            "changeSchool",
+            "contact"
+        ]
+    }
+}
