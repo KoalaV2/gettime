@@ -1,4 +1,4 @@
-GetTime v1.0 | Discord Bot v1.0
+GetTime v1.0 | Discord Bot v1.0 | 2021-05-11
 
 Added:
   * Added a "!gt v" command to the Discord Bot, that simply states the current version of the bot
