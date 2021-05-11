@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-version = "GTM.1.0.1 BETA"
+version = "GTM.1.0.1.1 BETA"
 #region ASCII ART
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #               _   _   _                    __            _          _                             #
@@ -752,6 +752,7 @@ def init_Load():
         "getDataMaxAge": 300,
         "getFoodMaxAge": 3600
     }
+    configWasFine = True
     try:
         with open("settings.json", encoding="utf-8") as f:
             configfile = json.load(f)
@@ -759,27 +760,49 @@ def init_Load():
                 if not key in configfile:
                     toLogLater.append(("critical",f"THE KEY \"{key}\" IS MISSING FROM \"settings.json\"! USING DEFAULT VALUE ({default_template[key]})! ALL FEATURES MIGHT NOT BE WORKING AS INTENDED!"))
                     configfile[key] = default_template[key]
+                    configWasFine = False
     except Exception:
         toLogLater.append(("critical","UNABLE TO LOAD FROM \"settings.json\"! USING DEFAULT TEMPLATE! ALL FEATURES MIGHT NOT BE WORKING AS INTENDED!"))
         configfile = default_template
+        configWasFine = False
+    
+    if configWasFine:
+        toLogLater.append(("info","\"settings.json\" loaded without issues."))
 
     # Load contacts
-    with open("contacts.json", encoding="utf-8") as f:
-        try:contacts = json.load(f)
-        except:contacts = {}
+    
+    try:
+        with open("contacts.json", encoding="utf-8") as f:
+            contacts = json.load(f)
+        toLogLater.append(("info","\"contacts.json\" loaded without issues."))
+    except:
+        toLogLater.append(("critical","\"contacts.json\" did not load successfully. Please make sure the file exists."))
+        contacts = {}
 
     # Load menus
-    with open("menus.json", encoding="utf-8") as f:
-        try:menus = json.load(f)
-        except:menus = {}
+    try:
+        with open("menus.json", encoding="utf-8") as f:
+            menus = json.load(f)
+        toLogLater.append(("info","\"menus.json\" loaded without issues."))
+    except:
+        toLogLater.append(("critical","\"menus.json\" did not load successfully. Please make sure the file exists."))
+        menus = {}
 
     # Load schools file
-    with open("schools.json", encoding="utf-8") as f:
-        try:allSchools = json.load(f)
-        except:allSchools = {}
-    allSchoolsList = [allSchools[x] for x in allSchools] # Contains all the school objects, but in a list
-    allSchoolsNames = [x for x in allSchools] # Contains all the names, sorted by alphabetical order
-    allSchoolsNames.sort()
+    try:
+        with open("schools.json", encoding="utf-8") as f:
+            allSchools = json.load(f)
+        toLogLater.append(("info","\"schools.json\" loaded without issues."))
+    except:
+        toLogLater.append(("critical","\"schools.json\" did not load successfully. Please make sure the file exists."))
+        allSchools = {}
+    try:
+        allSchoolsList = [allSchools[x] for x in allSchools] # Contains all the school objects, but in a list
+        allSchoolsNames = [x for x in allSchools] # Contains all the names, sorted by alphabetical order
+        allSchoolsNames.sort()
+        toLogLater.append(("info","\"schools.json\" data was parsed successfully."))
+    except:
+        toLogLater.append(("critical","\"schools.json\" data was NOT parsed successfully. This is bad..."))
 
     return{
         'toLogLater':toLogLater,
@@ -813,10 +836,10 @@ if __name__ == "__main__":
         else:
             logFileName = f"logfile_{CurrentTime()['datestamp']}.log"
         logFileLocation = configfile['logFileLocation']
-        logging.info(f"From now on, logs will be found at '{logFileLocation+logFileName}'")
+        logging.info(f"Logging config loaded. From now on, logs will be found at '{logFileLocation+logFileName}'")
         SetLogging(path=logFileLocation,filename=logFileName)
     else:
-        logging.info("From now on, logging will continue in the console.")
+        logging.info("Logging config loaded. From now on, logging will continue in the console.")
 
     # Setup Flask
     app = Flask(__name__)
@@ -1398,6 +1421,11 @@ if __name__ == "__main__":
 
     # Makes it so that the cacheclearer runs at the same time (probably needs reworking)
     threading.Thread(target=cacheClearer, args=(), daemon=True).start()
+
+    if configfile['DEBUGMODE']:
+        logging.warning('"DEBUGMODE" is true. The server is not live... right?')
+    if configfile['limpMode']:
+        logging.warning('"limpMode" is true. This should be a backup server.')
     app.run(debug=configfile['DEBUGMODE'], host=configfile['ip'], port=configfile['port'], use_reloader=False) # Run website
 else:
     logging.info("main.py was imported")
