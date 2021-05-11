@@ -94,7 +94,7 @@ async def on_message(message):
 
         if userMessage[1].lower() in ('v', 'version'):
             return await EmbedMessage(
-                title=f"GetTimeBot (v.{version})",
+                title=f"GetTimeBot (v{version})",
                 description='*"Whats wrong with it this time"* / Tay'
             ).send(message.channel)
         if userMessage[1].lower() in ('reg','notify'):

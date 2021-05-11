@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-version = "GTM.1.0.0 BETA"
+version = "GTM.1.0.1 BETA"
 #region ASCII ART
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #               _   _   _                    __            _          _                             #
@@ -727,13 +727,41 @@ def init_Load():
     """
         This function loads in all of the external files (such as .json files)
     """
+    toLogLater = [] #Contains things to log after all the logging and such has been configured, to make sure it shows up in the logfile
+
     # Set working dir to path of main.py
     os.chdir(os.path.dirname(os.path.realpath(__file__))) 
 
     # Load config file
-    with open("settings.json", encoding="utf-8") as f:
-        try:configfile = json.load(f)
-        except:configfile = {}
+    default_template = { # Default template. Uses values from here when it cant be found in settings.json
+        "DEBUGMODE": False,
+        "limpMode": True,
+        "ip": "0.0.0.0",
+        "port": "5000",
+        "logToFile": True,
+        "logToSameFile": True,
+        "logFileLocation": "logs/",
+        "loggingFormat": "%(asctime)s %(levelname)10s %(funcName)15s() : %(message)s",
+        "mainLink": "http://0.0.0.0:5000/",
+        "key": "Default template",
+        "enableErrorHandler": True,
+        "discordKey": "Default template",
+        "discordPrefix": "!gt",
+        "discordRGB": [138,194,241],
+        "formLink": "",
+        "getDataMaxAge": 300,
+        "getFoodMaxAge": 3600
+    }
+    try:
+        with open("settings.json", encoding="utf-8") as f:
+            configfile = json.load(f)
+            for key in default_template:
+                if not key in configfile:
+                    toLogLater.append(("critical",f"THE KEY \"{key}\" IS MISSING FROM \"settings.json\"! USING DEFAULT VALUE ({default_template[key]})! ALL FEATURES MIGHT NOT BE WORKING AS INTENDED!"))
+                    configfile[key] = default_template[key]
+    except Exception:
+        toLogLater.append(("critical","UNABLE TO LOAD FROM \"settings.json\"! USING DEFAULT TEMPLATE! ALL FEATURES MIGHT NOT BE WORKING AS INTENDED!"))
+        configfile = default_template
 
     # Load contacts
     with open("contacts.json", encoding="utf-8") as f:
@@ -753,7 +781,8 @@ def init_Load():
     allSchoolsNames = [x for x in allSchools] # Contains all the names, sorted by alphabetical order
     allSchoolsNames.sort()
 
-    return {
+    return{
+        'toLogLater':toLogLater,
         'configfile':configfile,
         "allSchools":allSchools,
         "allSchoolsList":allSchoolsList,
@@ -762,6 +791,7 @@ def init_Load():
         "menus":menus
     }
 l = init_Load()
+toLogLater = l['toLogLater']
 configfile = l['configfile']
 allSchools = l['allSchools']
 allSchoolsList = l['allSchoolsList']
@@ -1364,8 +1394,10 @@ if __name__ == "__main__":
                 pass
             time.sleep(1)
 
+    for x in toLogLater:exec(f"logging.{x[0]}('{x[1]}')") # Logs all of the things that happend before logging was configured
+
     # Makes it so that the cacheclearer runs at the same time (probably needs reworking)
     threading.Thread(target=cacheClearer, args=(), daemon=True).start()
-    app.run(debug=configfile['DEBUGMODE'], host=configfile['ip'], port=configfile['port']) # Run website
+    app.run(debug=configfile['DEBUGMODE'], host=configfile['ip'], port=configfile['port'], use_reloader=False) # Run website
 else:
     logging.info("main.py was imported")

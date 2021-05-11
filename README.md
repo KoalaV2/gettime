@@ -14,6 +14,7 @@ A schedule viewer for Skola24 compatible schools.
     "logToFile": true,
     "logToSameFile": true,
     "logFileLocation": "logs/",
+    "loggingFormat": "%(asctime)s %(levelname)10s %(funcName)15s() : %(message)s",
     "mainLink": "http://0.0.0.0:5000/",
     "key": "",
     "enableErrorHandler": true,
@@ -46,6 +47,9 @@ If set to `true`, then it will create one log file, and overwrite it every time 
 
 ### logFileLocation
 Where the log files should go (Default is `"logs/"`)
+
+### loggingFormat
+The format that Python should log in.
 
 ### mainLink
 This is where you put the URL that the server will run on. (So for the live server it should be `"https://www.gettime.ga/"`, but if you are running it on your own computer for testing, then it should be the same as your IP:port with "http://" in front and "/" at the end) If this is not set correctly, then many features will break!
