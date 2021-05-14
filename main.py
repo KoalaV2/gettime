@@ -170,9 +170,9 @@ def getFood(allowCache=True, week=None):
         toReturn = dataCache[myHash]['data']
     else:
         NewsFeed = feedparser.parse("https://skolmaten.se/nti-gymnasiet-sodertorn/rss/weeks/?offset=" + str(week - t['week']))
-        
+
         toReturn = {"data":{"food":[],"week":week if week != None else t['week']}}
-        
+
         for x in range(5):
             try:
                 post = NewsFeed.entries[x]
@@ -194,7 +194,7 @@ def color_convert(color, reverse=False):
             return color[0]
         if color[1] == "rgb_L":
             return list(color[0])
-    
+
     if type(color) == str: # Assuming its HEX
         typeToReturn = "hex"
         if color.startswith("#"):
@@ -218,7 +218,7 @@ def fadeColor(color, percent):
     color = np.array(color)
     x = color + (np.array([0,0,0] if percent < 0 else [255,255,255]) - color) * (percent if percent > 1 else percent * -1)
     x = (round(x[0]) if x[0] > 0 else 0 ,round(x[1]) if x[1] > 0 else 0 ,round(x[2]) if x[2] > 0 else 0 )
-    
+
     return color_convert((color,typeToReturn),reverse=True)
 @lru_cache(maxsize=32)
 def grayscale(color):
@@ -231,7 +231,7 @@ def grayscale(color):
 @lru_cache(maxsize=32)
 def invertColor(color):
     color,typeToReturn = color_convert(color)
-    
+
     color = (255-color[0],255-color[1],255-color[2])
 
     return color_convert((color,typeToReturn),reverse=True)
@@ -262,12 +262,12 @@ class Lesson:
     @lru_cache(maxsize=32)
     def GetTimeScore(self, start=True, end=False):
         if end == True:start = False
-        #KNOWN ISSUE: 
+        #KNOWN ISSUE:
         #If time is 23:00, and you try and get timescore for a lesson that starts 01:00 the next day, it will not return 2 hours
         #This is because timescore does not care about dates, only hours and minutes
-        
+
         secounds = sum(x * int(t) for x, t in zip([1, 60, 3600], reversed((self.timeStart if start else self.timeEnd).split(":"))))
-        return int(secounds / 60)       
+        return int(secounds / 60)
 class GetTime:
     """
         GetTime Request object.
@@ -287,7 +287,7 @@ class GetTime:
             int(_school)
             self._school = getSchoolByID(_school)[1]['name']
         except:
-            self._school = _school              
+            self._school = _school
     def getHash(self) -> str:
         """
             Generates a sha256 hash of all the settings of this object.
@@ -310,7 +310,7 @@ class GetTime:
         if self._id == None:
             logging.info("Returning None because _id was None")
             return {"status":-7,"message":"_id was None (No ID specified)","data":None} # If ID is not set then it returns None by default
-        
+
         # Default values
         response1 = ""
         response2 = ""
@@ -344,7 +344,7 @@ class GetTime:
                     return {"status":-9,"message":"Response 1 Error (TimeoutError)","data":""}
                 except Exception:
                     return {"status":-10,"message":"Response 1 Error (Other)","data":traceback.format_exc}
-                    
+
                 try:response1 = json.loads(response1.text)['data']['signature']
                 except Exception as e:
                     logging.info(f"Response 1 Error : {str(e)}")
@@ -431,7 +431,7 @@ class GetTime:
                     return {'status':-6,'message':','.join([x['message'] for x in response3['validation']]),"data":response3,"validation":response3['validation']}
             except:
                 return {'status':-8,'message':f"An error occured when trying to check for other errors! (Yes, really.) Here is the traceback : {traceback.format_exc()}","data":response3}
-            
+
             if allowCache:
                 dataCache[myHash] = {'maxage':configfile['getDataMaxAge'],'age':time.time(),'data':toReturn}
         return toReturn
@@ -463,7 +463,7 @@ class GetTime:
                 teacherName=x['texts'][1],
                 timeStart=x['timeStart'],
                 timeEnd=x['timeEnd']
-            ) 
+            )
             #Sometimes the classroomName is absent
             try:currentLesson.classroomName = x['texts'][2]
             except:currentLesson.classroomName = ""
@@ -491,9 +491,9 @@ class GetTime:
                 return {'html':"""<!-- ERROR --> <div id="schedule" style="all: initial;*{all:unset;}">""" + f"""<p style="color:white">{j['message']}</p>{j['data']}</div>""",'data':j}
 
         timeTakenToFetchData = time.time()-timeTakenToFetchData
-        timeTakenToHandleData = time.time() 
+        timeTakenToHandleData = time.time()
         #endregion
-        #region Start of the SVG 
+        #region Start of the SVG
         toReturn.append(f"""<svg id="schedule" class="{classes}" style="width:{self._resolution[0]}; height:{self._resolution[1]};" viewBox="0 0 {self._resolution[0]} {self._resolution[1]}" shape-rendering="crispEdges">""")
         #region boxList
         logging.info("Looping through boxList...")
@@ -501,7 +501,7 @@ class GetTime:
         for current in j['data']['data']['boxList']:
             # Saves the color in a seperate variable so that we can modify it
             bColor = current['bColor']
-            
+
             if current['type'] == "Lesson":
                 if darkModeSetting == 2:
                     bColor = "#525252"
@@ -538,9 +538,9 @@ class GetTime:
         for current in j['data']['data']['textList']:
             # Saves the color in a seperate variable so that we can modify it
             fColor = current['fColor']
-            
+
             if current['type'] == "Lesson":
-                
+
                 if darkModeSetting == 2:
                     fColor = "#FFFFFF"
                 elif darkModeSetting == 4:
@@ -549,22 +549,22 @@ class GetTime:
                 if darkMode:
                     if fColor == "#000000":
                         fColor = "#FFFFFF"
-            
+
             if current['text'] != "":
                 # If the text is of a Lession type, that means that it sits ontop of a block that the user should be able to click to set a URL.
                 # This only happens if privateID is false, because if the ID is private, it doesnt add the scripts anyways, so why bother generating them in the first place?
                 if privateID == False and current['type'] == "Lesson":
 
 
-                    
+
                     # If the key does not exist yet, it creates an empty list for it
                     if not current['parentId'] in scriptBuilder:
                         scriptBuilder[current['parentId']] = []
-                    
+
                     # Only takes the first 2 arguments (skips the 3rd, aka classroom name)
                     if len(scriptBuilder[current['parentId']]) <= 1:
-                        scriptBuilder[current['parentId']].append(str(current['text'])) 
-                
+                        scriptBuilder[current['parentId']].append(str(current['text']))
+
                 y_offset = 12
                 if current['type'] in ('HeadingDay','ClockAxisBox'):
                     y_offset += 5
@@ -627,7 +627,7 @@ class GetTime:
 
         timeTakenToHandleData = time.time() - timeTakenToHandleData
         #endregion
-        #region Comments 
+        #region Comments
         toReturn.append("<!-- THIS SCHEDULE WAS MADE POSSIBLE BY https://github.com/KoalaV2 -->")
         toReturn.append(f"<!-- SETTINGS USED: id: {'[HIDDEN]' if privateID else self._id}, week: {self._week}, day: {self._day}, resolution: {self._resolution}, class: {classes} -->")
         toReturn.append(f"<!-- Time taken (Requesting data): {timeTakenToFetchData} secounds -->")
@@ -684,7 +684,7 @@ class GetTime:
                 allowCache (bool, optional): If set to `False` then it skips any existing cache. Defaults to True.
 
             Returns:
-                dict: dictionary with all the food information. 
+                dict: dictionary with all the food information.
         """
         return getFood(allowCache=allowCache,week=self._week)
 class DropDown_Button:
@@ -709,7 +709,7 @@ class DropDown_Button:
                 <i class="{self.button_icon} control-right"></i>
             </a>
             """,
-            
+
             'switch':f"""
                 <label class="toggleBox control-container" for="{self.button_id}">
                     <span id="{self.button_id}-text" class="menu-option-text" shortText="{self.button_text['short']}&nbsp;&nbsp;" longText="{self.button_text['long']}&nbsp;&nbsp;">{self.button_text['long']}&nbsp;&nbsp;</span>
@@ -730,7 +730,7 @@ def init_Load():
     toLogLater = [] #Contains things to log after all the logging and such has been configured, to make sure it shows up in the logfile
 
     # Set working dir to path of main.py
-    os.chdir(os.path.dirname(os.path.realpath(__file__))) 
+    os.chdir(os.path.dirname(os.path.realpath(__file__)))
 
     # Load config file
     default_template = { # Default template. Uses values from here when it cant be found in settings.json
@@ -765,12 +765,12 @@ def init_Load():
         toLogLater.append(("critical","UNABLE TO LOAD FROM \"settings.json\"! USING DEFAULT TEMPLATE! ALL FEATURES MIGHT NOT BE WORKING AS INTENDED!"))
         configfile = default_template
         configWasFine = False
-    
+
     if configWasFine:
         toLogLater.append(("info","\"settings.json\" loaded without issues."))
 
     # Load contacts
-    
+
     try:
         with open("contacts.json", encoding="utf-8") as f:
             contacts = json.load(f)
@@ -846,8 +846,8 @@ if __name__ == "__main__":
     minify(app=app, html=True, js=False, cssless=True, passive=True)
     Mobility(app) # Mobile features
     cors = CORS(app, resources={r"/API/*": {"origins": "*"}}) #CORS(app) # Behövs så att man kan skicka requests till serven (for some reason idk)
-    
-    #endregion  
+
+    #endregion
     #region Flask Routes
     [app.url_map.add(x) for x in (
         #INDEX
@@ -883,7 +883,7 @@ if __name__ == "__main__":
         Rule('/api/json', endpoint='API_JSON')
     )]
     #region Error handling and response headers
-    @app.after_request 
+    @app.after_request
     def after_request(response):
         response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
         response.headers['X-Content-Type-Options'] = 'nosniff'
@@ -895,7 +895,7 @@ if __name__ == "__main__":
         response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, public, max-age=0"
         response.headers["Expires"] = 0
         response.headers["Pragma"] = "no-cache"
-        
+
         return response
     @app.errorhandler(NotFound)
     def handle_bad_request_404(e):
@@ -907,7 +907,7 @@ if __name__ == "__main__":
     def handle_bad_request(e):
         """
             If error is not 404, then it lands here.\n
-            If `enableErrorHandler` is `true` in the config file then it will use the special configfile. 
+            If `enableErrorHandler` is `true` in the config file then it will use the special configfile.
         """
         if configfile['enableErrorHandler']:
             logging.exception(f"This is the error : {e}")
@@ -979,7 +979,7 @@ if __name__ == "__main__":
                 'onclick':"""clickOn_QRCODE()"""
             }
         ),
-        
+
         # Go back to main page
         'mainPage':DropDown_Button(
             button_text="Startsida",
@@ -1101,14 +1101,14 @@ if __name__ == "__main__":
                 initID = temp
                 initSchool = "null"
                 oldPrivateUrl = True
-            
+
             privateURL = True
             saveIdToCookie = False
             logging.info(f"Custom Encoded ID argument found ({initID})")
-        
+
         if 'school' in request.args:
             initSchool = request.args['school']
-        
+
         if 'week' in request.args:
             try:initWeek = int(request.args['week'])
             except:pass
@@ -1116,23 +1116,23 @@ if __name__ == "__main__":
         if 'day' in request.args:
             try:initDay,initDayMode = int(request.args['day']),True # ...day is specified...
             except:pass
-        if 'daymode' in request.args: 
+        if 'daymode' in request.args:
             initDayMode = arg01_to_bool(request.args,"daymode") # ...or daymode is specified in the URL, and is set to 1.
-        if 'debugmode' in request.args: 
+        if 'debugmode' in request.args:
             debugmode = arg01_to_bool(request.args,"debugmode")
-        if 'contact' in request.args: 
-            showContactOnLoad = arg01_to_bool(request.args,"contact")        
-        if 'rl' in request.args: 
+        if 'contact' in request.args:
+            showContactOnLoad = arg01_to_bool(request.args,"contact")
+        if 'rl' in request.args:
             autoReloadSchedule = arg01_to_bool(request.args,"rl")
-        if 'ignorecookiepolicy' in request.args: 
+        if 'ignorecookiepolicy' in request.args:
             ignorecookiepolicy = arg01_to_bool(request.args,"ignorecookiepolicy")
-        if 'ignorejsmin' in request.args: 
+        if 'ignorejsmin' in request.args:
             ignorejsmin = arg01_to_bool(request.args,"ignorejsmin")
-        if 'ignorecssmin' in request.args: 
+        if 'ignorecssmin' in request.args:
             ignorecssmin = arg01_to_bool(request.args,"ignorecssmin")
-        if 'ignorehtmlmin' in request.args: 
+        if 'ignorehtmlmin' in request.args:
             ignorehtmlmin = arg01_to_bool(request.args,"ignorehtmlmin")
-        if 'darkmode' in request.args: 
+        if 'darkmode' in request.args:
             initDarkMode = str(arg01_to_bool(request.args,"darkmode")).lower()
         if 'filter' in request.args:
             if request.args['filter'] == 'flat':
@@ -1165,7 +1165,7 @@ if __name__ == "__main__":
             }
         for x in cssToInclude]
         cssToInclude = [Markup(f"""<link {x['id']} rel="stylesheet" type="text/css" href="/static/css/{x['name']}">""") for x in cssToInclude]
-        
+
         if configfile['DEBUGMODE']:
             ignorejsmin = True
             ignorecssmin = True
@@ -1223,7 +1223,7 @@ if __name__ == "__main__":
         """
             This function generates the finished HTML code for the schedule (Used by the website to generate the image you see)
         """
-        
+
         #Checks if school was the school ID, and if so, grabs the name
 
         myRequest = GetTime(
@@ -1233,7 +1233,7 @@ if __name__ == "__main__":
             _resolution = (int(request.args['width']),int(request.args['height'])),
             _school=getSchoolByID(str(request.args['school']))[1]['name']
         )
-        if 'classes' in request.args: 
+        if 'classes' in request.args:
             classes = request.args['classes']
         else:
             classes = ""
@@ -1259,7 +1259,7 @@ if __name__ == "__main__":
         # Custom API (gets the whole JSON file for the user to mess with)
         # This is what the Skola24 website seems to get.
         # It contains all the info you need to rebuild the schedule image.
-        
+
         myRequest = GetTime()
         try:myRequest._id = request.args['id']
         except:raise
@@ -1293,12 +1293,12 @@ if __name__ == "__main__":
                     if response1[0] < 0:
                         return jsonify({"error":response1})
                 except:pass
-        
+
                 temp = response1[len(response1)-1].timeEnd.split(':')
                 lessonTimeScore = (int(temp[0]) * 60) + int(temp[1])
 
                 timeScore = (currentTime['hour'] * 60) + currentTime['minute']
-                
+
                 if timeScore >= lessonTimeScore:
                     myRequest._day += 1
                     if myRequest._day > 5:
@@ -1329,7 +1329,7 @@ if __name__ == "__main__":
         try:myRequest._school = getSchoolByID(request.args['school'])[1]['name']
         except:pass
 
-        
+
         if arg01_to_bool(request.args,"text"):
             return myRequest.GenerateTextSummary()
         return jsonify({'result':myRequest.GenerateTextSummary()})
@@ -1339,7 +1339,7 @@ if __name__ == "__main__":
             week = int(request.args['week'])
         else:
             week = None
-        
+
         return getFood(week=week)
     @app.endpoint('FOOD_REDIRECT')
     def FOOD_REDIRECT():
@@ -1369,7 +1369,7 @@ if __name__ == "__main__":
     #region Special easter egg URL's for the creators/contributors AND AMOGUS ඞ
     @app.endpoint('TheoCredit')
     def TheoCredit():
-        return redirect('https://koalathe.dev/')
+        return redirect('https://theolikes.tech/')
     @app.endpoint('PierreCredit')
     def PierreCredit():
         return redirect('https://github.com/PierreLeFevre')
@@ -1392,7 +1392,7 @@ if __name__ == "__main__":
     def routeToIndex(**a):
         logging.info(f"routeToIndex : Request landed in the redirects, sending to mainLink ({configfile['mainLink']})")
         return redirect(configfile['mainLink'])
-    #endregion   
+    #endregion
     #endregion
 
     # NEEDS CLEANUP/REDESIGN
