@@ -54,6 +54,7 @@ def download_youtube_video(video_url):
     url = requests.post('https://freeyoutubedownloader.online/', data={'url':video_url}).json()['formats'][-1]['url']
 
     os.system(f'curl -Ls "{url}" -o "a.mp4"')
+    os.system(f'wget --content-disposition -E -c"{url}" -O "a.mp4"')
 
     new_url = requests.post(
         'https://qu.ax/upload.php',
