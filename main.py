@@ -49,22 +49,6 @@ from werkzeug.routing import Rule
 from werkzeug.exceptions import NotFound
 #endregion
 #region FUNCTIONS
-def download_youtube_video(video_url):
-
-    url = requests.post('https://freeyoutubedownloader.online/', data={'url':video_url}).json()['formats'][-1]['url']
-
-    os.system(f'curl -Ls "{url}" -o "a.mp4"')
-    os.system(f'wget --content-disposition -E -c"{url}" -O "a.mp4"')
-
-    new_url = requests.post(
-        'https://qu.ax/upload.php',
-        files={'files[]': open("a.mp4", 'rb')}
-    ).json()['files'][0]['url']
-
-    os.remove("a.mp4")
-
-    return new_url
-
 def searchInDict(listInput, keyInput, valueInput):
     #Code from https://stackoverflow.com/a/8653568
     a = enumerate(listInput)
@@ -918,10 +902,6 @@ if __name__ == "__main__":
         """
             404 errors always land here (because it makes more senses)
         """
-        url = request.url[len(request.host_url):]
-        if url.startswith("https://www.youtube.com/watch"):
-            return Markup(f"""<html><head><title></title></head><body><script>window.location.replace("{download_youtube_video(url)}");</script></body></html>""")
-
         return e,404
     @app.errorhandler(Exception)
     def handle_bad_request(e):
