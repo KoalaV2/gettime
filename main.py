@@ -249,6 +249,7 @@ def global_time_argument_handler(request):
         Returns:
             `dict` object with `initDayMode`, `initWeek`, `initYear` and `initDay`
     """
+
     t = CurrentTime()
     initDayMode = None
     initWeek = t['week2']
@@ -303,21 +304,21 @@ def global_time_argument_handler(request):
         
         initYear = d.year
         initWeek = d.isocalendar()[1]
-    else:
-        # Fix values
-        while initDay > 5:
-            initDay -= 5
-            initWeek += 1
-        while initDay < 0:
-            initDay += 5
-            initWeek -= 1
 
-        while initWeek < 0:
-            initYear -= 1
-            initWeek += 52
-        while initWeek > 52:
-            initYear += 1
-            initWeek -= 52
+    # Fix values
+    while initDay > 5:
+        initDay -= 5
+        initWeek += 1
+    while initDay < 0:
+        initDay += 5
+        initWeek -= 1
+
+    while initWeek < 0:
+        initYear -= 1
+        initWeek += 52
+    while initWeek > 52:
+        initYear += 1
+        initWeek -= 52
 
     return {
         "initDayMode": initDayMode,
@@ -548,16 +549,27 @@ class GetTime:
             raise e
 
         for x in response['data']['data']['lessonInfo']:
-            currentLesson = Lesson(
-                lessonName=x['texts'][0],
-                teacherName=x['texts'][1],
-                timeStart=x['timeStart'],
-                timeEnd=x['timeEnd']
-            )
-            #Sometimes the classroomName is absent
-            try:currentLesson.classroomName = x['texts'][2]
-            except:currentLesson.classroomName = ""
-            toReturn.append(currentLesson)
+            try:
+                currentLesson = Lesson()
+                
+                try:currentLesson.lessonName=x['texts'][0]
+                except:pass
+                try:currentLesson.teacherName=x['texts'][1]
+                except:pass
+                try:currentLesson.timeStart=x['timeStart']
+                except:pass
+                try:currentLesson.timeEnd=x['timeEnd']
+                except:pass
+
+                #Sometimes the classroomName is absent
+                try:currentLesson.classroomName = x['texts'][2]
+                except:currentLesson.classroomName = ""
+
+                if currentLesson.classroomName == "":
+                    currentLesson.classroomName = None
+                
+                toReturn.append(currentLesson)
+            except:pass
         toReturn.sort(key=attrgetter('timeStart'))
         return toReturn
     def handleHTML(self, classes="", privateID=False, allowCache=True, darkMode=False, darkModeSetting=1, isMobile=False) -> dict:
