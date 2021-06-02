@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-version = "GTM.1.0.1.1 BETA"
+version = "GTM.1.0.2 BETA"
 #region ASCII ART
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #               _   _   _                    __            _          _                             #
@@ -235,6 +235,113 @@ def invertColor(color):
     color = (255-color[0],255-color[1],255-color[2])
 
     return color_convert((color,typeToReturn),reverse=True)
+def global_time_argument_handler(request, handle_overflow=True):
+    """
+        Handles all time related arguments.
+
+        This function handles date overflow (if week is 53, it sets the 
+        week to 1 and adds one year instead)
+
+        It also handles offset operators (`<` and `>`)
+
+        Takes:
+            `request` object
+        Returns:
+            `dict` object with `initDayMode`, `initWeek`, `initYear` and `initDay`
+    """
+
+    t = CurrentTime()
+    initDayMode = None
+    initDayModeWasForced = False
+    initWeek = t['week2']
+    initYear = t['year']
+    initDay = t['weekday3']
+    initDateWasSet = False
+    initDateActualWeekday = None
+
+    if 'day' in request.args:
+        if request.args['day'].startswith(">"):
+            try:
+                initDay = t['weekday3'] + int(request.args['day'][1:])
+                initDayMode = True
+            except:pass
+        elif request.args['day'].startswith("<"):
+            try:
+                initDay = t['weekday3'] - int(request.args['day'][1:])
+                initDayMode = True
+            except:pass
+        else:
+            try:
+                initDay = int(request.args['day'])
+                initDayMode = True
+            except:pass
+    if 'week' in request.args:
+        if request.args['week'].startswith(">"):
+            try:initWeek = t['week'] + int(request.args['week'][1:])
+            except:pass
+        elif request.args['week'].startswith("<"):
+            try:initWeek = t['week'] - int(request.args['week'][1:])
+            except:pass
+        else:
+            try:initWeek = int(request.args['week'])
+            except:pass
+    if 'year' in request.args:
+        if request.args['year'].startswith(">"):
+            try:initYear = t['year'] + int(request.args['year'][1:])
+            except:pass
+        elif request.args['year'].startswith("<"):
+            try:initYear = t['year'] - int(request.args['year'][1:])
+            except:pass
+        else:
+            try:initYear = int(request.args['year'])
+            except:pass
+    if 'date' in request.args:
+        initDateWasSet = True
+        try:
+            if request.args['date'].count("-") == 0:
+                d = datetime.datetime.strptime(f"{request.args['date']}-{t['month']}-{t['year']}", '%d-%m-%Y')
+            elif request.args['date'].count("-") == 1:
+                d = datetime.datetime.strptime(f"{request.args['date']}-{t['year']}", '%d-%m-%Y')
+            elif request.args['date'].count("-") == 2:
+                d = datetime.datetime.strptime(request.args['date'], '%d-%m-%Y')
+            
+            initDayMode = True
+            initDay = d.weekday() + 1
+            initDateActualWeekday = d.weekday() + 1
+        except:
+            d = datetime.datetime.strptime(request.args['date'], '%Y-%m')
+        
+        initYear = d.year
+        initWeek = d.isocalendar()[1]
+    if 'daymode' in request.args:
+        initDayMode = arg01_to_bool(request.args,"daymode")
+        initDayModeWasForced = True
+
+    # Fix values
+    if handle_overflow:
+        while initDay > 5:
+            initDay -= 5
+            initWeek += 1
+        while initDay < 0:
+            initDay += 5
+            initWeek -= 1
+
+        while initWeek < 0:
+            initYear -= 1
+            initWeek += 52
+        while initWeek > 52:
+            initYear += 1
+            initWeek -= 52
+
+    return{
+        "initDayMode": initDayMode,
+        "initDayModeWasForced":initDayModeWasForced, # Is true if 'daymode' was specified in the URL (gets prio over everything)
+        "initWeek": initWeek,
+        "initYear": initYear,
+        "initDay": initDay,
+        "initDateWasSet":initDateWasSet, # Is true if a date was specified
+        "initDateActualWeekday":initDateActualWeekday
+    }
 #endregion
 #region CLASSES
 class HTMLObject:
@@ -458,16 +565,27 @@ class GetTime:
             raise e
 
         for x in response['data']['data']['lessonInfo']:
-            currentLesson = Lesson(
-                lessonName=x['texts'][0],
-                teacherName=x['texts'][1],
-                timeStart=x['timeStart'],
-                timeEnd=x['timeEnd']
-            )
-            #Sometimes the classroomName is absent
-            try:currentLesson.classroomName = x['texts'][2]
-            except:currentLesson.classroomName = ""
-            toReturn.append(currentLesson)
+            try:
+                currentLesson = Lesson()
+                
+                try:currentLesson.lessonName=x['texts'][0]
+                except:pass
+                try:currentLesson.teacherName=x['texts'][1]
+                except:pass
+                try:currentLesson.timeStart=x['timeStart']
+                except:pass
+                try:currentLesson.timeEnd=x['timeEnd']
+                except:pass
+
+                #Sometimes the classroomName is absent
+                try:currentLesson.classroomName = x['texts'][2]
+                except:currentLesson.classroomName = ""
+
+                if currentLesson.classroomName == "":
+                    currentLesson.classroomName = None
+                
+                toReturn.append(currentLesson)
+            except:pass
         toReturn.sort(key=attrgetter('timeStart'))
         return toReturn
     def handleHTML(self, classes="", privateID=False, allowCache=True, darkMode=False, darkModeSetting=1, isMobile=False) -> dict:
@@ -921,7 +1039,7 @@ if __name__ == "__main__":
             return render_template('error.html',message="\n".join(errorMessage))
         else:
             raise e
-    #endregion
+    #endregion 
     #region INDEX
     buttons = {
         # Redirect to school lunch link
@@ -1068,9 +1186,6 @@ if __name__ == "__main__":
         hideNavbar = False
         initID = ""
         initSchool = None #If set to "null" then it will ALWAYS ask what shcool it should use
-        initDayMode = False
-        initWeek = t['week2']
-        initDay = t['weekday3']
         initDarkMode = "null"
         darkModeSetting = 1
         debugmode = False # Not the actual debugmode, but the debug console window thingy
@@ -1088,6 +1203,21 @@ if __name__ == "__main__":
         oldPrivateUrl = False
         #endregion
         #region Check parameters
+
+        d = global_time_argument_handler(request)
+        initDayMode = d['initDayMode']
+        initWeek = d['initWeek']
+        initYear = d['initYear']
+        initDay = d['initDay']
+
+        if not d['initDayModeWasForced']:
+            # If date was specified, and it was a sunday/saturday, then show the whole schedule
+            if d['initDateWasSet'] and d['initDateActualWeekday'] > 5:
+                initDay = 1
+                initDayMode = False
+            elif initDayMode == None:
+                initDayMode = mobileRequest
+        
         if 'id' in request.args:
             initID = request.args['id']
             saveIdToCookie = False
@@ -1108,16 +1238,6 @@ if __name__ == "__main__":
 
         if 'school' in request.args:
             initSchool = request.args['school']
-
-        if 'week' in request.args:
-            try:initWeek = int(request.args['week'])
-            except:pass
-        initDayMode = mobileRequest # initDayMode is True by default if the request is a mobile request unless...
-        if 'day' in request.args:
-            try:initDay,initDayMode = int(request.args['day']),True # ...day is specified...
-            except:pass
-        if 'daymode' in request.args:
-            initDayMode = arg01_to_bool(request.args,"daymode") # ...or daymode is specified in the URL, and is set to 1.
         if 'debugmode' in request.args:
             debugmode = arg01_to_bool(request.args,"debugmode")
         if 'contact' in request.args:
@@ -1142,6 +1262,8 @@ if __name__ == "__main__":
             if request.args['filter'] == 'invert':
                 darkModeSetting = 4
         hideNavbar = 'fullscreen' in request.args
+
+
 
         dropDownButtons = [buttons[x].render() for x in (menus['mobile' if mobileRequest else 'desktop']['private' if privateURL else 'normal'])]
 
@@ -1171,7 +1293,7 @@ if __name__ == "__main__":
             ignorecssmin = True
             ignorehtmlmin = True
         #endregion
-
+        
         return render_template(
             template_name_or_list="sodschema.html" if ignorehtmlmin else "min/sodschema.min.html",
             version=version,
@@ -1184,6 +1306,7 @@ if __name__ == "__main__":
             initSchool=initSchool,
             initDayMode=initDayMode,
             initWeek=initWeek,
+            initYear=initYear,
             initDay=initDay,
             initDarkMode=initDarkMode,
             debugmode=debugmode,
@@ -1231,7 +1354,8 @@ if __name__ == "__main__":
             _week = int(request.args['week']),
             _day = int(request.args['day']),
             _resolution = (int(request.args['width']),int(request.args['height'])),
-            _school=getSchoolByID(str(request.args['school']))[1]['name']
+            _school=getSchoolByID(str(request.args['school']))[1]['name'],
+            _year=int(request.args['year'])
         )
         if 'classes' in request.args:
             classes = request.args['classes']
@@ -1260,30 +1384,27 @@ if __name__ == "__main__":
         # This is what the Skola24 website seems to get.
         # It contains all the info you need to rebuild the schedule image.
 
-        myRequest = GetTime()
-        try:myRequest._id = request.args['id']
-        except:raise
-        try:myRequest._week = request.args['week']
-        except:pass
-        try:myRequest._day = request.args['day']
-        except:pass
-        try:myRequest._school = getSchoolByID(request.args['school'])[1]['name']
-        except:pass
-        try:myRequest._resolution = request.args['res'].split(",")
-        except:pass
+        d = global_time_argument_handler(request)
+
+        myRequest = GetTime(
+            _id=request.args['id'],
+            _week=d['initWeek'],
+            _day=d['initDay'],
+            _year=d['initYear'],
+            _school=getSchoolByID(request.args['school'])[1]['name']
+        )
         return jsonify(myRequest.getData())
     @app.endpoint('API_SIMPLE_JSON')
     def API_SIMPLE_JSON():
-        myRequest = GetTime()
         currentTime = CurrentTime()
-        try:myRequest._id = request.args['id']
-        except:raise
-        try:myRequest._week = int(request.args['week'])
-        except:myRequest._week = currentTime['week2']
-        try:myRequest._day = int(request.args['day'])
-        except:myRequest._day = currentTime['weekday3']
-        try:myRequest._school = getSchoolByID(request.args['school'])[1]['name']
-        except:pass
+        d = global_time_argument_handler(request)
+        myRequest = GetTime(
+            _id=request.args['id'],
+            _week=d['initWeek'],
+            _day=d['initDay'],
+            _year=d['initYear'],
+            _school=getSchoolByID(request.args['school'])[1]['name']
+        )
 
         try:
             # Mode 1 checks if the last lesson has ended for the day, and if so, it goes to the next day
@@ -1314,22 +1435,18 @@ if __name__ == "__main__":
                     myRequest._day = 1
                     myRequest._week += 1
         except:pass
+
         return jsonify(myRequest.GenerateLessonJSON())
     @app.endpoint('API_TERMINAL_SCHEDULE')
     def API_TERMINAL_SCHEDULE():
-        myRequest = GetTime()
-        currentTime = CurrentTime()
-
-        try:myRequest._id = request.args['id']
-        except:raise
-        try:myRequest._week = int(request.args['week'])
-        except:myRequest._week = currentTime['week2']
-        try:myRequest._day = int(request.args['day'])
-        except:myRequest._day = currentTime['weekday3']
-        try:myRequest._school = getSchoolByID(request.args['school'])[1]['name']
-        except:pass
-
-
+        d = global_time_argument_handler(request)
+        myRequest = GetTime(
+            _id=request.args['id'],
+            _week=d['initWeek'],
+            _day=d['initDay'],
+            _year=d['initYear'],
+            _school=getSchoolByID(request.args['school'])[1]['name']
+        )
         if arg01_to_bool(request.args,"text"):
             return myRequest.GenerateTextSummary()
         return jsonify({'result':myRequest.GenerateTextSummary()})
@@ -1343,7 +1460,6 @@ if __name__ == "__main__":
         return getFood(week=week)
     @app.endpoint('FOOD_REDIRECT')
     def FOOD_REDIRECT():
-        request.args["school"]
         try:
             b = searchInDict(allSchoolsList,'id',int(request.args["school"]))
             flink = allSchoolsList[b]

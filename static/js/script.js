@@ -1,5 +1,6 @@
 var urlArguments = {};
 var week;
+var year = initYear;
 var day = initDay;
 var darkmode = initDarkMode;
 var hideNavbar = initHideNavbar;

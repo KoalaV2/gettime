@@ -62,6 +62,10 @@ $(window).on("load", function(){
                 week -= 1;
                 //UpdateEntryInUrlArguments('week',week);
             }
+            while (week < 1){
+                week += 52;
+                year -= 1;
+            };
             $(".input-week").val(week);
             updateTimetable();
         });
@@ -75,6 +79,7 @@ $(window).on("load", function(){
                 $('#input-day').prop('checked', false);
             }
             week = new Date().getWeek() - 1;
+            year = new Date().getFullYear();
             $(".input-week").val(initWeek);
             console.log("blink arrow and go move week on timetable");
             updateTimetable(null,true);
@@ -98,6 +103,10 @@ $(window).on("load", function(){
                 week += 1;
                 //UpdateEntryInUrlArguments('week',week);
             }
+            while (week > 52){
+                week -= 52;
+                year += 1;
+            };
             $(".input-week").val(week);
             updateTimetable();			
         });

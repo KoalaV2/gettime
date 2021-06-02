@@ -103,6 +103,7 @@ function updateTimetable(_callback, ignoreSameURL=false){
 			'API/GENERATE_HTML?id=' + encodeURI(idnumber) + 
 			"&day=" + ($("#input-day").is(':checked') ? day : 0) + 
 			"&week=" + week + 
+			"&year=" + year +
 			"&width=" + width + 
 			"&height=" + height + 
 			"&privateID=" + (privateURL ? "1" : "0") + 
