@@ -248,10 +248,27 @@
 			<div id="text_contact_info" class="text_box contact_info">
 
 				<h1>GetTime (v{{version}})</h1>
-					
-				<br>
 
-				<h1>Kontaktinformation</h1>
+				<p>
+					GetTime är en schemaläsare som funkar på alla skolor som använder Skola24.
+					GetTime är helt gratis att använda, och är skapat av elever, för elever.
+
+					<br>
+
+					Ditt ID sparas i en <a href="https://sv.wikipedia.org/wiki/Webbkaka" target="_blank">cookie</a>, så att du aldrig behöver skriva
+					in den igen. Alla IDs som funkar på Skola24 funkar på GetTime.
+
+					<br><br>
+
+					GetTime har även ett eget API, så att man kan skapa sina egna schemaläsarprojekt!
+					Med vårat API kan du hämta all information som du kan se på vår sida, och använda den i ditt program!
+
+					<br>
+
+					Läs mer om vårat API <a href="https://github.com/KoalaV2/gettime/blob/main/README.md" target="_blank">här</a>!
+				</p>
+
+				<br>
 
 				<h2>Hittat en bug?</h2>
 				<p>Skicka gärna buggar och fel som du hittat till <a href="mailto:issues@gettime.ga">issues@gettime.ga</a></p>
@@ -259,7 +276,6 @@
 				<br>
 
 				<h2>Här kan du kontakta skaparna av GetTime:</h2>
-
 				{% for x in contacts %}
 					<h3>{{x['name']}}</h3>
 					{% if x['info'] != "" and x['info'] != None %}
@@ -277,8 +293,22 @@
 					</ul>
 				{% endfor %}
 
+				<br>
+
+				<h2>Donera till GetTime</h2>
+				<p>
+					Du kan donera till GetTimes skapare via:
+					<br><br>
+
+					<a href="https://paypal.me/pools/c/8zZdvTNIlu" target="_blank">PayPal</a>
+					<br>
+					BTC : 33qHgzrBfCh2Tyq2YgkTsB5PwqK8n69J2E
+					<br>
+					ETH : 0x2E838573c2e26e0Bd4B2626F45D9D5bd01189F7d				
+				</p>
+
 				<!-- Go back button -->
-				<span onclick="textBoxClose('#text_contact_info')" class="text_box_close">Gå tillbaka</span>
+				<span onclick="textBoxClose('#text_contact_info')" class="text_box_close">Stäng</span>
 				<br>
 
 			</div>
