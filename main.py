@@ -235,7 +235,7 @@ def invertColor(color):
     color = (255-color[0],255-color[1],255-color[2])
 
     return color_convert((color,typeToReturn),reverse=True)
-def global_time_argument_handler(request):
+def global_time_argument_handler(request, handle_overflow=True):
     """
         Handles all time related arguments.
 
@@ -252,9 +252,12 @@ def global_time_argument_handler(request):
 
     t = CurrentTime()
     initDayMode = None
+    initDayModeWasForced = False
     initWeek = t['week2']
     initYear = t['year']
     initDay = t['weekday3']
+    initDateWasSet = False
+    initDateActualWeekday = None
 
     if 'day' in request.args:
         if request.args['day'].startswith(">"):
@@ -272,8 +275,6 @@ def global_time_argument_handler(request):
                 initDay = int(request.args['day'])
                 initDayMode = True
             except:pass
-    if 'daymode' in request.args:
-        initDayMode = arg01_to_bool(request.args,"daymode")
     if 'week' in request.args:
         if request.args['week'].startswith(">"):
             try:initWeek = t['week'] + int(request.args['week'][1:])
@@ -295,36 +296,51 @@ def global_time_argument_handler(request):
             try:initYear = int(request.args['year'])
             except:pass
     if 'date' in request.args:
-        try:            
-            d = datetime.datetime.strptime(request.args['date'], '%Y-%m-%d')
+        initDateWasSet = True
+        try:
+            if request.args['date'].count("-") == 0:
+                d = datetime.datetime.strptime(f"{request.args['date']}-{t['month']}-{t['year']}", '%d-%m-%Y')
+            elif request.args['date'].count("-") == 1:
+                d = datetime.datetime.strptime(f"{request.args['date']}-{t['year']}", '%d-%m-%Y')
+            elif request.args['date'].count("-") == 2:
+                d = datetime.datetime.strptime(request.args['date'], '%d-%m-%Y')
+            
             initDayMode = True
             initDay = d.weekday() + 1
+            initDateActualWeekday = d.weekday() + 1
         except:
             d = datetime.datetime.strptime(request.args['date'], '%Y-%m')
         
         initYear = d.year
         initWeek = d.isocalendar()[1]
+    if 'daymode' in request.args:
+        initDayMode = arg01_to_bool(request.args,"daymode")
+        initDayModeWasForced = True
 
     # Fix values
-    while initDay > 5:
-        initDay -= 5
-        initWeek += 1
-    while initDay < 0:
-        initDay += 5
-        initWeek -= 1
+    if handle_overflow:
+        while initDay > 5:
+            initDay -= 5
+            initWeek += 1
+        while initDay < 0:
+            initDay += 5
+            initWeek -= 1
 
-    while initWeek < 0:
-        initYear -= 1
-        initWeek += 52
-    while initWeek > 52:
-        initYear += 1
-        initWeek -= 52
+        while initWeek < 0:
+            initYear -= 1
+            initWeek += 52
+        while initWeek > 52:
+            initYear += 1
+            initWeek -= 52
 
-    return {
+    return{
         "initDayMode": initDayMode,
+        "initDayModeWasForced":initDayModeWasForced, # Is true if 'daymode' was specified in the URL (gets prio over everything)
         "initWeek": initWeek,
         "initYear": initYear,
-        "initDay": initDay
+        "initDay": initDay,
+        "initDateWasSet":initDateWasSet, # Is true if a date was specified
+        "initDateActualWeekday":initDateActualWeekday
     }
 #endregion
 #region CLASSES
@@ -1194,9 +1210,14 @@ if __name__ == "__main__":
         initYear = d['initYear']
         initDay = d['initDay']
 
-        if initDayMode == None:
-            initDayMode = mobileRequest
-
+        if not d['initDayModeWasForced']:
+            # If date was specified, and it was a sunday/saturday, then show the whole schedule
+            if d['initDateWasSet'] and d['initDateActualWeekday'] > 5:
+                initDay = 1
+                initDayMode = False
+            elif initDayMode == None:
+                initDayMode = mobileRequest
+        
         if 'id' in request.args:
             initID = request.args['id']
             saveIdToCookie = False
@@ -1217,10 +1238,6 @@ if __name__ == "__main__":
 
         if 'school' in request.args:
             initSchool = request.args['school']
-
-
-
-
         if 'debugmode' in request.args:
             debugmode = arg01_to_bool(request.args,"debugmode")
         if 'contact' in request.args:
@@ -1276,10 +1293,7 @@ if __name__ == "__main__":
             ignorecssmin = True
             ignorehtmlmin = True
         #endregion
-
-
-
-
+        
         return render_template(
             template_name_or_list="sodschema.html" if ignorehtmlmin else "min/sodschema.min.html",
             version=version,
