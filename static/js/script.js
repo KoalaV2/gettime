@@ -268,6 +268,46 @@ if ('serviceWorker' in navigator) {
 	console.log('service worker is not supported');
 }
 
+window.addEventListener('beforeinstallprompt', e => {
+	console.log('beforeinstallprompt Event fired');
+	e.preventDefault();
+
+	// Stash the event so it can be triggered later.
+	window.deferredPrompt = e;
+
+	if (document.querySelector(".controls-container button.install-app-button") == null){
+		let button = document.createElement("button")
+		let button_icon = document.createElement("i")
+
+		button.onclick = install;
+		button.innerText = "Install App!"
+		button.classList.add("control", "control-container", "install-app-button")
+
+		button_icon.classList.add("fab", "fa-app-store-ios", "control-right")
+		
+		button.appendChild(button_icon)
+		document.getElementsByClassName("controls-container")[0].appendChild(button)
+	}
+	
+	return false;
+});
+
+function install(){
+	// When you want to trigger prompt:
+	window.deferredPrompt.prompt();
+	window.deferredPrompt.userChoice.then(choice => {
+		console.log(choice);
+
+		// If user installed the app, then this will launch the PWA link after install
+		if (choice.outcome == "accepted"){
+			$.getJSON(window.location.pathname + "static/manifest.webmanifest", function(data) {
+				window.location.href = data.start_url;
+			});
+		}
+	});
+	window.deferredPrompt = null;	
+}
+
 //events on load & event triggers.
 $(window).on("load", function(){
 	//#region Dark mode
