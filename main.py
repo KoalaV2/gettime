@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-version = "GTM.1.0.2 BETA"
+version = "GTM.1.1.3 BETA"
 #region ASCII ART
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #               _   _   _                    __            _          _                             #
@@ -981,6 +981,9 @@ if __name__ == "__main__":
         Rule('/API/FOOD', endpoint='API_FOOD'),
         Rule('/API/FOOD_REDIRECT', endpoint='FOOD_REDIRECT'),
 
+        #PWA stuff
+        Rule('/service-worker.js', endpoint="SW"),
+
         #Logfiles
         Rule('/logfile', endpoint='logfile'),
         Rule('/discord_logfile', endpoint='discord_logfile'),
@@ -1196,20 +1199,17 @@ if __name__ == "__main__":
         autoReloadSchedule = False
         dropDownButtons = []
         ignorecookiepolicy = False
-        ignorejsmin = False
-        ignorecssmin = False
-        ignorehtmlmin = False
-        cssToInclude = []
         oldPrivateUrl = False
+        initPWA = False
         #endregion
         #region Check parameters
-
         d = global_time_argument_handler(request)
         initDayMode = d['initDayMode']
         initWeek = d['initWeek']
         initYear = d['initYear']
         initDay = d['initDay']
 
+        initPWA = arg01_to_bool(request.args, "PWA")
         if not d['initDayModeWasForced']:
             # If date was specified, and it was a sunday/saturday, then show the whole schedule
             if d['initDateWasSet'] and d['initDateActualWeekday'] > 5:
@@ -1217,7 +1217,6 @@ if __name__ == "__main__":
                 initDayMode = False
             elif initDayMode == None:
                 initDayMode = mobileRequest
-        
         if 'id' in request.args:
             initID = request.args['id']
             saveIdToCookie = False
@@ -1235,7 +1234,6 @@ if __name__ == "__main__":
             privateURL = True
             saveIdToCookie = False
             logging.info(f"Custom Encoded ID argument found ({initID})")
-
         if 'school' in request.args:
             initSchool = request.args['school']
         if 'debugmode' in request.args:
@@ -1246,12 +1244,6 @@ if __name__ == "__main__":
             autoReloadSchedule = arg01_to_bool(request.args,"rl")
         if 'ignorecookiepolicy' in request.args:
             ignorecookiepolicy = arg01_to_bool(request.args,"ignorecookiepolicy")
-        if 'ignorejsmin' in request.args:
-            ignorejsmin = arg01_to_bool(request.args,"ignorejsmin")
-        if 'ignorecssmin' in request.args:
-            ignorecssmin = arg01_to_bool(request.args,"ignorecssmin")
-        if 'ignorehtmlmin' in request.args:
-            ignorehtmlmin = arg01_to_bool(request.args,"ignorehtmlmin")
         if 'darkmode' in request.args:
             initDarkMode = str(arg01_to_bool(request.args,"darkmode")).lower()
         if 'filter' in request.args:
@@ -1263,45 +1255,25 @@ if __name__ == "__main__":
                 darkModeSetting = 4
         hideNavbar = 'fullscreen' in request.args
 
-
-
-        dropDownButtons = [buttons[x].render() for x in (menus['mobile' if mobileRequest else 'desktop']['private' if privateURL else 'normal'])]
-
-        #CSS
-        cssToInclude.append({'name':"style.css",'id':''})
-        cssToInclude.append({'name':"roller.css",'id':''})
-        cssToInclude.append({'name':"toggle.css",'id':''})
-        cssToInclude.append({'name':"darkmode-all.css",'id':'darkmodeAll'})
+        menus_params = ["desktop", "normal"]
         if mobileRequest:
-            cssToInclude.append({'name':"mobile.css",'id':''})
-            cssToInclude.append({'name':"darkmode-mobile.css",'id':'darkmode'})
-        else:
-            cssToInclude.append({'name':"darkmode-desktop.css",'id':'darkmode'})
-
-        # garbage code, but it does the job for now
-        # basicly, all it does is convert everything in cssToInclude to the stuff to put in the HTML document
-        cssToInclude = [
-            {
-                'name':(x['name'] if (ignorecssmin or 'ignore' in x) else f"min/{x['name'][:-4]}.min.css"),
-                'id':(f'''id={x['id']}''' if x['id'] != "" else "")
-            }
-        for x in cssToInclude]
-        cssToInclude = [Markup(f"""<link {x['id']} rel="stylesheet" type="text/css" href="/static/css/{x['name']}">""") for x in cssToInclude]
-
-        if configfile['DEBUGMODE']:
-            ignorejsmin = True
-            ignorecssmin = True
-            ignorehtmlmin = True
-        #endregion
+            menus_params[0] = 'mobile'
+        if privateURL:
+            menus_params[1] = 'private'
+        if initPWA:
+            menus_params[1] = 'pwa'
         
+        dropDownButtons = [buttons[x].render() for x in menus[menus_params[0]][menus_params[1]]]
+        #endregion
         return render_template(
-            template_name_or_list="sodschema.html" if ignorehtmlmin else "min/sodschema.min.html",
+            template_name_or_list="sodschema.html",
             version=version,
             limpMode=configfile['limpMode'],
             DEBUGMODE=configfile['DEBUGMODE'],
             contacts=contacts,
             parseCode=parseCode,
             requestURL=requestURL,
+            initPWA=initPWA,
             initID=initID,
             initSchool=initSchool,
             initDayMode=initDayMode,
@@ -1317,9 +1289,6 @@ if __name__ == "__main__":
             autoReloadSchedule=autoReloadSchedule,
             dropDownButtons=dropDownButtons,
             ignorecookiepolicy=ignorecookiepolicy,
-            ignorejsmin=ignorejsmin,
-            ignorecssmin=ignorecssmin,
-            cssToInclude=cssToInclude,
             darkModeSetting=darkModeSetting,
             hideNavbar=hideNavbar,
             allSchools=allSchools,
@@ -1500,6 +1469,11 @@ if __name__ == "__main__":
     @app.endpoint('FORM')
     def FORM():
         return redirect(configfile['formLink'])
+    #endregion
+    #region PWA
+    @app.endpoint('SW')
+    def SW():
+        return app.send_static_file('service-worker.js')
     #endregion
     #region Redirects (For dead links)
     @app.route("/schema/<a>")

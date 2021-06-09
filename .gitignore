@@ -139,3 +139,9 @@ min all.bat
 static/js/min/
 static/css/min/
 templates/min/
+*.map
+static/css/media_queries.css
+static/css/toggle.css
+static/css/toggle.css
+static/css/roller.css
+static/css/mobile.css

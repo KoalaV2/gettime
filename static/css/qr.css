@@ -1,55 +1,63 @@
-body{
-    background: linear-gradient(68deg, rgba(25,21,93,100) 0%, rgba(67,67,178,100) 37%, rgba(23,160,188,1) 96%);
-    background: linear-gradient(68deg,#19155d 0%,#4343b2 37%,#1398b3 96%);
-    height: 99vh;
-    margin: 0;
+body {
+  background: linear-gradient(68deg, #19155d 0%, #4343b2 37%, #17a0bc 96%);
+  background: linear-gradient(68deg, #19155d 0%, #4343b2 37%, #1398b3 96%);
+  height: 99vh;
+  margin: 0;
 }
-p, h1{
-    text-align: center;
-    font-family: 'Rubik', sans-serif;
-    color: white;
-    text-shadow: 2px 2px 1px rgb(0 0 0 / 25%);
+
+p, h1 {
+  text-align: center;
+  font-family: 'Rubik', sans-serif;
+  color: white;
 }
-.center{
+
+.center {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  -webkit-transform: translate(-50%, -50%);
+          transform: translate(-50%, -50%);
+}
+
+@page {
+  size: A4;
+  margin: 0;
+}
+
+@media screen {
+  .onlyPrint {
+    display: none;
+  }
+  #qr-code {
     position: fixed;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
+    -webkit-transform: translate(-50%, -50%);
+            transform: translate(-50%, -50%);
+    max-width: 80vw;
+    max-height: 80vh;
+    width: 100%;
+    -o-object-fit: contain;
+       object-fit: contain;
+  }
+  #maintext, #subtext {
+    display: none;
+  }
 }
-@page{
-    size: A4;
-    margin: 0;
+
+@media print {
+  .noPrint {
+    display: none;
+  }
+  html, body {
+    width: 210mm;
+    height: 297mm;
+  }
+  #qr-code {
+    display: block;
+    margin: auto;
+    width: 70vw;
+    padding-top: 8vh;
+  }
 }
-@media screen{
-    .onlyPrint{
-        display: none;
-    }
-    #qr-code{
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        max-width: 80vw;
-        max-height: 80vh;
-        width: 100%;
-        object-fit: contain;
-    }
-    #maintext, #subtext{
-        display: none;
-    }
-}
-@media print{
-    .noPrint{
-        display: none;
-    }
-    html, body{
-        width: 210mm;
-        height: 297mm;
-    }
-    #qr-code{
-        display: block;
-        margin: auto;
-        width: 70vw;
-        padding-top: 8vh;
-    }
-}
+/*# sourceMappingURL=qr.css.map */
