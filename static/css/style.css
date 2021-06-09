@@ -662,20 +662,6 @@ a:hover {
   opacity: 0.5;
 }
 
-@media only screen and (max-width: 667px) {
-  .control-divider {
-    width: auto;
-    min-width: 85%;
-    margin: 0.3rem;
-    background: white;
-    color: #307eb6;
-    /* padding: 0.5rem 2rem !important; */
-  }
-  .control-divider span {
-    color: #4150b0;
-  }
-}
-
 .label, .control-container, .savedItems {
   color: inherit;
   font-family: 'Rubik', sans-serif;
@@ -717,6 +703,20 @@ a:hover {
   margin-bottom: 2rem;
   text-shadow: none;
   border: 0;
+}
+
+@media only screen and (max-width: 667px) {
+  .control-container, .savedItems {
+    width: auto;
+    min-width: 85%;
+    margin: 0.3rem;
+    background: white;
+    color: #307eb6;
+    /* padding: 0.5rem 2rem !important; */
+  }
+  .control-container span, .savedItems span {
+    color: #4150b0;
+  }
 }
 
 .control-container:hover, .control-container:focus {
