@@ -3,7 +3,11 @@ Added:
   * Added a donation link on the about page
   * Added a Global date system for the API's (Read more in the API docs)
   * Error handler/logger for when something is missing in settings.json
+  * Added a PWA! This allows you to "install" GetTime to your device
 Changed:
+  * Restructured all CSS files to SCSS
+  * Restructured the code that handles switching to/from darkmode
+  * No longer minimizing CSS and JS (It was a pain in the ass to keep up)
 Fixed:
 Sidenotes:
 
