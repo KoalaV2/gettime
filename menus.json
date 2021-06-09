@@ -17,6 +17,12 @@
             "generateQrCode",
             "mainPage",
             "contact"
+        ],
+        "pwa": [
+            "dayMode",
+            "darkmode",
+            "food",
+            "contact"
         ]
     },
     "mobile": {
@@ -37,6 +43,13 @@
             "generateSavableLink",
             "generateQrCode",
             "mainPage",
+            "changeSchool",
+            "contact"
+        ],
+        "pwa": [
+            "dayMode",
+            "darkmode",
+            "food",
             "changeSchool",
             "contact"
         ]

@@ -9,7 +9,7 @@
             "purpose": "any maskable"
         }
     ],
-    "start_url": "/?ignorecookiepolicy=1",
+    "start_url": "/?PWA=1&ignorecookiepolicy=1",
     "background_color": "#4343b2",
     "theme_color": "#4343b2",
     "display": "standalone"
