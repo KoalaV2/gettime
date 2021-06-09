@@ -251,6 +251,23 @@ function schoolSelected(schoolName){
 	// $("#background-roller").fadeOut("fast");
 }
 
+// Start Service worker
+if ('serviceWorker' in navigator) {
+	window.addEventListener('load', function() {
+		navigator.serviceWorker.register('service-worker.js').then(function(registration) {
+			// Registration was successful
+			console.log('Registered!');
+		}, function(err) {
+			// registration failed :(
+			console.log('ServiceWorker registration failed: ', err);
+		}).catch(function(err) {
+			console.log(err);
+		});
+	});
+} else {
+	console.log('service worker is not supported');
+}
+
 //events on load & event triggers.
 $(window).on("load", function(){
 	//#region Dark mode
@@ -338,23 +355,6 @@ $(window).on("load", function(){
 
 	// Page finished loading, slide up loader screen
 	$(".loader-main").slideToggle();
-
-	// Start Service worker
-	if ('serviceWorker' in navigator) {
-		window.addEventListener('load', function() {
-			navigator.serviceWorker.register('service-worker.js').then(function(registration) {
-				// Registration was successful
-				console.log('Registered!');
-			}, function(err) {
-				// registration failed :(
-				console.log('ServiceWorker registration failed: ', err);
-			}).catch(function(err) {
-				console.log(err);
-			});
-		});
-	} else {
-		console.log('service worker is not supported');
-	}
 
 	console.log("script.js is done");
 });
