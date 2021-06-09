@@ -981,6 +981,9 @@ if __name__ == "__main__":
         Rule('/API/FOOD', endpoint='API_FOOD'),
         Rule('/API/FOOD_REDIRECT', endpoint='FOOD_REDIRECT'),
 
+        #PWA stuff
+        Rule('/service-worker.js', endpoint="SW"),
+
         #Logfiles
         Rule('/logfile', endpoint='logfile'),
         Rule('/discord_logfile', endpoint='discord_logfile'),
@@ -1500,6 +1503,11 @@ if __name__ == "__main__":
     @app.endpoint('FORM')
     def FORM():
         return redirect(configfile['formLink'])
+    #endregion
+    #region PWA
+    @app.endpoint('SW')
+    def SW():
+        return app.send_static_file('service-worker.js')
     #endregion
     #region Redirects (For dead links)
     @app.route("/schema/<a>")

@@ -1,0 +1,16 @@
+{
+    "short_name": "GetTime",
+    "name": "GetTime",
+    "icons": [
+        {
+            "src": "./img/iconv2.png",
+            "sizes": "256x256",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ],
+    "start_url": "/?ignorecookiepolicy=1",
+    "background_color": "#4343b2",
+    "theme_color": "#4343b2",
+    "display": "standalone"
+}
