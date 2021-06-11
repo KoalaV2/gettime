@@ -6,7 +6,6 @@
             "food",
             "generateSavableLink",
             "generateQrCode",
-            "showSaved",
             "contact"
         ],
         "private": [
@@ -32,7 +31,6 @@
             "food",
             "generateSavableLink",
             "generateQrCode",
-            "showSaved",
             "changeSchool",
             "contact"
         ],
