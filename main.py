@@ -454,6 +454,8 @@ class GetTime:
 
                 try:response1 = json.loads(response1.text)['data']['signature']
                 except Exception as e:
+                    if "Our service is down for maintenance. We apologize for any inconvenience this may cause." in response1.text:
+                        return {"status":-69,"message":f"Skola24 is currently down for maintenance","data":response1.text}
                     logging.info(f"Response 1 Error : {str(e)}")
                     return {"status":-2,"message":f"Response 1 Error : {str(e)}","data":str(response1)}
                 #endregion
