@@ -4,6 +4,11 @@
   --text-color-1: #ffffff;
 }
 
+.controls {
+  background-color: black !important;
+  /* This fixes the white outline on the controlls dropdown */
+}
+
 .wrapper {
   background: var(--theme-color-1) !important;
 }

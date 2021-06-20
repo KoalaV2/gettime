@@ -61,6 +61,11 @@ input:checked + .slider {
   stroke: var(--theme-color-2) !important;
 }
 
+.controls {
+  background-color: black !important;
+  /* This fixes the white outline on the controlls dropdown */
+}
+
 .controls-container, .saved-container {
   background: #525252 !important;
 }

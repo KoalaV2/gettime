@@ -1,5 +1,9 @@
 @import "darkmode-all.scss";
 
+.controls{
+    background-color: black !important;
+    /* This fixes the white outline on the controlls dropdown */
+}
 .controls-container, .saved-container{
     background: #525252 !important;
 }
