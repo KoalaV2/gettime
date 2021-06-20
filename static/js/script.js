@@ -280,7 +280,7 @@ window.addEventListener('beforeinstallprompt', e => {
 		let button_icon = document.createElement("i")
 
 		button.onclick = install;
-		button.innerText = "Install App!"
+		button.innerText = "GetTime App"
 		button.classList.add("control", "control-container", "install-app-button")
 
 		button_icon.classList.add("fab", "fa-app-store-ios", "control-right")
@@ -319,7 +319,7 @@ $(window).on("load", function(){
 			darkmode = (readCookie('darkmode') == "1" ? true : false);
 		}
 	}
-	// document.querySelector('meta[name="theme-color"]').setAttribute('content', "#373737");
+	
 	$('#input-darkmode').prop('checked', darkmode);
 	if (darkmode){ // Dark mode is true by "default", so this will turn it off if dark mode SHOULD be off (confusing as hell but ok)
 		toggleDarkMode(disableAnimation=true, saveToCookie=false, updateTimeTableAfter=false);

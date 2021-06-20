@@ -150,7 +150,7 @@ $(window).on("load", function(){
     // remove focus from input when enter is clicked for cleaner ux
     $('.input-idnumber').keypress(function(event){
         var keycode = (event.keyCode ? event.keyCode : event.which);
-        if(keycode == '13'){
+        if (keycode == '13'){
             hideControls();
             $(".input-idnumber").blur();
         };
@@ -159,7 +159,7 @@ $(window).on("load", function(){
     //hide controls if enter is clicked in week input
     $('.input-week').keypress(function(event){
         var keycode = (event.keyCode ? event.keyCode : event.which);
-        if(keycode == '13'){
+        if (keycode == '13'){
             hideControls();
         };
     });
@@ -176,7 +176,6 @@ $(window).on("load", function(){
     // close saveIDs if clicked outside of div
     $(document).mouseup(function(e){
     var container = $(".savedIDs");
-
         // if the target of the click isn't the container nor a descendant of the container
         if (!container.is(e.target) && container.has(e.target).length === 0) 
         {

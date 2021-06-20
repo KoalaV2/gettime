@@ -9,6 +9,7 @@ Changed:
   * Restructured the code that handles switching to/from darkmode
   * No longer minimizing CSS and JS (It was a pain in the ass to keep up)
 Fixed:
+  * Fixed the background color on the drop down menu on desktop with darkmode being a bit white at the edges, due to some css issues
 Sidenotes:
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------
