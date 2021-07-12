@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-version = "GTM.1.1.4.1 BETA"
+version = "GTM.1.1.4.2 BETA"
 #region ASCII ART
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #               _   _   _                    __            _          _                             #
@@ -963,7 +963,7 @@ if __name__ == "__main__":
         logging.info("Logging config loaded. From now on, logging will continue in the console.")
 
     # Setup Flask
-    app = Flask(__name__, static_url_path='')
+    app = Flask(__name__, static_url_path='/static')
     minify(app=app, html=True, js=False, cssless=True, passive=True)
     Mobility(app) # Mobile features
     cors = CORS(app, resources={r"/API/*": {"origins": "*"}}) #CORS(app) # Behövs så att man kan skicka requests till serven (for some reason idk)
