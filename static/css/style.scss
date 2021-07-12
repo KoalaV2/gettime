@@ -13,6 +13,17 @@
 	-webkit-tap-highlight-color: transparent;
 }
 
+:root{
+	--link-color: #0000EE;
+	--theme-color-1: rgba(67,67,178,1);
+    --theme-color-2: rgba(23,160,188,1);
+    --text-color-1: black;
+}
+
+a:visited{
+	color: var(--link-color);
+}
+
 body{
 	height: 100vh;
 	width: 100vw;
@@ -381,7 +392,7 @@ body{
 				padding-left: 0;
 				background-clip: text;
 				-webkit-background-clip: text;
-				-webkit-text-fill-color: transparent;
+				color: transparent;
 			}
 	
 			@include for_breakpoint(mobile){
@@ -426,6 +437,16 @@ body{
 			&.school_selector{
 				height: 95vh;
 			}
+
+			a{
+				text-decoration: none;
+				color: var(--text-color-1);
+
+				&.text_box-link{
+					text-decoration: underline;
+					color: var(--link-color) !important;
+				}
+			}
 		}
 	
 		.loader-main{
@@ -469,7 +490,7 @@ body{
 		#errorMessage{
 			z-index: 99999999999;
 			color: red !important;
-			-webkit-text-fill-color:red !important;
+			color:red !important;
 			background-color: rgba(0,0,0,0.5);
 			padding: 10px;
 		}
@@ -488,11 +509,11 @@ body{
 }
 
 a{
-	text-decoration: none !important;
+	text-decoration: none;
 
-	&:hover{
-		color: inherit !important;
-	}
+	// &:hover{
+	// 	color: inherit !important;
+	// }
 }
 
 /* Uncomment this to get back the white fade out thingy */

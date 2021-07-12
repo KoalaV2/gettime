@@ -1,7 +1,8 @@
 :root{
-    --theme-color-1: #373737;
-    --theme-color-2: #525252;
-    --text-color-1: #ffffff;
+    --link-color: lightcoral !important;
+    --theme-color-1: #373737 !important;
+    --theme-color-2: #525252 !important;
+    --text-color-1: #ffffff !important;
 }
 
 .wrapper{
@@ -36,7 +37,7 @@ input:checked + .slider{
     background: var(--theme-color-2) !important;
 }
 .text_box h2, .text_box h1, .text_box h3, .text_box h4, .text_box p{
-    -webkit-text-fill-color: var(--text-color-1) !important;
+    color: var(--text-color-1) !important;
 }
 .text_box ul{
     color: var(--text-color-1) !important;

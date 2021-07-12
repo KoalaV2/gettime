@@ -206,8 +206,10 @@ function getShareableURL(){
 
 function updateMenuButtonsBasedOnSize(){
 	let t = $('.menu-option-text');
-	$('.menu-option-text').attr(((window.innerWidth < 450) ? "shortText" : "longText"),function(i, x){
-		t[i].innerHTML = x;
+	$('.menu-option-text').attr(((window.innerWidth < 450) ? "shortText" : "longText"), function(i, x){
+		if (x != undefined){
+			t[i].innerHTML = x;
+		}
 	});
 }
 
@@ -277,11 +279,16 @@ window.addEventListener('beforeinstallprompt', e => {
 
 	if (document.querySelector(".controls-container button.install-app-button") == null){
 		let button = document.createElement("button")
+		let button_text = document.createElement("span")
 		let button_icon = document.createElement("i")
 
 		button.onclick = install;
-		button.innerText = "GetTime App"
 		button.classList.add("control", "control-container", "install-app-button")
+
+		button_text.text = "GetTime App"
+		button_text.innerHTML = "GetTime App"
+		button_text.classList.add("menu-option-text")
+		button.appendChild(button_text)
 
 		button_icon.classList.add("fab", "fa-app-store-ios", "control-right")
 		

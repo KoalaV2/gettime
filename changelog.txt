@@ -2,14 +2,17 @@ GetTime v1.1 | Discord Bot v1.1 |
 Added:
   * Added a donation link on the about page
   * Added a Global date system for the API's (Read more in the API docs)
-  * Error handler/logger for when something is missing in settings.json
+  * Added a error handler/logger for when something is missing in settings.json
   * Added a PWA! This allows you to "install" GetTime to your device
+  * Added a warning message on the beta /about page, telling the user that they are on the beta branch
 Changed:
   * Restructured all CSS files to SCSS
   * Restructured the code that handles switching to/from darkmode
   * No longer minimizing CSS and JS (It was a pain in the ass to keep up)
+  * Restructured some CSS stuff with variables.
 Fixed:
   * Fixed the background color on the drop down menu on desktop with darkmode being a bit white at the edges, due to some css issues
+  * Fixed the "GetTime App" button displaying the wrong color on mobile
 Sidenotes:
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------

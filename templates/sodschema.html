@@ -228,6 +228,21 @@
 
 				<h1>GetTime (v{{version}})</h1>
 
+				{% if version.endswith("BETA") %}
+				<div style="border: red solid 3px; padding: 2em;">
+					<h2 style="color: red !important;">⚠ DU ÄR PÅ GETTIME BETA ⚠</h2>
+					<p>
+						Detta betyder att vissa funktioner kanske inte funkar som dom ska, eller att det finns funktioner
+						som kanske försvinner senare. Dock så kan det även finnas coola funktioner som inte finns på vanliga branchen än.
+						
+						<br><br>
+						
+						Om du vill använda den vanliga hemsidan, så hittar du den här: <a class="text_box-link" href="https://gettime.ga/">https://gettime.ga/</a>
+					</p>
+				</div>
+
+				{% endif %}
+
 				<p>
 					GetTime är en schemaläsare som funkar på alla skolor som använder Skola24.
 					GetTime är helt gratis att använda, och är skapat av elever, för elever.
@@ -237,20 +252,20 @@
 					Ditt ID sparas i en <a href="https://sv.wikipedia.org/wiki/Webbkaka" target="_blank">cookie</a>, så att du aldrig behöver skriva
 					in den igen. Alla IDs som funkar på Skola24 funkar på GetTime.
 
-					<br><br>
+					<!-- <br><br> -->
 
-					GetTime har även ett eget API, så att man kan skapa sina egna schemaläsarprojekt!
-					Med vårat API kan du hämta all information som du kan se på vår sida, och använda den i ditt program!
+					<!-- GetTime har även ett eget API, så att man kan skapa sina egna schemaläsarprojekt! -->
+					<!-- Med vårat API kan du hämta all information som du kan se på vår sida, och använda den i ditt program! -->
 
-					<br>
+					<!-- <br> -->
 
-					Läs mer om vårat API <a href="https://github.com/KoalaV2/gettime/blob/main/README.md" target="_blank">här</a>!
+					<!-- Läs mer om vårat API <a href="https://github.com/KoalaV2/gettime/blob/main/README.md" target="_blank">här</a>! -->
 				</p>
 
 				<br>
 
 				<h2>Hittat en bug?</h2>
-				<p>Skicka gärna buggar och fel som du hittat till <a href="mailto:issues@gettime.ga">issues@gettime.ga</a></p>
+				<p>Skicka gärna buggar och fel som du hittat till <a href="mailto:issues@gettime.ga" class="text_box-link">issues@gettime.ga</a></p>
 
 				<br>
 
@@ -262,11 +277,11 @@
 					{% endif %}
 					<ul>
 						<li>
-							<p><a href="mailto:{{x['email']}}" >{{x['email']}}</a></p>
+							<p><a href="mailto:{{x['email']}}" class="text_box-link">{{x['email']}}</a></p>
 						</li>
 						{% for currentLink in x['links'] %}
 							<li>
-								<p><a href="{{currentLink[1]}}" target="_blank">{{currentLink[0]}}</a></p>	
+								<p><a href="{{currentLink[1]}}" target="_blank" class="text_box-link">{{currentLink[0]}}</a></p>	
 							</li>
 						{% endfor %}
 					</ul>
@@ -279,7 +294,7 @@
 					Du kan donera till GetTimes skapare via:
 					<br><br>
 
-					<a href="https://paypal.me/pools/c/8zZdvTNIlu" target="_blank">PayPal</a>
+					<a href="https://paypal.me/pools/c/8zZdvTNIlu" target="_blank" class="text_box-link">PayPal</a>
 					<br>
 					BTC : 33qHgzrBfCh2Tyq2YgkTsB5PwqK8n69J2E
 					<br>
@@ -316,7 +331,7 @@
 
 			<!-- Hidden menu -->
 			<div id="text_tricks" class="text_box tricks">
-				<h1 style="-webkit-text-fill-color: #fff!important;">🧙⚔️</h1>
+				<h1 style="color: #fff!important;">🧙⚔️</h1>
 
 				<h2>Hey look, you found me!</h2>
 				<p>
