@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-version = "GTM.1.1.4 BETA"
+version = "GTM.1.1.4.1 BETA"
 #region ASCII ART
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #               _   _   _                    __            _          _                             #
@@ -42,6 +42,7 @@ from flask import jsonify
 from flask import request
 from flask import redirect
 from flask import render_template
+from flask import send_from_directory
 from flask_cors import CORS
 from flask_minify import minify
 from flask_mobility import Mobility
@@ -962,7 +963,7 @@ if __name__ == "__main__":
         logging.info("Logging config loaded. From now on, logging will continue in the console.")
 
     # Setup Flask
-    app = Flask(__name__)
+    app = Flask(__name__, static_url_path='')
     minify(app=app, html=True, js=False, cssless=True, passive=True)
     Mobility(app) # Mobile features
     cors = CORS(app, resources={r"/API/*": {"origins": "*"}}) #CORS(app) # Behövs så att man kan skicka requests till serven (for some reason idk)
@@ -974,6 +975,10 @@ if __name__ == "__main__":
         Rule('/', endpoint='INDEX'),
 
         #API
+        Rule('/robots.txt', endpoint='textfiles'),
+        Rule('/security.txt', endpoint='textfiles'),
+        Rule('/gpg.txt', endpoint='textfiles'),
+
         Rule('/API/QR_CODE', endpoint='API_QR_CODE'),
         Rule('/API/SHAREABLE_URL', endpoint='API_SHAREABLE_URL'),
         Rule('/API/GENERATE_HTML', endpoint='API_GENERATE_HTML'),
@@ -1299,6 +1304,10 @@ if __name__ == "__main__":
         )
     #endregion
     #region API
+    @app.endpoint('textfiles')
+    def textfiles():
+        return send_from_directory('static', str(request.url_rule)[1:])
+    
     @app.endpoint('API_QR_CODE')
     def API_QR_CODE():
         return render_template(

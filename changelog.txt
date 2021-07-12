@@ -5,6 +5,7 @@ Added:
   * Added a error handler/logger for when something is missing in settings.json
   * Added a PWA! This allows you to "install" GetTime to your device
   * Added a warning message on the beta /about page, telling the user that they are on the beta branch
+  * Added robots.txt, security.txt and gpg.txt
 Changed:
   * Restructured all CSS files to SCSS
   * Restructured the code that handles switching to/from darkmode
