@@ -210,6 +210,17 @@ input:focus + .slider {
   -webkit-tap-highlight-color: transparent;
 }
 
+:root {
+  --link-color: #0000EE;
+  --theme-color-1: rgba(67,67,178,1);
+  --theme-color-2: rgba(23,160,188,1);
+  --text-color-1: black;
+}
+
+a:visited {
+  color: var(--link-color);
+}
+
 body {
   height: 100vh;
   width: 100vw;
@@ -670,7 +681,7 @@ body div.wrapper .text_box h1, body div.wrapper .text_box h2, body div.wrapper .
   padding-left: 0;
   background-clip: text;
   -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: transparent;
 }
 
 @media only screen and (max-width: 667px) {
@@ -717,6 +728,16 @@ body div.wrapper .text_box.contact_info a, body div.wrapper .text_box.tricks a {
 
 body div.wrapper .text_box.school_selector {
   height: 95vh;
+}
+
+body div.wrapper .text_box a {
+  text-decoration: none;
+  color: var(--text-color-1);
+}
+
+body div.wrapper .text_box a.text_box-link {
+  text-decoration: underline;
+  color: var(--link-color) !important;
 }
 
 body div.wrapper .loader-main {
@@ -776,7 +797,7 @@ body #debug-div #debuglog {
 body #debug-div #errorMessage {
   z-index: 99999999999;
   color: red !important;
-  -webkit-text-fill-color: red !important;
+  color: red !important;
   background-color: rgba(0, 0, 0, 0.5);
   padding: 10px;
 }
@@ -819,11 +840,7 @@ body #debug-div #errorMessage {
 }
 
 a {
-  text-decoration: none !important;
-}
-
-a:hover {
-  color: inherit !important;
+  text-decoration: none;
 }
 
 /* Uncomment this to get back the white fade out thingy */
