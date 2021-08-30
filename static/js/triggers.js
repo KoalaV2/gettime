@@ -62,6 +62,10 @@ $(window).on("load", function(){
                 week -= 1;
                 //UpdateEntryInUrlArguments('week',week);
             }
+            while (week < 1){
+                week += 52;
+                year -= 1;
+            };
             $(".input-week").val(week);
             updateTimetable();
         });
@@ -75,6 +79,7 @@ $(window).on("load", function(){
                 $('#input-day').prop('checked', false);
             }
             week = new Date().getWeek() - 1;
+            year = new Date().getFullYear();
             $(".input-week").val(initWeek);
             console.log("blink arrow and go move week on timetable");
             updateTimetable(null,true);
@@ -98,6 +103,10 @@ $(window).on("load", function(){
                 week += 1;
                 //UpdateEntryInUrlArguments('week',week);
             }
+            while (week > 52){
+                week -= 52;
+                year += 1;
+            };
             $(".input-week").val(week);
             updateTimetable();			
         });
@@ -141,7 +150,7 @@ $(window).on("load", function(){
     // remove focus from input when enter is clicked for cleaner ux
     $('.input-idnumber').keypress(function(event){
         var keycode = (event.keyCode ? event.keyCode : event.which);
-        if(keycode == '13'){
+        if (keycode == '13'){
             hideControls();
             $(".input-idnumber").blur();
         };
@@ -150,7 +159,7 @@ $(window).on("load", function(){
     //hide controls if enter is clicked in week input
     $('.input-week').keypress(function(event){
         var keycode = (event.keyCode ? event.keyCode : event.which);
-        if(keycode == '13'){
+        if (keycode == '13'){
             hideControls();
         };
     });
@@ -167,7 +176,6 @@ $(window).on("load", function(){
     // close saveIDs if clicked outside of div
     $(document).mouseup(function(e){
     var container = $(".savedIDs");
-
         // if the target of the click isn't the container nor a descendant of the container
         if (!container.is(e.target) && container.has(e.target).length === 0) 
         {

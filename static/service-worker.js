@@ -1,9 +1,9 @@
- if ('serviceWorker' in navigator) {
-    console.log("Will the service worker register?");
-    navigator.serviceWorker.register('service-worker.js')
-      .then(function(reg){
-        console.log("Yes, it did.");
-     }).catch(function(err) {
-        console.log("No it didn't. This happened:", err)
-    });
- }
+self.addEventListener('install', function() {
+    console.log('Install!');
+});
+self.addEventListener("activate", event => {
+    console.log('Activate!');
+});
+self.addEventListener('fetch', function(event) {
+    console.log('Fetch!', event.request);
+});

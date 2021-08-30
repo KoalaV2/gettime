@@ -18,6 +18,11 @@ function checkMyUrl(theID,className) {
 }
 
 function iWasClicked(theID,className){
+    if (PWA){
+        console.log("iWasClicked() ran, but was stopped because this is a PWA");
+        return;
+    }
+
     if (document.getElementById('scheduleBox').classList.contains("menuBgBlur")){
         console.log("iWasClicked() ran, but was stopped because scheduleBox was blurred (menu is opened)");
         return;
@@ -37,6 +42,7 @@ function iWasClicked(theID,className){
         }
 
     }
+    
     // If there IS a cookie saved, it opens that URL
     else{
         window.open(cookieLoad);

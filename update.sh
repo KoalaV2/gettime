@@ -10,10 +10,6 @@ echo "Git pulling"
 
 git pull 
 
-echo "Minimizing files"
-
-./min.sh
-
 cd ..
 
 echo "Chowning back permissions to gettime"

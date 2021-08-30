@@ -4,7 +4,8 @@
 		<!-- GetTime -->
 		<script>
 			/* This is where some constants and settings are stored */
-			const version = "{{version}}",
+			const PWA = new URLSearchParams(window.location.search).get("PWA") == 1,
+				version = "{{version}}",
 				requestURL = "{{requestURL}}",
 				privateURL = {{"true" if privateURL else "false"}},
 				saveIdToCookie = {{"true" if saveIdToCookie else "false"}},
@@ -13,13 +14,12 @@
 				initSchool = "{{initSchool if initSchool != None else ''}}",
 				initDayMode = {{"true" if initDayMode else "false"}},
 				initWeek = {{initWeek}},
+				initYear = {{initYear}},
 				initDay = {{initDay}},
 				initDarkMode = {{initDarkMode}},
 				showContactOnLoad = {{"true" if showContactOnLoad else "false"}},
 				autoReloadSchedule = {{"true" if autoReloadSchedule else "false"}},
 				ignorecookiepolicy = {{"true" if ignorecookiepolicy else "false"}},
-				ignorecssmin = {{"true" if ignorecssmin else "false"}},
-				ignorejsmin = {{"true" if ignorejsmin else "false"}},
 				darkModeSetting = {{darkModeSetting}},
 				initHideNavbar = {{"true" if hideNavbar else "false"}};
 		</script>
@@ -29,23 +29,13 @@
 
 		<!-- JS Libraries -->
 		<script type="text/javascript" src="/static/js/jquery-3.6.0.min.js"></script>
-		{% if ignorejsmin %}
-			<script type="text/javascript" src="/static/js/global.js"></script>
-			<script type="text/javascript" src="/static/js/triggers.js"></script>
-			<script type="text/javascript" src="/static/js/cookies.js"></script>
-			<script type="text/javascript" src="/static/js/script.js"></script>
-			<script type="text/javascript" src="/static/js/updateTimetable.js"></script>
-			<script type="text/javascript" src="/static/js/saveurl.js"></script>
-			<script type="text/javascript" src="/static/js/handleURI.js"></script>
-		{% else %}
-			<script type="text/javascript" src="/static/js/min/global.min.js"></script>
-			<script type="text/javascript" src="/static/js/min/triggers.min.js"></script>
-			<script type="text/javascript" src="/static/js/min/cookies.min.js"></script>
-			<script type="text/javascript" src="/static/js/min/script.min.js"></script>
-			<script type="text/javascript" src="/static/js/min/updateTimetable.min.js"></script>
-			<script type="text/javascript" src="/static/js/min/saveurl.min.js"></script>
-			<script type="text/javascript" src="/static/js/min/handleURI.min.js"></script>
-		{% endif %}
+		<script type="text/javascript" src="/static/js/global.js"></script>
+		<script type="text/javascript" src="/static/js/triggers.js"></script>
+		<script type="text/javascript" src="/static/js/cookies.js"></script>
+		<script type="text/javascript" src="/static/js/script.js"></script>
+		<script type="text/javascript" src="/static/js/updateTimetable.js"></script>
+		<script type="text/javascript" src="/static/js/saveurl.js"></script>
+		<script type="text/javascript" src="/static/js/handleURI.js"></script>
 
 		<!-- Basic meta tags -->
 		<meta charset="utf-8">
@@ -56,8 +46,13 @@
 		<meta name="Subject" content="Schema">
 		<meta name="Language" content="Swedish">
 
+		<!-- Manifest -->
+		<link rel="manifest" href="/static/manifest.webmanifest">
+
 		<meta property="og:title" content="GetTime">
 		<meta property="og:description" content="GetTime - Simply better then Skola24 😎">
+		<meta property="og:url" content="{{requestURL}}">
+		<meta property="og:img" content="/static/img/favicon.png">
 
 		<!-- To prevent caching -->
 		<meta http-equiv='cache-control' content='no-cache'> 
@@ -66,32 +61,29 @@
 
 		<!-- Set Style colors -->
 		<!-- Chrome, Firefox OS and Opera -->
-		<meta name="theme-color" content="#4343b2">
+		<meta name="theme-color" class="theme-color-setting" content="#4343b2">
 
 		<!-- Windows Phone -->
-		<meta name="msapplication-navbutton-color" content="#4343b2">
-		<meta name="msapplication-TileColor" content="#4343b2">
+		<meta name="msapplication-navbutton-color" class="theme-color-setting" content="#4343b2">
+		<meta name="msapplication-TileColor" class="theme-color-setting" content="#4343b2">
 
 		<!-- iOS Safari -->
-		<meta name="apple-mobile-web-app-status-bar-style" content="#4343b2">
+		<meta name="apple-mobile-web-app-status-bar-style" class="theme-color-setting" content="#4343b2">
 
 		<!-- Import favicons -->
 		<link rel="apple-touch-icon" sizes="180x180" href="/static/img/apple-touch-icon.png">
-		<link rel="icon" type="image/png" sizes="32x32" href="/static/img/favicon-32x32.png">
-		<link rel="icon" type="image/png" sizes="16x16" href="/static/img/favicon-16x16.png">
-		<!-- <link rel="manifest" href="/static/site.webmanifest"> -->
-		<link rel="mask-icon" href="/static/safari-pinned-tab.svg" color="#4343b2">
+		<link rel="shortcut icon" class="favicon" href="/static/img/favicon.png" type="image/x-icon">
+		<!-- <link rel="mask-icon" href="/static/safari-pinned-tab.svg" class="theme-color-setting" color="#4343b2"> -->
 
 		<!-- Import CSS Libraries -->
+		<link id="css-theme" darkmode="0" rel="stylesheet">
+		<link rel="stylesheet" href="/static/css/style.css">
+
 		<link rel="preconnect" href="https://fonts.gstatic.com">
 		<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap">
-
 		<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:100,300|Rubik">
 		<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
-		
-		{% for x in cssToInclude %}
-			{{x}}
-		{% endfor %}
+
 	</head>
 	<body>
 		<!-- Wrapper div for overflow hiding on mobile devices -->
@@ -118,7 +110,7 @@
 				<!-- Main input, personal id, class etc -->
 				<input id="id-input-box" onclick="void(0)" class="input-idnumber control" type="text" name="idnumber" placeholder="PERSONNR/KLASS"/>
 				
-				<select id="school-select-box">
+				<select title="School select box" id="school-select-box">
 					<option value="" selected disabled hidden>Byt skola</option>
 					{% for x in allSchoolsNames %}
 						<option value="{{allSchools[x]['id']}}">{{x}}</option>
@@ -143,19 +135,13 @@
 					{% for x in dropDownButtons %}
 						{{x}}
 					{% endfor %}
+
+					<!-- Shitty temp code -->
+					<a id="nti-gymnasiet-special-button" onclick="textBoxOpen('#text_classlist_temp');" class="control control-container">
+						<span id="button-text-gotostart" class="menu-option-text" shorttext="Klasser&nbsp;&nbsp;" longtext="Klasser&nbsp;&nbsp;">Klasser&nbsp;&nbsp;</span>
+						<i class="fas fa-clipboard-list control-right"></i>
+					</a>
 				</div>
-			</div>
-
-			<!-- Saved timetables dropdown container parent-->
-			<div class="savedIDs">
-
-				<!-- Saved timetables dropdown container -->
-				<div class="saved-container">
-
-					<!-- Saved timetables list -->
-					<ul class="savedList"></ul>
-				</div>
-
 			</div>
 
 			<!-- Main timetable object -->
@@ -166,7 +152,7 @@
 			</div>
 			
 			<!-- GDPR and cookies info div -->
-			<div id="text_cookies_info" class="text_box">
+			<div id="text_cookies_info" class="text_box cookies_info">
 				<h1>GetTime Cookie Policy</h1>
 				<h2>TLDR;<br>If you use GetTime, we store cookies on your device for you to be able to save timetables.</h2>
 
@@ -243,22 +229,107 @@
 
 			</div>
 
+			<!-- Classlist -->
+			<div id="text_classlist_temp" class="text_box classlist_temp">
+
+				<h1>Klasser i NTI-Gymnasiet</h1>
+
+				<script>
+					var classes_list = [
+						"19_DE",
+						"19_EL",
+						"19_MU",
+						// "19_TEK_A",
+						// "19_TEK_B",
+						"19_TEK_E",
+						"19_TEK_S",
+						"20_DE",
+						"20_EL_A",
+						"20_EL_B",
+						"20_TEK_A",
+						"20_TEK_B",
+						"21_DE",
+						"21_EL",
+						"21_TE4",
+						"21_TEK"
+					].sort();
+
+					classes_list.forEach(i => {
+						let this_obj = document.createElement("a");
+
+						this_obj.innerHTML = i;
+
+						this_obj.style.display = "block"
+						this_obj.style.textAlign = "center"
+						this_obj.style.marginBottom = "1em"
+						this_obj.style.backgroundColor = "var(--theme-color-1)"
+						this_obj.style.padding = "1em"
+						this_obj.style.borderRadius = "2em"
+						this_obj.style.color = "white"
+
+						this_obj.onclick = function(){
+							$("#id-input-box").val(this_obj.innerHTML);
+							textBoxClose('#text_classlist_temp');
+							updateTimetable()
+						};
+
+						document.getElementById("text_classlist_temp").appendChild(this_obj)
+					});
+				</script>
+
+				<!-- Go back button -->
+				<span onclick="textBoxClose('#text_classlist_temp')" class="text_box_close">Stäng</span>
+				<br>
+
+			</div>
+
 			<!-- Contact information -->
 			<div id="text_contact_info" class="text_box contact_info">
 
 				<h1>GetTime (v{{version}})</h1>
-					
+
+				{% if version.endswith("BETA") %}
+				<div style="border: red solid 3px; padding: 2em;">
+					<h2 style="color: red !important;">⚠ DU ÄR PÅ GETTIME BETA ⚠</h2>
+					<p>
+						Detta betyder att vissa funktioner kanske inte funkar som dom ska, eller att det finns funktioner
+						som kanske försvinner senare. Dock så kan det även finnas coola funktioner som inte finns på vanliga branchen än.
+						
+						<br><br>
+						
+						Om du vill använda den vanliga hemsidan, så hittar du den här: <a class="text_box-link" href="https://gettime.ga/">https://gettime.ga/</a>
+					</p>
+				</div>
+
+				{% endif %}
+
+				<p>
+					GetTime är en schemaläsare som funkar på alla skolor som använder Skola24.
+					GetTime är helt gratis att använda, och är skapat av elever, för elever.
+
+					<br>
+
+					Ditt ID sparas i en <a href="https://sv.wikipedia.org/wiki/Webbkaka" target="_blank">cookie</a>, så att du aldrig behöver skriva
+					in den igen. Alla IDs som funkar på Skola24 funkar på GetTime.
+
+					<!-- <br><br> -->
+
+					<!-- GetTime har även ett eget API, så att man kan skapa sina egna schemaläsarprojekt! -->
+					<!-- Med vårat API kan du hämta all information som du kan se på vår sida, och använda den i ditt program! -->
+
+					<!-- <br> -->
+
+					<!-- Läs mer om vårat API <a href="https://github.com/KoalaV2/gettime/blob/main/README.md" target="_blank">här</a>! -->
+				</p>
+
 				<br>
 
-				<h1>Kontaktinformation</h1>
-
 				<h2>Hittat en bug?</h2>
-				<p>Skicka gärna buggar och fel som du hittat till <a href="mailto:issues@gettime.ga">issues@gettime.ga</a></p>
+				<p>Skicka gärna buggar och fel som du hittat till <a href="mailto:issues@gettime.ga" class="text_box-link">issues@gettime.ga</a></p>
 
 				<br>
 
 				<h2>Här kan du kontakta skaparna av GetTime:</h2>
-
 				{% for x in contacts %}
 					<h3>{{x['name']}}</h3>
 					{% if x['info'] != "" and x['info'] != None %}
@@ -266,24 +337,38 @@
 					{% endif %}
 					<ul>
 						<li>
-							<p><a href="mailto:{{x['email']}}" >{{x['email']}}</a></p>
+							<p><a href="mailto:{{x['email']}}" class="text_box-link">{{x['email']}}</a></p>
 						</li>
 						{% for currentLink in x['links'] %}
 							<li>
-								<p><a href="{{currentLink[1]}}" target="_blank">{{currentLink[0]}}</a></p>	
+								<p><a href="{{currentLink[1]}}" target="_blank" class="text_box-link">{{currentLink[0]}}</a></p>	
 							</li>
 						{% endfor %}
 					</ul>
 				{% endfor %}
 
+				<br>
+
+				<h2>Donera till GetTime</h2>
+				<p>
+					Du kan donera till GetTimes skapare via:
+					<br><br>
+
+					<a href="https://paypal.me/pools/c/8zZdvTNIlu" target="_blank" class="text_box-link">PayPal</a>
+					<br>
+					BTC : 33qHgzrBfCh2Tyq2YgkTsB5PwqK8n69J2E
+					<br>
+					ETH : 0x2E838573c2e26e0Bd4B2626F45D9D5bd01189F7d				
+				</p>
+
 				<!-- Go back button -->
-				<span onclick="textBoxClose('#text_contact_info')" class="text_box_close">Gå tillbaka</span>
+				<span onclick="textBoxClose('#text_contact_info')" class="text_box_close">Stäng</span>
 				<br>
 
 			</div>
 
-			<!-- Contact information -->
-			<div id="text_school_selector" class="text_box">
+			<!-- School selector -->
+			<div id="text_school_selector" class="text_box school_selector">
 				
 				<h1>Välj din skola här:</h1>
 				
@@ -304,9 +389,9 @@
 
 			</div>
 
-			<!-- Contact information TEST -->
-			<div id="text_tricks" class="text_box">
-				<h1 style="-webkit-text-fill-color: #fff!important;">🧙⚔️</h1>
+			<!-- Hidden menu -->
+			<div id="text_tricks" class="text_box tricks">
+				<h1 style="color: #fff!important;">🧙⚔️</h1>
 
 				<h2>Hey look, you found me!</h2>
 				<p>

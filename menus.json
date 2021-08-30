@@ -6,7 +6,6 @@
             "food",
             "generateSavableLink",
             "generateQrCode",
-            "showSaved",
             "contact"
         ],
         "private": [
@@ -16,6 +15,12 @@
             "generateSavableLink",
             "generateQrCode",
             "mainPage",
+            "contact"
+        ],
+        "pwa": [
+            "dayMode",
+            "darkmode",
+            "food",
             "contact"
         ]
     },
@@ -26,7 +31,6 @@
             "food",
             "generateSavableLink",
             "generateQrCode",
-            "showSaved",
             "changeSchool",
             "contact"
         ],
@@ -37,6 +41,13 @@
             "generateSavableLink",
             "generateQrCode",
             "mainPage",
+            "changeSchool",
+            "contact"
+        ],
+        "pwa": [
+            "dayMode",
+            "darkmode",
+            "food",
             "changeSchool",
             "contact"
         ]

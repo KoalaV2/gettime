@@ -1,0 +1,13 @@
+# Our security address
+Contact: mailto:security@gettime.ga
+
+# When this information expires.
+
+Expires: 2023-01-01T11:00:00.000Z
+
+# Our Public GPG key meant to be used for secure communication.
+Encryption: https://gettime.ga/gpg.txt
+
+# Please talk to us in these following languages.
+
+Preferred-Languages: en,se,fi

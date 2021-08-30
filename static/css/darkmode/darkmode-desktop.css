@@ -1,0 +1,78 @@
+:root {
+  --link-color: lightcoral !important;
+  --theme-color-1: #373737 !important;
+  --theme-color-2: #525252 !important;
+  --text-color-1: #ffffff !important;
+}
+
+.wrapper {
+  background: var(--theme-color-1) !important;
+}
+
+.control-container, .savedItems {
+  background: #282828 !important;
+}
+
+input:checked + .slider {
+  background: #282828 !important;
+}
+
+.arrow-center-text {
+  color: #282828 !important;
+}
+
+.loader-main {
+  background: #282828 !important;
+}
+
+.infoClose, .text_box_close {
+  background: #282828 !important;
+}
+
+.input-idnumber {
+  background: var(--theme-color-2) !important;
+  color: var(--text-color-1) !important;
+}
+
+.fa, .fab, .fal, .far, .fas {
+  color: var(--text-color-1) !important;
+}
+
+.menu-option-text {
+  color: var(--text-color-1) !important;
+}
+
+.text_box {
+  background: var(--theme-color-2) !important;
+}
+
+.text_box h2, .text_box h1, .text_box h3, .text_box h4, .text_box p {
+  color: var(--text-color-1) !important;
+}
+
+.text_box ul {
+  color: var(--text-color-1) !important;
+}
+
+.text_box a:link, .text_box a:visited, .text_box a:hover, .text_box a:active {
+  color: var(--text-color-1) !important;
+}
+
+#scheduleBox rect {
+  stroke: var(--theme-color-2) !important;
+}
+
+.controls {
+  background-color: black !important;
+  /* This fixes the white outline on the controlls dropdown */
+}
+
+.controls-container, .saved-container {
+  background: #525252 !important;
+}
+
+#school-select-box {
+  background: #525252 !important;
+  color: white !important;
+}
+/*# sourceMappingURL=darkmode-desktop.css.map */

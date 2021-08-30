@@ -103,6 +103,7 @@ function updateTimetable(_callback, ignoreSameURL=false){
 			'API/GENERATE_HTML?id=' + encodeURI(idnumber) + 
 			"&day=" + ($("#input-day").is(':checked') ? day : 0) + 
 			"&week=" + week + 
+			"&year=" + year +
 			"&width=" + width + 
 			"&height=" + height + 
 			"&privateID=" + (privateURL ? "1" : "0") + 
@@ -161,6 +162,15 @@ function updateTimetable(_callback, ignoreSameURL=false){
 		updateScheduleHTML("Inget ID skrivit", errorMessage=true);
 		console.log("updateTimetable did not run (ID was less then 1 lenght)");
 	}
+
+	// Shitty temp code
+	if (school == "0" || school == "NTI Södertörn"){
+		$("#nti-gymnasiet-special-button").show()
+	}
+	else{
+		$("#nti-gymnasiet-special-button").hide()
+	}
+
 
 	try{_callback();}catch{}
 };

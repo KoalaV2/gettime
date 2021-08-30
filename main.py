@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-version = "GTM.1.0.0"
+version = "GTM.1.0.1"
 #region ASCII ART
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #               _   _   _                    __            _          _                             #
@@ -42,6 +42,7 @@ from flask import jsonify
 from flask import request
 from flask import redirect
 from flask import render_template
+from flask import send_from_directory
 from flask_cors import CORS
 from flask_minify import minify
 from flask_mobility import Mobility
@@ -170,9 +171,9 @@ def getFood(allowCache=True, week=None):
         toReturn = dataCache[myHash]['data']
     else:
         NewsFeed = feedparser.parse("https://skolmaten.se/nti-gymnasiet-sodertorn/rss/weeks/?offset=" + str(week - t['week']))
-        
+
         toReturn = {"data":{"food":[],"week":week if week != None else t['week']}}
-        
+
         for x in range(5):
             try:
                 post = NewsFeed.entries[x]
@@ -194,7 +195,7 @@ def color_convert(color, reverse=False):
             return color[0]
         if color[1] == "rgb_L":
             return list(color[0])
-    
+
     if type(color) == str: # Assuming its HEX
         typeToReturn = "hex"
         if color.startswith("#"):
@@ -218,7 +219,7 @@ def fadeColor(color, percent):
     color = np.array(color)
     x = color + (np.array([0,0,0] if percent < 0 else [255,255,255]) - color) * (percent if percent > 1 else percent * -1)
     x = (round(x[0]) if x[0] > 0 else 0 ,round(x[1]) if x[1] > 0 else 0 ,round(x[2]) if x[2] > 0 else 0 )
-    
+
     return color_convert((color,typeToReturn),reverse=True)
 @lru_cache(maxsize=32)
 def grayscale(color):
@@ -231,10 +232,117 @@ def grayscale(color):
 @lru_cache(maxsize=32)
 def invertColor(color):
     color,typeToReturn = color_convert(color)
-    
+
     color = (255-color[0],255-color[1],255-color[2])
 
     return color_convert((color,typeToReturn),reverse=True)
+def global_time_argument_handler(request, handle_overflow=True):
+    """
+        Handles all time related arguments.
+
+        This function handles date overflow (if week is 53, it sets the 
+        week to 1 and adds one year instead)
+
+        It also handles offset operators (`<` and `>`)
+
+        Takes:
+            `request` object
+        Returns:
+            `dict` object with `initDayMode`, `initWeek`, `initYear` and `initDay`
+    """
+
+    t = CurrentTime()
+    initDayMode = None
+    initDayModeWasForced = False
+    initWeek = t['week2']
+    initYear = t['year']
+    initDay = t['weekday3']
+    initDateWasSet = False
+    initDateActualWeekday = None
+
+    if 'day' in request.args:
+        if request.args['day'].startswith(">"):
+            try:
+                initDay = t['weekday3'] + int(request.args['day'][1:])
+                initDayMode = True
+            except:pass
+        elif request.args['day'].startswith("<"):
+            try:
+                initDay = t['weekday3'] - int(request.args['day'][1:])
+                initDayMode = True
+            except:pass
+        else:
+            try:
+                initDay = int(request.args['day'])
+                initDayMode = True
+            except:pass
+    if 'week' in request.args:
+        if request.args['week'].startswith(">"):
+            try:initWeek = t['week'] + int(request.args['week'][1:])
+            except:pass
+        elif request.args['week'].startswith("<"):
+            try:initWeek = t['week'] - int(request.args['week'][1:])
+            except:pass
+        else:
+            try:initWeek = int(request.args['week'])
+            except:pass
+    if 'year' in request.args:
+        if request.args['year'].startswith(">"):
+            try:initYear = t['year'] + int(request.args['year'][1:])
+            except:pass
+        elif request.args['year'].startswith("<"):
+            try:initYear = t['year'] - int(request.args['year'][1:])
+            except:pass
+        else:
+            try:initYear = int(request.args['year'])
+            except:pass
+    if 'date' in request.args:
+        initDateWasSet = True
+        try:
+            if request.args['date'].count("-") == 0:
+                d = datetime.datetime.strptime(f"{request.args['date']}-{t['month']}-{t['year']}", '%d-%m-%Y')
+            elif request.args['date'].count("-") == 1:
+                d = datetime.datetime.strptime(f"{request.args['date']}-{t['year']}", '%d-%m-%Y')
+            elif request.args['date'].count("-") == 2:
+                d = datetime.datetime.strptime(request.args['date'], '%d-%m-%Y')
+            
+            initDayMode = True
+            initDay = d.weekday() + 1
+            initDateActualWeekday = d.weekday() + 1
+        except:
+            d = datetime.datetime.strptime(request.args['date'], '%Y-%m')
+        
+        initYear = d.year
+        initWeek = d.isocalendar()[1]
+    if 'daymode' in request.args:
+        initDayMode = arg01_to_bool(request.args,"daymode")
+        initDayModeWasForced = True
+
+    # Fix values
+    if handle_overflow:
+        while initDay > 5:
+            initDay -= 5
+            initWeek += 1
+        while initDay < 0:
+            initDay += 5
+            initWeek -= 1
+
+        while initWeek < 0:
+            initYear -= 1
+            initWeek += 52
+        while initWeek > 52:
+            initYear += 1
+            initWeek -= 52
+
+    return{
+        "initDayMode": initDayMode,
+        "initDayModeWasForced":initDayModeWasForced, # Is true if 'daymode' was specified in the URL (gets prio over everything)
+        "initWeek": initWeek,
+        "initYear": initYear,
+        "initDay": initDay,
+        "initDateWasSet":initDateWasSet, # Is true if a date was specified
+        "initDateActualWeekday":initDateActualWeekday
+    }
 #endregion
 #region CLASSES
 class HTMLObject:
@@ -262,12 +370,12 @@ class Lesson:
     @lru_cache(maxsize=32)
     def GetTimeScore(self, start=True, end=False):
         if end == True:start = False
-        #KNOWN ISSUE: 
+        #KNOWN ISSUE:
         #If time is 23:00, and you try and get timescore for a lesson that starts 01:00 the next day, it will not return 2 hours
         #This is because timescore does not care about dates, only hours and minutes
-        
+
         secounds = sum(x * int(t) for x, t in zip([1, 60, 3600], reversed((self.timeStart if start else self.timeEnd).split(":"))))
-        return int(secounds / 60)       
+        return int(secounds / 60)
 class GetTime:
     """
         GetTime Request object.
@@ -287,7 +395,7 @@ class GetTime:
             int(_school)
             self._school = getSchoolByID(_school)[1]['name']
         except:
-            self._school = _school              
+            self._school = _school
     def getHash(self) -> str:
         """
             Generates a sha256 hash of all the settings of this object.
@@ -310,7 +418,7 @@ class GetTime:
         if self._id == None:
             logging.info("Returning None because _id was None")
             return {"status":-7,"message":"_id was None (No ID specified)","data":None} # If ID is not set then it returns None by default
-        
+
         # Default values
         response1 = ""
         response2 = ""
@@ -344,7 +452,7 @@ class GetTime:
                     return {"status":-9,"message":"Response 1 Error (TimeoutError)","data":""}
                 except Exception:
                     return {"status":-10,"message":"Response 1 Error (Other)","data":traceback.format_exc}
-                    
+
                 try:response1 = json.loads(response1.text)['data']['signature']
                 except Exception as e:
                     if "Our service is down for maintenance. We apologize for any inconvenience this may cause." in response1.text:
@@ -433,7 +541,7 @@ class GetTime:
                     return {'status':-6,'message':','.join([x['message'] for x in response3['validation']]),"data":response3,"validation":response3['validation']}
             except:
                 return {'status':-8,'message':f"An error occured when trying to check for other errors! (Yes, really.) Here is the traceback : {traceback.format_exc()}","data":response3}
-            
+
             if allowCache:
                 dataCache[myHash] = {'maxage':configfile['getDataMaxAge'],'age':time.time(),'data':toReturn}
         return toReturn
@@ -460,16 +568,27 @@ class GetTime:
             raise e
 
         for x in response['data']['data']['lessonInfo']:
-            currentLesson = Lesson(
-                lessonName=x['texts'][0],
-                teacherName=x['texts'][1],
-                timeStart=x['timeStart'],
-                timeEnd=x['timeEnd']
-            ) 
-            #Sometimes the classroomName is absent
-            try:currentLesson.classroomName = x['texts'][2]
-            except:currentLesson.classroomName = ""
-            toReturn.append(currentLesson)
+            try:
+                currentLesson = Lesson()
+                
+                try:currentLesson.lessonName=x['texts'][0]
+                except:pass
+                try:currentLesson.teacherName=x['texts'][1]
+                except:pass
+                try:currentLesson.timeStart=x['timeStart']
+                except:pass
+                try:currentLesson.timeEnd=x['timeEnd']
+                except:pass
+
+                #Sometimes the classroomName is absent
+                try:currentLesson.classroomName = x['texts'][2]
+                except:currentLesson.classroomName = ""
+
+                if currentLesson.classroomName == "":
+                    currentLesson.classroomName = None
+                
+                toReturn.append(currentLesson)
+            except:pass
         toReturn.sort(key=attrgetter('timeStart'))
         return toReturn
     def handleHTML(self, classes="", privateID=False, allowCache=True, darkMode=False, darkModeSetting=1, isMobile=False) -> dict:
@@ -493,9 +612,9 @@ class GetTime:
                 return {'html':"""<!-- ERROR --> <div id="schedule" style="all: initial;*{all:unset;}">""" + f"""<p style="color:white">{j['message']}</p>{j['data']}</div>""",'data':j}
 
         timeTakenToFetchData = time.time()-timeTakenToFetchData
-        timeTakenToHandleData = time.time() 
+        timeTakenToHandleData = time.time()
         #endregion
-        #region Start of the SVG 
+        #region Start of the SVG
         toReturn.append(f"""<svg id="schedule" class="{classes}" style="width:{self._resolution[0]}; height:{self._resolution[1]};" viewBox="0 0 {self._resolution[0]} {self._resolution[1]}" shape-rendering="crispEdges">""")
         #region boxList
         logging.info("Looping through boxList...")
@@ -503,7 +622,7 @@ class GetTime:
         for current in j['data']['data']['boxList']:
             # Saves the color in a seperate variable so that we can modify it
             bColor = current['bColor']
-            
+
             if current['type'] == "Lesson":
                 if darkModeSetting == 2:
                     bColor = "#525252"
@@ -540,9 +659,9 @@ class GetTime:
         for current in j['data']['data']['textList']:
             # Saves the color in a seperate variable so that we can modify it
             fColor = current['fColor']
-            
+
             if current['type'] == "Lesson":
-                
+
                 if darkModeSetting == 2:
                     fColor = "#FFFFFF"
                 elif darkModeSetting == 4:
@@ -551,22 +670,22 @@ class GetTime:
                 if darkMode:
                     if fColor == "#000000":
                         fColor = "#FFFFFF"
-            
+
             if current['text'] != "":
                 # If the text is of a Lession type, that means that it sits ontop of a block that the user should be able to click to set a URL.
                 # This only happens if privateID is false, because if the ID is private, it doesnt add the scripts anyways, so why bother generating them in the first place?
                 if privateID == False and current['type'] == "Lesson":
 
 
-                    
+
                     # If the key does not exist yet, it creates an empty list for it
                     if not current['parentId'] in scriptBuilder:
                         scriptBuilder[current['parentId']] = []
-                    
+
                     # Only takes the first 2 arguments (skips the 3rd, aka classroom name)
                     if len(scriptBuilder[current['parentId']]) <= 1:
-                        scriptBuilder[current['parentId']].append(str(current['text'])) 
-                
+                        scriptBuilder[current['parentId']].append(str(current['text']))
+
                 y_offset = 12
                 if current['type'] in ('HeadingDay','ClockAxisBox'):
                     y_offset += 5
@@ -629,7 +748,7 @@ class GetTime:
 
         timeTakenToHandleData = time.time() - timeTakenToHandleData
         #endregion
-        #region Comments 
+        #region Comments
         toReturn.append("<!-- THIS SCHEDULE WAS MADE POSSIBLE BY https://github.com/KoalaV2 -->")
         toReturn.append(f"<!-- SETTINGS USED: id: {'[HIDDEN]' if privateID else self._id}, week: {self._week}, day: {self._day}, resolution: {self._resolution}, class: {classes} -->")
         toReturn.append(f"<!-- Time taken (Requesting data): {timeTakenToFetchData} secounds -->")
@@ -686,7 +805,7 @@ class GetTime:
                 allowCache (bool, optional): If set to `False` then it skips any existing cache. Defaults to True.
 
             Returns:
-                dict: dictionary with all the food information. 
+                dict: dictionary with all the food information.
         """
         return getFood(allowCache=allowCache,week=self._week)
 class DropDown_Button:
@@ -711,7 +830,7 @@ class DropDown_Button:
                 <i class="{self.button_icon} control-right"></i>
             </a>
             """,
-            
+
             'switch':f"""
                 <label class="toggleBox control-container" for="{self.button_id}">
                     <span id="{self.button_id}-text" class="menu-option-text" shortText="{self.button_text['short']}&nbsp;&nbsp;" longText="{self.button_text['long']}&nbsp;&nbsp;">{self.button_text['long']}&nbsp;&nbsp;</span>
@@ -729,33 +848,85 @@ def init_Load():
     """
         This function loads in all of the external files (such as .json files)
     """
+    toLogLater = [] #Contains things to log after all the logging and such has been configured, to make sure it shows up in the logfile
+
     # Set working dir to path of main.py
-    os.chdir(os.path.dirname(os.path.realpath(__file__))) 
+    os.chdir(os.path.dirname(os.path.realpath(__file__)))
 
     # Load config file
-    with open("settings.json", encoding="utf-8") as f:
-        try:configfile = json.load(f)
-        except:configfile = {}
+    default_template = { # Default template. Uses values from here when it cant be found in settings.json
+        "DEBUGMODE": False,
+        "limpMode": True,
+        "ip": "0.0.0.0",
+        "port": "5000",
+        "logToFile": True,
+        "logToSameFile": True,
+        "logFileLocation": "logs/",
+        "loggingFormat": "%(asctime)s %(levelname)10s %(funcName)15s() : %(message)s",
+        "mainLink": "http://0.0.0.0:5000/",
+        "key": "Default template",
+        "enableErrorHandler": True,
+        "discordKey": "Default template",
+        "discordPrefix": "!gt",
+        "discordRGB": [138,194,241],
+        "formLink": "",
+        "getDataMaxAge": 300,
+        "getFoodMaxAge": 3600
+    }
+    configWasFine = True
+    try:
+        with open("settings.json", encoding="utf-8") as f:
+            configfile = json.load(f)
+            for key in default_template:
+                if not key in configfile:
+                    toLogLater.append(("critical",f"THE KEY \"{key}\" IS MISSING FROM \"settings.json\"! USING DEFAULT VALUE ({default_template[key]})! ALL FEATURES MIGHT NOT BE WORKING AS INTENDED!"))
+                    configfile[key] = default_template[key]
+                    configWasFine = False
+    except Exception:
+        toLogLater.append(("critical","UNABLE TO LOAD FROM \"settings.json\"! USING DEFAULT TEMPLATE! ALL FEATURES MIGHT NOT BE WORKING AS INTENDED!"))
+        configfile = default_template
+        configWasFine = False
+
+    if configWasFine:
+        toLogLater.append(("info","\"settings.json\" loaded without issues."))
 
     # Load contacts
-    with open("contacts.json", encoding="utf-8") as f:
-        try:contacts = json.load(f)
-        except:contacts = {}
+
+    try:
+        with open("contacts.json", encoding="utf-8") as f:
+            contacts = json.load(f)
+        toLogLater.append(("info","\"contacts.json\" loaded without issues."))
+    except:
+        toLogLater.append(("critical","\"contacts.json\" did not load successfully. Please make sure the file exists."))
+        contacts = {}
 
     # Load menus
-    with open("menus.json", encoding="utf-8") as f:
-        try:menus = json.load(f)
-        except:menus = {}
+    try:
+        with open("menus.json", encoding="utf-8") as f:
+            menus = json.load(f)
+        toLogLater.append(("info","\"menus.json\" loaded without issues."))
+    except:
+        toLogLater.append(("critical","\"menus.json\" did not load successfully. Please make sure the file exists."))
+        menus = {}
 
     # Load schools file
-    with open("schools.json", encoding="utf-8") as f:
-        try:allSchools = json.load(f)
-        except:allSchools = {}
-    allSchoolsList = [allSchools[x] for x in allSchools] # Contains all the school objects, but in a list
-    allSchoolsNames = [x for x in allSchools] # Contains all the names, sorted by alphabetical order
-    allSchoolsNames.sort()
+    try:
+        with open("schools.json", encoding="utf-8") as f:
+            allSchools = json.load(f)
+        toLogLater.append(("info","\"schools.json\" loaded without issues."))
+    except:
+        toLogLater.append(("critical","\"schools.json\" did not load successfully. Please make sure the file exists."))
+        allSchools = {}
+    try:
+        allSchoolsList = [allSchools[x] for x in allSchools] # Contains all the school objects, but in a list
+        allSchoolsNames = [x for x in allSchools] # Contains all the names, sorted by alphabetical order
+        allSchoolsNames.sort()
+        toLogLater.append(("info","\"schools.json\" data was parsed successfully."))
+    except:
+        toLogLater.append(("critical","\"schools.json\" data was NOT parsed successfully. This is bad..."))
 
-    return {
+    return{
+        'toLogLater':toLogLater,
         'configfile':configfile,
         "allSchools":allSchools,
         "allSchoolsList":allSchoolsList,
@@ -764,6 +935,7 @@ def init_Load():
         "menus":menus
     }
 l = init_Load()
+toLogLater = l['toLogLater']
 configfile = l['configfile']
 allSchools = l['allSchools']
 allSchoolsList = l['allSchoolsList']
@@ -785,24 +957,28 @@ if __name__ == "__main__":
         else:
             logFileName = f"logfile_{CurrentTime()['datestamp']}.log"
         logFileLocation = configfile['logFileLocation']
-        logging.info(f"From now on, logs will be found at '{logFileLocation+logFileName}'")
+        logging.info(f"Logging config loaded. From now on, logs will be found at '{logFileLocation+logFileName}'")
         SetLogging(path=logFileLocation,filename=logFileName)
     else:
-        logging.info("From now on, logging will continue in the console.")
+        logging.info("Logging config loaded. From now on, logging will continue in the console.")
 
     # Setup Flask
-    app = Flask(__name__)
+    app = Flask(__name__, static_url_path='/static')
     minify(app=app, html=True, js=False, cssless=True, passive=True)
     Mobility(app) # Mobile features
     cors = CORS(app, resources={r"/API/*": {"origins": "*"}}) #CORS(app) # Behövs så att man kan skicka requests till serven (for some reason idk)
-    
-    #endregion  
+
+    #endregion
     #region Flask Routes
     [app.url_map.add(x) for x in (
         #INDEX
         Rule('/', endpoint='INDEX'),
 
         #API
+        Rule('/robots.txt', endpoint='textfiles'),
+        Rule('/security.txt', endpoint='textfiles'),
+        Rule('/gpg.txt', endpoint='textfiles'),
+
         Rule('/API/QR_CODE', endpoint='API_QR_CODE'),
         Rule('/API/SHAREABLE_URL', endpoint='API_SHAREABLE_URL'),
         Rule('/API/GENERATE_HTML', endpoint='API_GENERATE_HTML'),
@@ -811,6 +987,9 @@ if __name__ == "__main__":
         Rule('/API/TERMINAL_SCHEDULE', endpoint='API_TERMINAL_SCHEDULE'),
         Rule('/API/FOOD', endpoint='API_FOOD'),
         Rule('/API/FOOD_REDIRECT', endpoint='FOOD_REDIRECT'),
+
+        #PWA stuff
+        Rule('/service-worker.js', endpoint="SW"),
 
         #Logfiles
         Rule('/logfile', endpoint='logfile'),
@@ -832,7 +1011,7 @@ if __name__ == "__main__":
         Rule('/api/json', endpoint='API_JSON')
     )]
     #region Error handling and response headers
-    @app.after_request 
+    @app.after_request
     def after_request(response):
         response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
         response.headers['X-Content-Type-Options'] = 'nosniff'
@@ -844,7 +1023,7 @@ if __name__ == "__main__":
         response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, public, max-age=0"
         response.headers["Expires"] = 0
         response.headers["Pragma"] = "no-cache"
-        
+
         return response
     @app.errorhandler(NotFound)
     def handle_bad_request_404(e):
@@ -856,7 +1035,7 @@ if __name__ == "__main__":
     def handle_bad_request(e):
         """
             If error is not 404, then it lands here.\n
-            If `enableErrorHandler` is `true` in the config file then it will use the special configfile. 
+            If `enableErrorHandler` is `true` in the config file then it will use the special configfile.
         """
         if configfile['enableErrorHandler']:
             logging.exception(f"This is the error : {e}")
@@ -870,7 +1049,7 @@ if __name__ == "__main__":
             return render_template('error.html',message="\n".join(errorMessage))
         else:
             raise e
-    #endregion
+    #endregion 
     #region INDEX
     buttons = {
         # Redirect to school lunch link
@@ -928,7 +1107,7 @@ if __name__ == "__main__":
                 'onclick':"""clickOn_QRCODE()"""
             }
         ),
-        
+
         # Go back to main page
         'mainPage':DropDown_Button(
             button_text="Startsida",
@@ -1017,9 +1196,6 @@ if __name__ == "__main__":
         hideNavbar = False
         initID = ""
         initSchool = None #If set to "null" then it will ALWAYS ask what shcool it should use
-        initDayMode = False
-        initWeek = t['week2']
-        initDay = t['weekday3']
         initDarkMode = "null"
         darkModeSetting = 1
         debugmode = False # Not the actual debugmode, but the debug console window thingy
@@ -1030,13 +1206,24 @@ if __name__ == "__main__":
         autoReloadSchedule = False
         dropDownButtons = []
         ignorecookiepolicy = False
-        ignorejsmin = False
-        ignorecssmin = False
-        ignorehtmlmin = False
-        cssToInclude = []
         oldPrivateUrl = False
+        initPWA = False
         #endregion
         #region Check parameters
+        d = global_time_argument_handler(request)
+        initDayMode = d['initDayMode']
+        initWeek = d['initWeek']
+        initYear = d['initYear']
+        initDay = d['initDay']
+
+        initPWA = arg01_to_bool(request.args, "PWA")
+        if not d['initDayModeWasForced']:
+            # If date was specified, and it was a sunday/saturday, then show the whole schedule
+            if d['initDateWasSet'] and d['initDateActualWeekday'] > 5:
+                initDay = 1
+                initDayMode = False
+            elif initDayMode == None:
+                initDayMode = mobileRequest
         if 'id' in request.args:
             initID = request.args['id']
             saveIdToCookie = False
@@ -1050,38 +1237,21 @@ if __name__ == "__main__":
                 initID = temp
                 initSchool = "null"
                 oldPrivateUrl = True
-            
+
             privateURL = True
             saveIdToCookie = False
             logging.info(f"Custom Encoded ID argument found ({initID})")
-        
         if 'school' in request.args:
             initSchool = request.args['school']
-        
-        if 'week' in request.args:
-            try:initWeek = int(request.args['week'])
-            except:pass
-        initDayMode = mobileRequest # initDayMode is True by default if the request is a mobile request unless...
-        if 'day' in request.args:
-            try:initDay,initDayMode = int(request.args['day']),True # ...day is specified...
-            except:pass
-        if 'daymode' in request.args: 
-            initDayMode = arg01_to_bool(request.args,"daymode") # ...or daymode is specified in the URL, and is set to 1.
-        if 'debugmode' in request.args: 
+        if 'debugmode' in request.args:
             debugmode = arg01_to_bool(request.args,"debugmode")
-        if 'contact' in request.args: 
-            showContactOnLoad = arg01_to_bool(request.args,"contact")        
-        if 'rl' in request.args: 
+        if 'contact' in request.args:
+            showContactOnLoad = arg01_to_bool(request.args,"contact")
+        if 'rl' in request.args:
             autoReloadSchedule = arg01_to_bool(request.args,"rl")
-        if 'ignorecookiepolicy' in request.args: 
+        if 'ignorecookiepolicy' in request.args:
             ignorecookiepolicy = arg01_to_bool(request.args,"ignorecookiepolicy")
-        if 'ignorejsmin' in request.args: 
-            ignorejsmin = arg01_to_bool(request.args,"ignorejsmin")
-        if 'ignorecssmin' in request.args: 
-            ignorecssmin = arg01_to_bool(request.args,"ignorecssmin")
-        if 'ignorehtmlmin' in request.args: 
-            ignorehtmlmin = arg01_to_bool(request.args,"ignorehtmlmin")
-        if 'darkmode' in request.args: 
+        if 'darkmode' in request.args:
             initDarkMode = str(arg01_to_bool(request.args,"darkmode")).lower()
         if 'filter' in request.args:
             if request.args['filter'] == 'flat':
@@ -1092,47 +1262,30 @@ if __name__ == "__main__":
                 darkModeSetting = 4
         hideNavbar = 'fullscreen' in request.args
 
-        dropDownButtons = [buttons[x].render() for x in (menus['mobile' if mobileRequest else 'desktop']['private' if privateURL else 'normal'])]
-
-        #CSS
-        cssToInclude.append({'name':"style.css",'id':''})
-        cssToInclude.append({'name':"roller.css",'id':''})
-        cssToInclude.append({'name':"toggle.css",'id':''})
-        cssToInclude.append({'name':"darkmode-all.css",'id':'darkmodeAll'})
+        menus_params = ["desktop", "normal"]
         if mobileRequest:
-            cssToInclude.append({'name':"mobile.css",'id':''})
-            cssToInclude.append({'name':"darkmode-mobile.css",'id':'darkmode'})
-        else:
-            cssToInclude.append({'name':"darkmode-desktop.css",'id':'darkmode'})
-
-        # garbage code, but it does the job for now
-        # basicly, all it does is convert everything in cssToInclude to the stuff to put in the HTML document
-        cssToInclude = [
-            {
-                'name':(x['name'] if (ignorecssmin or 'ignore' in x) else f"min/{x['name'][:-4]}.min.css"),
-                'id':(f'''id={x['id']}''' if x['id'] != "" else "")
-            }
-        for x in cssToInclude]
-        cssToInclude = [Markup(f"""<link {x['id']} rel="stylesheet" type="text/css" href="/static/css/{x['name']}">""") for x in cssToInclude]
+            menus_params[0] = 'mobile'
+        if privateURL:
+            menus_params[1] = 'private'
+        if initPWA:
+            menus_params[1] = 'pwa'
         
-        if configfile['DEBUGMODE']:
-            ignorejsmin = True
-            ignorecssmin = True
-            ignorehtmlmin = True
+        dropDownButtons = [buttons[x].render() for x in menus[menus_params[0]][menus_params[1]]]
         #endregion
-
         return render_template(
-            template_name_or_list="sodschema.html" if ignorehtmlmin else "min/sodschema.min.html",
+            template_name_or_list="sodschema.html",
             version=version,
             limpMode=configfile['limpMode'],
             DEBUGMODE=configfile['DEBUGMODE'],
             contacts=contacts,
             parseCode=parseCode,
             requestURL=requestURL,
+            initPWA=initPWA,
             initID=initID,
             initSchool=initSchool,
             initDayMode=initDayMode,
             initWeek=initWeek,
+            initYear=initYear,
             initDay=initDay,
             initDarkMode=initDarkMode,
             debugmode=debugmode,
@@ -1143,9 +1296,6 @@ if __name__ == "__main__":
             autoReloadSchedule=autoReloadSchedule,
             dropDownButtons=dropDownButtons,
             ignorecookiepolicy=ignorecookiepolicy,
-            ignorejsmin=ignorejsmin,
-            ignorecssmin=ignorecssmin,
-            cssToInclude=cssToInclude,
             darkModeSetting=darkModeSetting,
             hideNavbar=hideNavbar,
             allSchools=allSchools,
@@ -1154,6 +1304,10 @@ if __name__ == "__main__":
         )
     #endregion
     #region API
+    @app.endpoint('textfiles')
+    def textfiles():
+        return send_from_directory('static', str(request.url_rule)[1:])
+    
     @app.endpoint('API_QR_CODE')
     def API_QR_CODE():
         return render_template(
@@ -1172,7 +1326,7 @@ if __name__ == "__main__":
         """
             This function generates the finished HTML code for the schedule (Used by the website to generate the image you see)
         """
-        
+
         #Checks if school was the school ID, and if so, grabs the name
 
         myRequest = GetTime(
@@ -1180,9 +1334,10 @@ if __name__ == "__main__":
             _week = int(request.args['week']),
             _day = int(request.args['day']),
             _resolution = (int(request.args['width']),int(request.args['height'])),
-            _school=getSchoolByID(str(request.args['school']))[1]['name']
+            _school=getSchoolByID(str(request.args['school']))[1]['name'],
+            _year=int(request.args['year'])
         )
-        if 'classes' in request.args: 
+        if 'classes' in request.args:
             classes = request.args['classes']
         else:
             classes = ""
@@ -1208,31 +1363,28 @@ if __name__ == "__main__":
         # Custom API (gets the whole JSON file for the user to mess with)
         # This is what the Skola24 website seems to get.
         # It contains all the info you need to rebuild the schedule image.
-        
-        myRequest = GetTime()
-        try:myRequest._id = request.args['id']
-        except:raise
-        try:myRequest._week = request.args['week']
-        except:pass
-        try:myRequest._day = request.args['day']
-        except:pass
-        try:myRequest._school = getSchoolByID(request.args['school'])[1]['name']
-        except:pass
-        try:myRequest._resolution = request.args['res'].split(",")
-        except:pass
+
+        d = global_time_argument_handler(request)
+
+        myRequest = GetTime(
+            _id=request.args['id'],
+            _week=d['initWeek'],
+            _day=d['initDay'],
+            _year=d['initYear'],
+            _school=getSchoolByID(request.args['school'])[1]['name']
+        )
         return jsonify(myRequest.getData())
     @app.endpoint('API_SIMPLE_JSON')
     def API_SIMPLE_JSON():
-        myRequest = GetTime()
         currentTime = CurrentTime()
-        try:myRequest._id = request.args['id']
-        except:raise
-        try:myRequest._week = int(request.args['week'])
-        except:myRequest._week = currentTime['week2']
-        try:myRequest._day = int(request.args['day'])
-        except:myRequest._day = currentTime['weekday3']
-        try:myRequest._school = getSchoolByID(request.args['school'])[1]['name']
-        except:pass
+        d = global_time_argument_handler(request)
+        myRequest = GetTime(
+            _id=request.args['id'],
+            _week=d['initWeek'],
+            _day=d['initDay'],
+            _year=d['initYear'],
+            _school=getSchoolByID(request.args['school'])[1]['name']
+        )
 
         try:
             # Mode 1 checks if the last lesson has ended for the day, and if so, it goes to the next day
@@ -1242,12 +1394,12 @@ if __name__ == "__main__":
                     if response1[0] < 0:
                         return jsonify({"error":response1})
                 except:pass
-        
+
                 temp = response1[len(response1)-1].timeEnd.split(':')
                 lessonTimeScore = (int(temp[0]) * 60) + int(temp[1])
 
                 timeScore = (currentTime['hour'] * 60) + currentTime['minute']
-                
+
                 if timeScore >= lessonTimeScore:
                     myRequest._day += 1
                     if myRequest._day > 5:
@@ -1263,22 +1415,18 @@ if __name__ == "__main__":
                     myRequest._day = 1
                     myRequest._week += 1
         except:pass
+
         return jsonify(myRequest.GenerateLessonJSON())
     @app.endpoint('API_TERMINAL_SCHEDULE')
     def API_TERMINAL_SCHEDULE():
-        myRequest = GetTime()
-        currentTime = CurrentTime()
-
-        try:myRequest._id = request.args['id']
-        except:raise
-        try:myRequest._week = int(request.args['week'])
-        except:myRequest._week = currentTime['week2']
-        try:myRequest._day = int(request.args['day'])
-        except:myRequest._day = currentTime['weekday3']
-        try:myRequest._school = getSchoolByID(request.args['school'])[1]['name']
-        except:pass
-
-        
+        d = global_time_argument_handler(request)
+        myRequest = GetTime(
+            _id=request.args['id'],
+            _week=d['initWeek'],
+            _day=d['initDay'],
+            _year=d['initYear'],
+            _school=getSchoolByID(request.args['school'])[1]['name']
+        )
         if arg01_to_bool(request.args,"text"):
             return myRequest.GenerateTextSummary()
         return jsonify({'result':myRequest.GenerateTextSummary()})
@@ -1288,11 +1436,10 @@ if __name__ == "__main__":
             week = int(request.args['week'])
         else:
             week = None
-        
+
         return getFood(week=week)
     @app.endpoint('FOOD_REDIRECT')
     def FOOD_REDIRECT():
-        request.args["school"]
         try:
             b = searchInDict(allSchoolsList,'id',int(request.args["school"]))
             flink = allSchoolsList[b]
@@ -1318,7 +1465,7 @@ if __name__ == "__main__":
     #region Special easter egg URL's for the creators/contributors AND AMOGUS ඞ
     @app.endpoint('TheoCredit')
     def TheoCredit():
-        return redirect('https://koalathe.dev/')
+        return redirect('https://theolikes.tech/')
     @app.endpoint('PierreCredit')
     def PierreCredit():
         return redirect('https://github.com/PierreLeFevre')
@@ -1334,6 +1481,11 @@ if __name__ == "__main__":
     def FORM():
         return redirect(configfile['formLink'])
     #endregion
+    #region PWA
+    @app.endpoint('SW')
+    def SW():
+        return app.send_static_file('service-worker.js')
+    #endregion
     #region Redirects (For dead links)
     @app.route("/schema/<a>")
     @app.route("/schema/")
@@ -1341,7 +1493,7 @@ if __name__ == "__main__":
     def routeToIndex(**a):
         logging.info(f"routeToIndex : Request landed in the redirects, sending to mainLink ({configfile['mainLink']})")
         return redirect(configfile['mainLink'])
-    #endregion   
+    #endregion
     #endregion
 
     # NEEDS CLEANUP/REDESIGN
@@ -1366,8 +1518,15 @@ if __name__ == "__main__":
                 pass
             time.sleep(1)
 
+    for x in toLogLater:exec(f"logging.{x[0]}('{x[1]}')") # Logs all of the things that happend before logging was configured
+
     # Makes it so that the cacheclearer runs at the same time (probably needs reworking)
     threading.Thread(target=cacheClearer, args=(), daemon=True).start()
-    app.run(debug=configfile['DEBUGMODE'], host=configfile['ip'], port=configfile['port']) # Run website
+
+    if configfile['DEBUGMODE']:
+        logging.warning('"DEBUGMODE" is true. The server is not live... right?')
+    if configfile['limpMode']:
+        logging.warning('"limpMode" is true. This should be a backup server.')
+    app.run(debug=configfile['DEBUGMODE'], host=configfile['ip'], port=configfile['port'], use_reloader=False) # Run website
 else:
     logging.info("main.py was imported")

@@ -1,0 +1,14 @@
+@import "darkmode-all.scss";
+
+.controls{
+    background-color: black !important;
+    /* This fixes the white outline on the controlls dropdown */
+}
+.controls-container, .saved-container{
+    background: #525252 !important;
+}
+#school-select-box{
+    background: #525252 !important;
+    color: white !important;
+    // text-shadow: 2px 2px 1px rgb(0 0 0 / 25%);
+}

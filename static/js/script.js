@@ -1,5 +1,6 @@
 var urlArguments = {};
 var week;
+var year = initYear;
 var day = initDay;
 var darkmode = initDarkMode;
 var hideNavbar = initHideNavbar;
@@ -8,49 +9,25 @@ var school = initSchool;
 var screenSize = [0,0];
 
 //#region toggleDarkMode
-// Idea from https://tinyurl.com/yhsukrs9
-var toggleDarkMode_on = '';
-var toggleDarkModeAll_on = '';
-if (ignorecssmin){
-	toggleDarkModeAll_on = '/static/css/darkmode-all.css';
-
-	if (mobileRequest){
-		toggleDarkMode_on = '/static/css/darkmode-mobile.css';}
-	else{
-		toggleDarkMode_on = '/static/css/darkmode-desktop.css';
-	}
-}
-else{
-	toggleDarkModeAll_on = '/static/css/min/darkmode-all.min.css';
-
-	if (mobileRequest){
-		toggleDarkMode_on = '/static/css/min/darkmode-mobile.min.css';
-	}
-	else{
-		toggleDarkMode_on = '/static/css/min/darkmode-desktop.min.css';
-	}	
-}
-function toggleDarkMode(disableAnimation=false,saveToCookie=true,updateTimeTableAfter=true){
-	//Set the dark mode switch first
+function toggleDarkMode(disableAnimation=false, saveToCookie=true, updateTimeTableAfter=true){
+	// Set the dark mode switch first
 	darkmode = $('#input-darkmode').prop('checked')
 
-	//Save dark mode option to cookie
+	// Save dark mode option to cookie
 	if (saveToCookie){
 		createCookie('darkmode',(darkmode ? "1" : "0"),365);
 	}
 
 	function doTheThing(){
-		var theme = document.getElementById('darkmode');
-		var theme2 = document.getElementById('darkmodeAll');
+		let link = document.getElementById("css-theme");
+		let dark_mode_is_currently = link.getAttribute("darkmode") == 1;
 
-		if (theme.getAttribute('href') == 'off'){
-			theme.setAttribute('href', toggleDarkMode_on);
-			theme2.setAttribute('href', toggleDarkModeAll_on);
-		}
-		else{
-			theme.setAttribute('href', 'off');
-			theme2.setAttribute('href', 'off');
-		}
+		link.setAttribute("darkmode", (dark_mode_is_currently ? 0 : 1))
+		link.href = (dark_mode_is_currently ? "" : ("/static/css/darkmode/darkmode-" + (mobileRequest ? "mobile" : "desktop") + ".css"));
+		Array.from(document.getElementsByClassName("theme-color-setting")).forEach(e => {
+			e.setAttribute('content', (dark_mode_is_currently ? "#4343b2" : "#373737"));
+		});
+		// document.querySelector("link.favicon").href = '/static/img/' + (dark_mode_is_currently ? "favicon.png" : "favicon_dark.png")
 	}
 	
 	if (disableAnimation){
@@ -67,7 +44,7 @@ function toggleDarkMode(disableAnimation=false,saveToCookie=true,updateTimeTable
 			}
 		});
 
-		//Needs better timing (its to fast rn)
+		// Needs better timing (its to fast rn)
 		$(".loader-main").slideToggle(500);
 	}
 }
@@ -229,8 +206,10 @@ function getShareableURL(){
 
 function updateMenuButtonsBasedOnSize(){
 	let t = $('.menu-option-text');
-	$('.menu-option-text').attr(((window.innerWidth < 450) ? "shortText" : "longText"),function(i, x){
-		t[i].innerHTML = x;
+	$('.menu-option-text').attr(((window.innerWidth < 450) ? "shortText" : "longText"), function(i, x){
+		if (x != undefined){
+			t[i].innerHTML = x;
+		}
 	});
 }
 
@@ -274,6 +253,68 @@ function schoolSelected(schoolName){
 	// $("#background-roller").fadeOut("fast");
 }
 
+// Start Service worker
+if ('serviceWorker' in navigator) {
+	window.addEventListener('load', function() {
+		navigator.serviceWorker.register('service-worker.js').then(function(registration) {
+			// Registration was successful
+			console.log('Registered!');
+		}, function(err) {
+			// registration failed :(
+			console.log('ServiceWorker registration failed: ', err);
+		}).catch(function(err) {
+			console.log(err);
+		});
+	});
+} else {
+	console.log('service worker is not supported');
+}
+
+window.addEventListener('beforeinstallprompt', e => {
+	console.log('beforeinstallprompt Event fired');
+	e.preventDefault();
+
+	// Stash the event so it can be triggered later.
+	window.deferredPrompt = e;
+
+	if (document.querySelector(".controls-container button.install-app-button") == null){
+		let button = document.createElement("button")
+		let button_text = document.createElement("span")
+		let button_icon = document.createElement("i")
+
+		button.onclick = install;
+		button.classList.add("control", "control-container", "install-app-button")
+
+		button_text.text = "GetTime App"
+		button_text.innerHTML = "GetTime App"
+		button_text.classList.add("menu-option-text")
+		button.appendChild(button_text)
+
+		button_icon.classList.add("fab", "fa-app-store-ios", "control-right")
+		
+		button.appendChild(button_icon)
+		document.getElementsByClassName("controls-container")[0].appendChild(button)
+	}
+	
+	return false;
+});
+
+function install(){
+	// When you want to trigger prompt:
+	window.deferredPrompt.prompt();
+	window.deferredPrompt.userChoice.then(choice => {
+		console.log(choice);
+
+		// If user installed the app, then this will launch the PWA link after install
+		if (choice.outcome == "accepted"){
+			$.getJSON(window.location.pathname + "static/manifest.webmanifest", function(data) {
+				window.location.href = data.start_url;
+			});
+		}
+	});
+	window.deferredPrompt = null;	
+}
+
 //events on load & event triggers.
 $(window).on("load", function(){
 	//#region Dark mode
@@ -285,10 +326,11 @@ $(window).on("load", function(){
 			darkmode = (readCookie('darkmode') == "1" ? true : false);
 		}
 	}
-	if (!darkmode){ //Dark mode is true by "default", so this will turn it off if dark mode SHOULD be off (confusing as hell but ok)
-		toggleDarkMode(disableAnimation=true,saveToCookie=false,updateTimeTableAfter=false);
-	}
+	
 	$('#input-darkmode').prop('checked', darkmode);
+	if (darkmode){ // Dark mode is true by "default", so this will turn it off if dark mode SHOULD be off (confusing as hell but ok)
+		toggleDarkMode(disableAnimation=true, saveToCookie=false, updateTimeTableAfter=false);
+	}
 	//#endregion	
 	//#region School
 	if (initSchool != ""){ //If school was specified in the URL:
