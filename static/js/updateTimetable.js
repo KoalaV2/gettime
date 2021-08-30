@@ -163,5 +163,14 @@ function updateTimetable(_callback, ignoreSameURL=false){
 		console.log("updateTimetable did not run (ID was less then 1 lenght)");
 	}
 
+	// Shitty temp code
+	if (school == "0" || school == "NTI Södertörn"){
+		$("#nti-gymnasiet-special-button").show()
+	}
+	else{
+		$("#nti-gymnasiet-special-button").hide()
+	}
+
+
 	try{_callback();}catch{}
 };

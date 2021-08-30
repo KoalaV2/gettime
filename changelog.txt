@@ -1,5 +1,6 @@
 GetTime v1.1 | Discord Bot v1.1 | 
 Added:
+  * Added a classlist from Skola24
   * Added a donation link on the about page
   * Added a Global date system for the API's (Read more in the API docs)
   * Added a error handler/logger for when something is missing in settings.json

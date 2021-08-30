@@ -135,6 +135,12 @@
 					{% for x in dropDownButtons %}
 						{{x}}
 					{% endfor %}
+
+					<!-- Shitty temp code -->
+					<a id="nti-gymnasiet-special-button" onclick="textBoxOpen('#text_classlist_temp');" class="control control-container">
+						<span id="button-text-gotostart" class="menu-option-text" shorttext="Klasser&nbsp;&nbsp;" longtext="Klasser&nbsp;&nbsp;">Klasser&nbsp;&nbsp;</span>
+						<i class="fas fa-clipboard-list control-right"></i>
+					</a>
 				</div>
 			</div>
 
@@ -219,6 +225,60 @@
 
 				<!-- Accept policy button -->
 				<span onclick="createCookie('infoClosed', 'closed', 360);updateTimetable();textBoxClose('#text_cookies_info')" class="text_box_close">Close and accept</span>
+				<br>
+
+			</div>
+
+			<!-- Classlist -->
+			<div id="text_classlist_temp" class="text_box classlist_temp">
+
+				<h1>Klasser i NTI-Gymnasiet</h1>
+
+				<script>
+					var classes_list = [
+						"19_DE",
+						"19_EL",
+						"19_MU",
+						// "19_TEK_A",
+						// "19_TEK_B",
+						"19_TEK_E",
+						"19_TEK_S",
+						"20_DE",
+						"20_EL_A",
+						"20_EL_B",
+						"20_TEK_A",
+						"20_TEK_B",
+						"21_DE",
+						"21_EL",
+						"21_TE4",
+						"21_TEK"
+					].sort();
+
+					classes_list.forEach(i => {
+						let this_obj = document.createElement("a");
+
+						this_obj.innerHTML = i;
+
+						this_obj.style.display = "block"
+						this_obj.style.textAlign = "center"
+						this_obj.style.marginBottom = "1em"
+						this_obj.style.backgroundColor = "var(--theme-color-1)"
+						this_obj.style.padding = "1em"
+						this_obj.style.borderRadius = "2em"
+						this_obj.style.color = "white"
+
+						this_obj.onclick = function(){
+							$("#id-input-box").val(this_obj.innerHTML);
+							textBoxClose('#text_classlist_temp');
+							updateTimetable()
+						};
+
+						document.getElementById("text_classlist_temp").appendChild(this_obj)
+					});
+				</script>
+
+				<!-- Go back button -->
+				<span onclick="textBoxClose('#text_classlist_temp')" class="text_box_close">Stäng</span>
 				<br>
 
 			</div>
