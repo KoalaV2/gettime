@@ -93,6 +93,9 @@ function updateTimetable(_callback, ignoreSameURL=false){
 		window.location.href = requestURL + "ඞ";
 		return;
 	}
+	if (idnumber.toLowerCase() == "biktor"){
+		window.location.href = requestURL + "?a=ZGbCmXrCgsKiwqJpdsKdwqtnw77Clw=="
+	}
 	//#endregion
 	//#endregion
 	if (idnumber.length > 0){
