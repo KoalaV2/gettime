@@ -146,7 +146,8 @@ function updateTimetable(_callback, ignoreSameURL=false){
 			updateScheduleHTML(errorMessage, errorMessage=true);
 		}
 		else{
-			if (saveIdToCookie){
+			
+			if (overwrite_saveIdToCookie != null ? overwrite_saveIdToCookie : saveIdToCookie){
 				//If we got here, that means that the schedule should have loaded successfully, and we want to save the ID in the cookie
 				createCookie("idnumber", idnumber, 360);
 				console.log("Saved ID to cookie");
@@ -154,6 +155,8 @@ function updateTimetable(_callback, ignoreSameURL=false){
 			else{
 				console.log("Did not save ID to cookie, because saveIdToCookie is false")
 			}
+
+			overwrite_saveIdToCookie = null;
 
 			updateScheduleHTML(data['result']['html']);
 		}
@@ -163,13 +166,13 @@ function updateTimetable(_callback, ignoreSameURL=false){
 		console.log("updateTimetable did not run (ID was less then 1 lenght)");
 	}
 
-	// Shitty temp code
-	if (school == "0" || school == "NTI Södertörn"){
-		$("#nti-gymnasiet-special-button").show()
-	}
-	else{
-		$("#nti-gymnasiet-special-button").hide()
-	}
+	// // Shitty temp code
+	// if (school == "0" || school == "NTI Södertörn"){
+	// 	$("#nti-gymnasiet-special-button").show()
+	// }
+	// else{
+	// 	$("#nti-gymnasiet-special-button").hide()
+	// }
 
 
 	try{_callback();}catch{}

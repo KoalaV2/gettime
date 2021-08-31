@@ -5,7 +5,52 @@
         "Referer": "https://web.skola24.se/timetable/timetable-viewer/it-gymnasiet.skola24.se/IT-Gymnasiet%20S%C3%B6dert%C3%B6rn/",
         "host": "it-gymnasiet.skola24.se",
         "unitGuid": "ZTEyNTdlZjItZDc3OC1mZWJkLThiYmEtOGYyZDA4NGU1YjI2",
-        "lunchLink": "https://skolmaten.se/nti-gymnasiet-sodertorn/"
+        "lunchLink": "https://skolmaten.se/nti-gymnasiet-sodertorn/",
+        "overwriteOtherData": {
+            "data": {
+                "classes": [
+                    {
+                        "groupName": "19_DE"
+                    },
+                    {
+                        "groupName": "19_EL"
+                    },
+                    {
+                        "groupName": "19_MU"
+                    },
+                    {
+                        "groupName": "19_TEK_E"
+                    },
+                    {
+                        "groupName": "19_TEK_S"
+                    },
+                    {
+                        "groupName": "20_DE"
+                    },
+                    {
+                        "groupName": "20_EL_A"
+                    },
+                    {
+                        "groupName": "20_EL_B"
+                    },
+                    {
+                        "groupName": "20_TEK_A"
+                    },
+                    {
+                        "groupName": "20_TEK_B"
+                    },
+                    {
+                        "groupName": "21_DE"
+                    },
+                    {
+                        "groupName": "21_EL"
+                    },
+                    {
+                        "groupName": "21_TE4"
+                    }
+                ]
+            }
+        }
     },
     "Tumba gymnasium": {
         "id": 1,

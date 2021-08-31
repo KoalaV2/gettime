@@ -1,4 +1,14 @@
-GetTime v1.1 | Discord Bot v1.1 | 
+GetTime v1.2 | Discord Bot v1.0 | 
+
+Added:
+Fixed:
+  * Fixed the class/teacher list from Skola24
+  * (maybe) Fixed the buggy navbar to support the new class/teacher list
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------
+
+GetTime v1.1 | Discord Bot v1.1 | 2021-08-30
+
 Added:
   * Added a classlist from Skola24
   * Added a donation link on the about page

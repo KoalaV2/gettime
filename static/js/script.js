@@ -7,6 +7,7 @@ var hideNavbar = initHideNavbar;
 var oldURL = "";
 var school = initSchool;
 var screenSize = [0,0];
+var overwrite_saveIdToCookie = null;
 
 //#region toggleDarkMode
 function toggleDarkMode(disableAnimation=false, saveToCookie=true, updateTimeTableAfter=true){
@@ -204,6 +205,13 @@ function getShareableURL(){
 	)['result'];
 }
 
+//Gets the "moreData"
+function getMoreData(){
+	return send_API_request(
+		requestURL + 'API/MORE_DATA?school=' + encodeURI(school)
+	);
+}
+
 function updateMenuButtonsBasedOnSize(){
 	let t = $('.menu-option-text');
 	$('.menu-option-text').attr(((window.innerWidth < 450) ? "shortText" : "longText"), function(i, x){
@@ -242,13 +250,56 @@ function f_hideNavbar(){
 	updateTimetable();
 }
 
+
+
+function update_dropdowns(){
+	let new_data = getMoreData();
+
+	console.log(new_data)
+
+	let a = [
+		["teachers", "Byt Lärare", "id", "fullName"],
+		["classes", "Byt klass", "groupName", "groupName"]
+	].forEach(current => {
+		let x = new_data['data'][current[0]]
+		if (x.length == 0){
+			$(`.${current[0]}-select-box`).hide()
+		}
+		else{
+			let dest = document.querySelector(`.${current[0]}-select-box`)
+			
+			
+			dest.innerHTML = `<option value="" selected disabled hidden>${current[1]}</option>`;
+	
+			x.forEach(i =>{
+				let option = document.createElement("option")
+	
+				option.value = i[current[2]]
+				option.innerHTML = i[current[3]]
+	
+				dest.appendChild(option)
+			});
+	
+			$(`.${current[0]}-select-box`).show()
+		};
+	});
+}
+
+
+
+
 function schoolSelected(schoolName){
 	school = schoolName;
 	createCookie('school',schoolName,365);
 	textBoxClose('#text_school_selector');
-	$('#school-select-box').val(school);
+	$('.school-select-box').val(school);
 	
-	updateTimetable();
+	$("#background-roller").fadeIn("fast", function(){
+		updateTimetable();
+	});
+	
+
+	update_dropdowns();
 
 	// $("#background-roller").fadeOut("fast");
 }
@@ -315,6 +366,25 @@ function install(){
 	window.deferredPrompt = null;	
 }
 
+function update_timetable_to_fit_new_window_size_function(do_updateTimetable=true){
+	console.log("update timetable to fit new window size");
+	screenSize = [$(window).width(),$(window).height()];
+
+	
+	updateMenuButtonsBasedOnSize();
+	if (do_updateTimetable){
+		$("#schedule").fadeOut(500);
+		updateTimetable();
+	}
+	
+	checkIfIDTextFits();
+
+	$(".dropdown-container").show()
+	if (document.querySelector(".navbar").scrollWidth > window.width){
+		$(".dropdown-container").hide()
+	}
+}
+
 //events on load & event triggers.
 $(window).on("load", function(){
 	//#region Dark mode
@@ -335,7 +405,7 @@ $(window).on("load", function(){
 	//#region School
 	if (initSchool != ""){ //If school was specified in the URL:
 		school = initSchool;
-		$('#school-select-box').val(school);
+		$('.school-select-box').val(school);
 	}
 	else{
 		let schoolNow = readCookie("school");
@@ -347,10 +417,14 @@ $(window).on("load", function(){
 		}
 		else{
 			school = schoolNow;
-			$('#school-select-box').val(school);
+			$('.school-select-box').val(school);
 		}
 	}
 	//#endregion 
+
+	if (school != ""){
+		update_dropdowns();
+	}
 	
 	//Hides the main input if the URL is private
 	if (privateURL){
@@ -400,6 +474,10 @@ $(window).on("load", function(){
 		f_hideNavbar();
 	}
 
+	// update_dropdowns();
+    update_timetable_to_fit_new_window_size_function(false)
+
+
 	// Page finished loading, slide up loader screen
 	$(".loader-main").slideToggle();
 
@@ -408,9 +486,13 @@ $(window).on("load", function(){
 
 $(document).ready(function() {
 	//Updates the width of the input box so that it will fit with the school select box.
-	if (!mobileRequest){
-		$('.input-idnumber').width(`calc(calc(100vw - 215px) - ${$('#school-select-box').width()}px)`);
+	// if (!mobileRequest){
+	// 	$('.input-idnumber').width(`calc(calc(100vw - 215px) - ${$('.school-select-box').width()}px)`);
+	// }
+	if (mobileRequest){
+		$('.input-idnumber').width(`calc(calc(100vw - 17px) - ${$('.arrows-container').width()}px)`);
 	}
+	
 
 	// Moves the timetable down so it doesnt overlay the navbar
 	if (!hideNavbar){

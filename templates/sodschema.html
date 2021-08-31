@@ -95,37 +95,52 @@
 			<!-- Top navbar -->
 			<nav class="navbar">
 				
-				{% if privateURL %}
-					<!-- 
-						Temporary input box, only shows up when a private ID is active, and if changed then it will overwrite the ID 
-						
-						This is mostly a temporary solution, because all of the code 
-						depends on ".input-idnumber" instead of a global variable, so
-						all that this does is take the values you put in this one, and
-						puts it in the hidden original input.
-					-->
-					<input id="id-input-box2" onclick="void(0)" class="input-idnumber control" type="text" placeholder="Privat ID"/>
-				{% endif %}
+				<div class="id-input-container">
+					{% if privateURL %}
+						<!-- 
+							Temporary input box, only shows up when a private ID is active, and if changed then it will overwrite the ID 
+							
+							This is mostly a temporary solution, because all of the code 
+							depends on ".input-idnumber" instead of a global variable, so
+							all that this does is take the values you put in this one, and
+							puts it in the hidden original input.
+						-->
+						<input id="id-input-box2" onclick="void(0)" class="input-idnumber control" type="text" placeholder="Privat ID"/>
+					{% endif %}
 
-				<!-- Main input, personal id, class etc -->
-				<input id="id-input-box" onclick="void(0)" class="input-idnumber control" type="text" name="idnumber" placeholder="PERSONNR/KLASS"/>
+					<!-- Main input, personal id, class etc -->
+					<input id="id-input-box" onclick="void(0)" class="input-idnumber control" type="text" name="idnumber" placeholder="PERSONNR/KLASS"/>
+				</div>
 				
-				<select title="School select box" id="school-select-box">
-					<option value="" selected disabled hidden>Byt skola</option>
-					{% for x in allSchoolsNames %}
-						<option value="{{allSchools[x]['id']}}">{{x}}</option>
-					{% endfor %}
-				</select>
+				<div class="dropdown-container">
+					<select class="select-box school-select-box" title="School select box" id="school-select-box">
+						<option value="" selected disabled hidden>Byt skola</option>
+						{% for x in allSchoolsNames %}
+							<option value="{{allSchools[x]['id']}}">{{x}}</option>
+						{% endfor %}
+					</select>
 
-				<!-- Arrows for fast date navigation -->
-				<i class="fas arrow arrow-left fa-angle-left" title="Last week"></i>
-				<i class="fas arrow arrow-center fa-circle" title="Current week"></i>
-				<span class="arrow arrow-center arrow-center-text" title="Current week">12</span>
-				<i class="fas arrow arrow-right fa-angle-right" title="Next week"></i>
+					<select class="select-box classes-select-box" title="Teacher select box" id="classes-select-box">
+						<option value="" selected disabled hidden>Byt klass</option>
+					</select>
+	
+					<select class="select-box teachers-select-box" title="Teacher select box" id="teachers-select-box">
+						<option value="" selected disabled hidden>Byt lärare</option>
+					</select>
+				</div>
 
-				<!-- Menu button -->
-				<div onclick="void(0)" class="menuIcon menuButton fas fa-bars"></div>
+				<div class="arrows-container">
+					<!-- Arrows for fast date navigation -->
+					<i class="fas arrow arrow-left fa-angle-left" title="Last week"></i>
+					<i class="fas arrow arrow-center fa-circle" title="Current week">
+						<span class="arrow arrow-center arrow-center-text" title="Current week">12</span>
+					</i>
+					
+					<i class="fas arrow arrow-right fa-angle-right" title="Next week"></i>
 
+					<!-- Menu button -->
+					<div onclick="void(0)" class="menuIcon menuButton fas fa-bars"></div>
+				</div>
 			</nav>	
 
 			<!-- Menu dropdown container parent -->
@@ -137,10 +152,10 @@
 					{% endfor %}
 
 					<!-- Shitty temp code -->
-					<a id="nti-gymnasiet-special-button" onclick="textBoxOpen('#text_classlist_temp');" class="control control-container">
+					<!-- <a id="nti-gymnasiet-special-button" onclick="textBoxOpen('#text_classlist_temp');" class="control control-container">
 						<span id="button-text-gotostart" class="menu-option-text" shorttext="Klasser&nbsp;&nbsp;" longtext="Klasser&nbsp;&nbsp;">Klasser&nbsp;&nbsp;</span>
 						<i class="fas fa-clipboard-list control-right"></i>
-					</a>
+					</a> -->
 				</div>
 			</div>
 
