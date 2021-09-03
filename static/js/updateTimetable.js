@@ -3,7 +3,7 @@ function updateScheduleHTML(newHTML, errorMessage=false, justTheEnd=false){
 		let tdElement = document.getElementById('schedule');
 		let trElement = tdElement.parentNode;
 		trElement.removeChild(tdElement);
-		
+
 		if (errorMessage){
 			$("#scheduleBox").addClass('errorBox');
 			trElement.innerHTML = '<p id="schedule" class="errorMessage">' + newHTML + "</p>" + trElement.innerHTML;
@@ -17,7 +17,7 @@ function updateScheduleHTML(newHTML, errorMessage=false, justTheEnd=false){
 	//Hides the schedule at first, and then fades it in.
 	$('#schedule').fadeOut(0);
 	$('#schedule').fadeIn(500);
-	
+
 	//Does some shit
 	$("#schedule").css({"transform": "none", "opacity": 1});
 
@@ -96,22 +96,28 @@ function updateTimetable(_callback, ignoreSameURL=false){
 	if (idnumber.toLowerCase() == "biktor"){
 		window.location.href = requestURL + "?a=ZGbCmXrCgsKiwqJpdsKdwqtnw77Clw=="
 	}
+	if (idnumber.toLowerCase() == "theo"){
+		window.location.href = requestURL + "?a=ZGbCmXvCgcKlwqFod8Kfwq1pw77Clw=="
+	}
+	if (idnumber.toLowerCase() == "isak"){
+		window.location.href = requestURL + "?a=ZGbCmXrCgcKiwqFocsKdwqlkw77Clw=="
+	}
 	//#endregion
 	//#endregion
 	if (idnumber.length > 0){
 		$("#background-roller").fadeIn("fast");
 
 		let url = [
-			requestURL + 
-			'API/GENERATE_HTML?id=' + encodeURI(idnumber) + 
-			"&day=" + ($("#input-day").is(':checked') ? day : 0) + 
-			"&week=" + week + 
+			requestURL +
+			'API/GENERATE_HTML?id=' + encodeURI(idnumber) +
+			"&day=" + ($("#input-day").is(':checked') ? day : 0) +
+			"&week=" + week +
 			"&year=" + year +
-			"&width=" + width + 
-			"&height=" + height + 
-			"&privateID=" + (privateURL ? "1" : "0") + 
-			"&darkmode=" + (darkmode ? "1" : "0") + 
-			"&darkmodesetting=" + darkModeSetting + 
+			"&width=" + width +
+			"&height=" + height +
+			"&privateID=" + (privateURL ? "1" : "0") +
+			"&darkmode=" + (darkmode ? "1" : "0") +
+			"&darkmodesetting=" + darkModeSetting +
 			"&isMobile=" + (mobileRequest ? "1" : "0") +
 			"&school=" + encodeURI(school)
 		][0];
@@ -149,7 +155,7 @@ function updateTimetable(_callback, ignoreSameURL=false){
 			updateScheduleHTML(errorMessage, errorMessage=true);
 		}
 		else{
-			
+
 			if (overwrite_saveIdToCookie != null ? overwrite_saveIdToCookie : saveIdToCookie){
 				//If we got here, that means that the schedule should have loaded successfully, and we want to save the ID in the cookie
 				createCookie("idnumber", idnumber, 360);
