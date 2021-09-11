@@ -47,12 +47,12 @@ client = discord.Client()
 discordColor = discord.Colour.from_rgb(configfile['discordRGB'][0],configfile['discordRGB'][1],configfile['discordRGB'][2])
 #endregion
 #region FUNCTIONS
-def urlEmbed(text, url) -> str: 
+def urlEmbed(text, url) -> str:
     return f"[{text}]({url})"
 def updateUserFile():
     global idsToCheck
-    with open("users.json", "w") as outfile: 
-        json.dump(idsToCheck, outfile) 
+    with open("users.json", "w") as outfile:
+        json.dump(idsToCheck, outfile)
 #endregion
 #region CLASSES
 class EmbedMessage:
@@ -98,7 +98,7 @@ async def on_message(message):
                 description='*"Whats wrong with it this time"* / Tay'
             ).send(message.channel)
         if userMessage[1].lower() in ('reg','notify'):
-            
+
             if userMessage[2] == "help":
                 return await EmbedMessage(
                     title=f"{configfile['discordPrefix']} {userMessage[1].lower()} hjälp",
@@ -109,7 +109,7 @@ async def on_message(message):
                         "\n".join([f"{allSchools[x]['name']} : `{allSchools[x]['id']}`" for x in allSchoolsNames])
                     )
                 )).send(message.channel)
-                
+
 
             idToCheck = GetIdFromUser()
             schoolToCheck = GetSchoolFromUser()
@@ -123,14 +123,14 @@ async def on_message(message):
 
             try:remindThisManyMinutes = int(userMessage[4])
             except:remindThisManyMinutes = 5 # Default value is 5 minutes
-            
+
             #Tries to fetch the ID to see if its valid
             try:
                 checkIDisValid = GetTime(_id=idToCheck,_school=schoolToCheck).getData()
             except MaxRetryError:
                 await message.channel.send(f"> Försök igen senare! (MaxRetryError)")
                 return
-            
+
             if checkIDisValid['status'] < 0:
                 if checkIDisValid['status'] == -6:
                     await message.channel.send(f"> Något gick fel! ({checkIDisValid['validation'][0]['message']})")
@@ -167,7 +167,7 @@ async def on_message(message):
             userID = GetIdFromUser()
             if userID == None:
                 await message.channel.send(f"> Fel användning av `{configfile['discordPrefix']} {userMessage[1].lower()}` (Inget ID)")
-            
+
             currentTimeTemp = CurrentTime()
             myRequest = GetTime(
                 _id=userID,
@@ -237,15 +237,15 @@ async def lessonStart():
             if currentTimeTemp['minute'] == timeNow['minute']:
                 #logging.error('Minute had not changed yet')
                 return
-            
+
             timeNow = currentTimeTemp
             timeScore = (currentTimeTemp['hour'] * 60) + currentTimeTemp['minute']
-            
+
             # Iterates through all the ID's
             for currentKey in idsToCheck:
                 currentID = idsToCheck[currentKey]
-                logging.error(f"Checking id: {currentID}...")           
-                
+                logging.error(f"Checking id: {currentID}...")
+
                 a = None
                 # Check if there is data cached...
                 if str(currentID['discordID']) in cachedResponses:
@@ -272,7 +272,7 @@ async def lessonStart():
                         if 'status' in a and a['status'] < 0:
                             userDM = await client.fetch_user(user_id=int(currentID['discordID']))
                             return await userDM.send(f"⚠️ OKÄNT FEL : {str(a)}")
- 
+
                         cachedResponses[str(currentID['discordID'])] = {'data':a,'age':time.time()}
                     except MaxRetryError:
                         userDM = await client.fetch_user(user_id=int(currentID['discordID']))
@@ -298,7 +298,7 @@ async def lessonStart():
                     if minutesBeforeStart == currentID['minutes'] or currentID['minutes'] == "always":
                         userDM = await client.fetch_user(user_id=int(currentID['discordID']))
                         await EmbedMessage(
-                            title=f"'{x.lessonName}' börjar om {minutesBeforeStart} {'minut' if minutesBeforeStart == 1 else 'minuter'}{' i ' + x.classroomName if x.classroomName != '' else ''}!"
+                            title=f"'{x.lessonName}' börjar om {minutesBeforeStart} {'minut' if minutesBeforeStart == 1 else 'minuter'}{' i sal' + x.classroomName if x.classroomName != '' else ''}!"
                         ).send(userDM)
                     else:
                         pass
@@ -311,7 +311,7 @@ async def lessonStart():
 if __name__ == "__main__":
     logging.error("Starting Discord Bot...")
     client.run(configfile['discordKey'])
-    
+
 # if userMessage[1].lower() in ('help','?'):
 #     c = (
 
@@ -336,7 +336,7 @@ if __name__ == "__main__":
 #         a += f"`{configfile['discordPrefix']} {x['commandName']}`\n{x['commandBrief']}\n\n"
 #         if x['commandExample'] != None:
 #             a += f"Exempel: `{configfile['discordPrefix']} {x['commandName']} {x['commandExample']}`\n"
-        
+
 
 #     embed = discord.Embed(
 #         color=messageColor,
