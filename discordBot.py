@@ -298,7 +298,7 @@ async def lessonStart():
                     if minutesBeforeStart == currentID['minutes'] or currentID['minutes'] == "always":
                         userDM = await client.fetch_user(user_id=int(currentID['discordID']))
                         await EmbedMessage(
-                            title=f"'{x.lessonName}' börjar om {minutesBeforeStart} {'minut' if minutesBeforeStart == 1 else 'minuter'}{' i sal' + x.classroomName if x.classroomName != '' else ''}!"
+                            title=f"'{x.lessonName}' börjar om {minutesBeforeStart} {'minut' if minutesBeforeStart == 1 else 'minuter'}{' i sal ' + x.classroomName if x.classroomName != '' else ''}!"
                         ).send(userDM)
                     else:
                         pass
