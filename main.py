@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-version = "GTM.1.0.2.2 BETA"
+version = "GTM.1.0.2.3 BETA"
 #region ASCII ART
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #               _   _   _                    __            _          _                             #
@@ -453,11 +453,14 @@ class GetTime:
                 except Exception:
                     return {"status":-10,"message":"Response 1 Error (Other)","data":traceback.format_exc}
 
-                try:response1 = json.loads(response1.text)['data']['signature']
+                try:
+                    response1 = json.loads(response1.text)['data']['signature']
                 except Exception as e:
-                    if "Our service is down for maintenance. We apologize for any inconvenience this may cause." in response1.text:
-                        return {"status":-69,"message":f"Skola24 is currently down for maintenance","data":response1.text}
                     logging.info(f"Response 1 Error : {str(e)}")
+
+                    if "Our service is down for maintenance. We apologize for any inconvenience this may cause." in response1.text or "The service is unavailable." in response1.text:
+                        return {"status":-69.1,"message":f"Skola24 is currently down for maintenance (Request 1)","data":response1.text}
+                    
                     return {"status":-2,"message":f"Response 1 Error : {str(e)}","data":str(response1)}
                 #endregion
                 #region Request 2
@@ -482,11 +485,16 @@ class GetTime:
                 url2 = 'https://web.skola24.se/api/get/timetable/render/key'
                 payload2 = "null"
                 response2 = requests.post(url2, data=payload2, headers=headers2)
-                try:response2 = json.loads(response2.text)['data']['key']
+                try:
+                    response2 = json.loads(response2.text)['data']['key']
                 except TimeoutError:
                     return {"status":-11,"message":"Response 2 Error (TimeoutError)","data":""}
                 except Exception as e:
                     logging.info(f"Response 2 Error : {str(e)}")
+
+                    if "The service is unavailable." in response2.text:
+                        return {"status":-69.2,"message":f"Skola24 is currently down for maintenance (Request 2)","data":response2.text}
+
                     return {"status":-3,"message":f"Response 2 Error : {str(e)}","data":str(response2)}
                 #endregion
                 #region Request 3
