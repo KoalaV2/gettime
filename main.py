@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-version = "GTM.1.0.2.3 BETA"
+version = "GTM.1.0.2.4 BETA"
 #region ASCII ART
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #               _   _   _                    __            _          _                             #
@@ -451,7 +451,7 @@ class GetTime:
                 except TimeoutError:
                     return {"status":-9,"message":"Response 1 Error (TimeoutError)","data":""}
                 except Exception:
-                    return {"status":-10,"message":"Response 1 Error (Other)","data":traceback.format_exc}
+                    return {"status":-10,"message":"Response 1 Error (Other)","data":traceback.format_exc()}
 
                 try:
                     response1 = json.loads(response1.text)['data']['signature']
