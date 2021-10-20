@@ -1,6 +1,9 @@
 # GetTime/Sodschema
 A schedule viewer for Skola24 compatible schools.
 
+Hosted on: https://gettime.ga
+Example: https://www.gettime.ga/?a=ZGbDiMKswr3Dj8OSw7By
+
 ***
 
 ## How does `settings.json` work?
