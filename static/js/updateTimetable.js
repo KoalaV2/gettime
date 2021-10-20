@@ -89,19 +89,22 @@ function updateTimetable(_callback, ignoreSameURL=false){
 		textBoxOpen('#text_tricks');
 		return;
 	}
-	if (idnumber.toLowerCase() == "sus" || idnumber.toLowerCase() == "ඞ"){
-		window.location.href = requestURL + "ඞ";
-		return;
-	}
-	if (idnumber.toLowerCase() == "biktor"){
-		window.location.href = requestURL + "?a=ZGbCmXrCgsKiwqJpdsKdwqtnw77Clw=="
-	}
-	if (idnumber.toLowerCase() == "theo"){
-		window.location.href = requestURL + "?a=ZGbCmXvCgcKlwqFod8Kfwq1pw77Clw=="
-	}
-	if (idnumber.toLowerCase() == "isak"){
-		window.location.href = requestURL + "?a=ZGbCmXrCgcKiwqFocsKdwqlkw77Clw=="
-	}
+
+	let easter_eggs = [
+		["sus", "ඞ"],
+		["ඞ", "ඞ"],
+
+		["avrinning", "?a=ZGbCmXrCgcKjwqJlcsKcwqdqw77Clw=="],
+		["biktor", "?a=ZGbCmXrCgsKiwqJpdsKdwqtnw77Clw=="],
+		["theo", "?a=ZGbCmXvCgcKlwqFod8Kfwq1pw77Clw=="],
+		["isak", "?a=ZGbCmXrCgcKiwqFocsKdwqlkw77Clw=="]
+	]
+	
+	easter_eggs.forEach(e => {
+		if (idnumber.toLowerCase() == e[0]){
+			window.location.href = requestURL + e[1]
+		}
+	})
 	//#endregion
 	//#endregion
 	if (idnumber.length > 0){
