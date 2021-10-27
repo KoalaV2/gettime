@@ -253,6 +253,12 @@ function f_hideNavbar(){
 
 
 function update_dropdowns(){
+	console.log("update_dropdowns() was ran");
+	if(mobileRequest){
+		console.log("update_dropdowns() was stopped (this is mobile request, we dont need it)");
+		return;
+	}
+
 	let new_data = getMoreData();
 
 	console.log(new_data)
@@ -422,7 +428,7 @@ $(window).on("load", function(){
 	}
 	//#endregion 
 
-	if (school != ""){
+	if (school != "" && !mobileRequest){
 		update_dropdowns();
 	}
 	
