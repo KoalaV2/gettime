@@ -1435,7 +1435,10 @@ if __name__ == "__main__":
             _id = request.args['id'],
             _week = int(request.args['week']),
             _day = int(request.args['day']),
-            _resolution = (int(request.args['width']),int(request.args['height'])),
+            _resolution = (
+                int(float(request.args['width'])),
+                int(float(request.args['height']))
+            ),
             _school=getSchoolByID(str(request.args['school']))[1]['name'],
             _year=int(request.args['year'])
         )
