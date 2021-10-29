@@ -240,7 +240,7 @@ def global_time_argument_handler(request, handle_overflow=True):
     """
         Handles all time related arguments.
 
-        This function handles date overflow (if week is 53, it sets the 
+        This function handles date overflow (if week is 53, it sets the
         week to 1 and adds one year instead)
 
         It also handles offset operators (`<` and `>`)
@@ -305,13 +305,13 @@ def global_time_argument_handler(request, handle_overflow=True):
                 d = datetime.datetime.strptime(f"{request.args['date']}-{t['year']}", '%d-%m-%Y')
             elif request.args['date'].count("-") == 2:
                 d = datetime.datetime.strptime(request.args['date'], '%d-%m-%Y')
-            
+
             initDayMode = True
             initDay = d.weekday() + 1
             initDateActualWeekday = d.weekday() + 1
         except:
             d = datetime.datetime.strptime(request.args['date'], '%Y-%m')
-        
+
         initYear = d.year
         initWeek = d.isocalendar()[1]
     if 'daymode' in request.args:
@@ -460,7 +460,7 @@ class GetTime:
 
                     if "Our service is down for maintenance. We apologize for any inconvenience this may cause." in response1.text or "The service is unavailable." in response1.text:
                         return {"status":-69.1,"message":f"Skola24 is currently down for maintenance (Request 1)","data":response1.text}
-                    
+
                     return {"status":-2,"message":f"Response 1 Error : {str(e)}","data":str(response1)}
                 #endregion
                 #region Request 2
@@ -618,7 +618,7 @@ class GetTime:
                 response = requests.post('https://web.skola24.se/api/get/timetable/selection', headers=headers, data=data)
 
                 try:
-                    toReturn = response.json()                    
+                    toReturn = response.json()
                 except:
                     toReturn['error'] = 'BAD DATA'
                     toReturn['traceback'] = traceback.format_exc()
@@ -662,7 +662,7 @@ class GetTime:
         for x in response['data']['data']['lessonInfo']:
             try:
                 currentLesson = Lesson()
-                
+
                 try:currentLesson.lessonName=x['texts'][0]
                 except:pass
                 try:currentLesson.teacherName=x['texts'][1]
@@ -678,7 +678,7 @@ class GetTime:
 
                 if currentLesson.classroomName == "":
                     currentLesson.classroomName = None
-                
+
                 toReturn.append(currentLesson)
             except:pass
         toReturn.sort(key=attrgetter('timeStart'))
@@ -711,11 +711,14 @@ class GetTime:
         #region boxList
         logging.info("Looping through boxList...")
         toReturn_boxList = []
+        colors = []
         for current in j['data']['data']['boxList']:
             # Saves the color in a seperate variable so that we can modify it
             bColor = current['bColor']
 
             if current['type'] == "Lesson":
+                # Add bodycolor to dictionary and leaave fColor empty to store the bodycolor.
+                colors.append({ "bColor": bColor, "fColor": []})
                 if darkModeSetting == 2:
                     bColor = "#525252"
                 elif darkModeSetting == 3:
@@ -748,11 +751,36 @@ class GetTime:
         scriptBuilder = {}
         logging.info("Looping through textList...")
         toReturn_textList = []
-        for current in j['data']['data']['textList']:
+        numlist = []
+        for i,current in enumerate(j['data']['data']['textList']):
             # Saves the color in a seperate variable so that we can modify it
             fColor = current['fColor']
 
             if current['type'] == "Lesson":
+                # Add current lesson number to numlist.
+                numlist.append(i)
+
+                # Turn the existing 32,33,34 etc dictionary into 1,2,3,4.
+                newi = numlist[-1]-numlist[0]
+                # Store fontcolor in dictionary and divide newi by 3 since there is 3 fonts per lesson.
+                colors[newi//3]["fColor"].append(fColor)
+
+                newbColor = colors[newi//3]["bColor"]
+                newFcolor = colors[newi//3]["fColor"][0]
+
+                # Calculate the color luminance: https://stackoverflow.com/questions/9780632/how-do-i-determine-if-a-color-is-closer-to-white-or-black
+                FY = (tuple(int(newFcolor[i:i + 2], 16) / 255. for i in (1, 3, 5)))
+                BY = (tuple(int(newbColor[i:i + 2], 16) / 255. for i in (1, 3, 5)))
+                whitescalefont = 0.2126*FY[0]+0.7152*FY[1]+0.0722*FY[2]
+                whitescalebody = 0.2126*BY[0]+0.7152*BY[1]+0.0722*BY[2]
+
+                # # If lesson body is bright and font is bright change font to dark.
+                if whitescalebody > 0.5 and whitescalefont == 1.0:
+                    fColor = "#000000"
+
+                # # If lesson body is dark and font is dark change font to bright.
+                # if whitescalebody < 0.5 and whitescalefont == 0.0:
+                #     fColor = "#FFFFFF"
 
                 if darkModeSetting == 2:
                     fColor = "#FFFFFF"
@@ -1142,7 +1170,7 @@ if __name__ == "__main__":
             return render_template('error.html',message="\n".join(errorMessage))
         else:
             raise e
-    #endregion 
+    #endregion
     #region INDEX
     buttons = {
         # Redirect to school lunch link
@@ -1362,7 +1390,7 @@ if __name__ == "__main__":
             menus_params[1] = 'private'
         if initPWA:
             menus_params[1] = 'pwa'
-        
+
         dropDownButtons = [buttons[x].render() for x in menus[menus_params[0]][menus_params[1]]]
         #endregion
         return render_template(
@@ -1409,7 +1437,7 @@ if __name__ == "__main__":
     @app.endpoint('textfiles')
     def textfiles():
         return send_from_directory('static', str(request.url_rule)[1:])
-    
+
     @app.endpoint('API_QR_CODE')
     def API_QR_CODE():
         return render_template(
