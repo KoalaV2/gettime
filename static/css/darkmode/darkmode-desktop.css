@@ -71,7 +71,7 @@ input:checked + .slider {
   background: #525252 !important;
 }
 
-#school-select-box {
+select.select-box {
   background: #525252 !important;
   color: white !important;
 }

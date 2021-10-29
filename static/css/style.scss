@@ -68,147 +68,211 @@ body{
 			overflow: hidden;
 			z-index: 2000;
 			transition: filter .2s ease-in-out;
+
+			display: flex;
+			flex-direction: row;
+			gap: 1em;
+			align-items: center;
 		
 			@include for_breakpoint(mobile){
 				white-space: nowrap;
 				z-index: 2500;
 				justify-content: space-between;
 				border: 0;
-			}
-	
-			input.input-idnumber{
-				font-size: 1.5rem;
-				padding: .25rem 1.5rem;
-				font-family: 'Rubik', sans-serif;
-				border: 2px solid white;
-				background: transparent;
-				width: calc(100vw - 200px);
-				color: white;
-				margin: 0;
-				box-sizing: border-box;
-				/* -webkit-transition: all 0.2s ease-in-out;
-				transition: all 0.2s ease-in-out; */
-				-webkit-appearance: none;
-				-moz-appearance: none;
-				appearance: none;
-				border-radius: 2rem;
-				border: 0;
-				height: 40px;
-				position: absolute;
-				top: 5px;
-				left: 1rem;
-				text-shadow: 2px 2px 1px rgba(0,0,0,0.25);
-			
-				/* Comment this to get back the white fade out thingy */
-				background: white;
-				color: rgba(67,67,178,1);
-				outline: 0;
-				text-shadow: none;
-				box-shadow: 2px 2px 1px rgba(0,0,0,0.25);
 
-				font-size: min(24px,24px);
-				--font-size: 24px;
-			
-				@include for_breakpoint(mobile){
-					width: calc(calc(100vw - 5.5rem) - 70px);
-				}
+				gap: 0px;
 			}
+	
+			div.id-input-container{
+				flex: 1;
+				padding-left: 0.5em;
 
-			#school-select-box{
-				@include unselectable;
-	
-				position: absolute;
-				top: 5px;
-				right: 180px;
-				height: 40px;
-				border-radius: 2rem;
-				padding-left: 10px;
-			
-				font-family: "Rubik", sans-serif;
-				color: rgba(67,67,178,1);
-				// box-shadow: 2px 2px 1px rgb(0 0 0 / 25%);
-				outline: 0;
-				border: 0;
-	
-				@include for_breakpoint(mobile){
-					width: 0px;
-					display: none;
-				}
-	
-				option{
-					@include unselectable;
-				}
-			}
-	
-			.arrow, .menuButton{
-				box-sizing: border-box;
-				text-align: center;
-				font-size: 40px;
-				position: absolute;
-				top: 5px;
-				cursor: pointer;
-				user-select: none;
-				color: white;
-				background: transparent;
-				height: 40px;
-				width: 40px;
-				text-align: center;
-				transition: all .5s ease-in-out;
-				text-shadow: 2px 2px 1px rgba(0,0,0,0.25);
-			
-				&.arrow-loading{
-					animation: arrow-loading-flash .5s infinite ease-in-out;
-			
-					@keyframes arrow-loading-flash{
-						0%{opacity: 1}
-						50%{opacity: 0}
-						100%{opacity: 1}
-					}
-				}
-			
-				&.arrow-left{
-					right: calc(120px + 1rem);
-			
-					@include for_breakpoint(mobile){
-						right: calc(80px + 1rem);
-					}
-				}
-			
-				&.arrow-right{
-					right: calc(40px + 1rem);
-				}
+				input.input-idnumber{
+					width: 100%;
+
+
+					font-size: 1.5rem;
+					padding: .25rem 1.5rem;
+					font-family: 'Rubik', sans-serif;
+					border: 2px solid white;
+					background: transparent;
+					// width: calc(100vw - 200px);
+					color: white;
+					margin: 0;
+					box-sizing: border-box;
+					/* -webkit-transition: all 0.2s ease-in-out;
+					transition: all 0.2s ease-in-out; */
+					-webkit-appearance: none;
+					-moz-appearance: none;
+					appearance: none;
+					border-radius: 2rem;
+					border: 0;
+					height: 40px;
+					// position: absolute;
+					// top: 5px;
+					// left: 1rem;
+					text-shadow: 2px 2px 1px rgba(0,0,0,0.25);
 				
-				&.arrow-center{
-					top: 12px;
-					font-size: 25px;
-					right: calc(80px + 1rem);
-				
-					@include for_breakpoint(mobile){
-						display: none !important;
-					}
-				}
-			
-				&.arrow-center-text{
-					top: 13.5px;
-					color: rgb(35,155,185);
-					background: linear-gradient(68deg, rgba(25,21,93,1) 0%, rgba(67,67,178,1) 37%, rgba(23,160,188,1) 96%); /* the standard */ 
-					background-size: 100vw auto; 
-					background-position: calc(80px + 1rem) center;
-					background-clip: text;
-					-webkit-background-clip: text;
-					color: transparent;
-					font-size: 17.5px;
+					/* Comment this to get back the white fade out thingy */
+					background: white;
+					color: rgba(67,67,178,1);
+					outline: 0;
 					text-shadow: none;
-					font-family: "Rubik", sans-serif;
-				}
-				
-			}
+					box-shadow: 2px 2px 1px rgba(0,0,0,0.25);
 	
-			.menuButton{
-				right: .5rem;
-				top: 5px;
-				font-size: 30px;
-				padding-top: 4px;
+					font-size: min(24px,24px);
+					--font-size: 24px;
+				
+					// @include for_breakpoint(mobile){
+					// 	width: calc(calc(100vw - 5.5rem) - 70px);
+					// }
+				}
+	
+			}
+
+			div.dropdown-container{
+				display: flex;
+    			gap: 1em;
+
+				@include for_breakpoint(mobile){
+					display: none
+				}
+
+				select.select-box{
+					@include unselectable;
+		
+					// position: absolute;
+					// top: 5px;
+					// right: 180px;
+					height: 40px;
+					border-radius: 2rem;
+					padding-left: 10px;
+				
+					font-family: "Rubik", sans-serif;
+					color: rgba(67,67,178,1);
+					// box-shadow: 2px 2px 1px rgb(0 0 0 / 25%);
+					outline: 0;
+					border: 0;
+
+
+					&.school-select-box{
+						order: 9999;
+					}
+					&.classes-select-box{
+						order: 1;
+					}
+					&.teachers-select-box{
+						order: 2;
+					}
+		
+					@include for_breakpoint(mobile){
+						width: 0px;
+						display: none;
+					}
+		
+					option{
+						@include unselectable;
+					}
+				}
+			}
+
+			div.arrows-container{
+				height: 40px;
+				
+				display: flex;
+				flex-direction: row;
+				justify-content: center;
+				align-items: center;
+
+				padding-right: 0.5em;
+
+				.arrow, .menuButton{
+					box-sizing: border-box;
+					text-align: center;
+					font-size: 40px;
+					// position: absolute;
+					// top: 5px;
+					cursor: pointer;
+					user-select: none;
+					color: white;
+					background: transparent;
+					height: 40px;
+					width: 40px;
+					text-align: center;
+					transition: all .5s ease-in-out;
+					text-shadow: 2px 2px 1px rgba(0,0,0,0.25);
+				
+					&.arrow-loading{
+						animation: arrow-loading-flash .5s infinite ease-in-out;
+				
+						@keyframes arrow-loading-flash{
+							0%{opacity: 1}
+							50%{opacity: 0}
+							100%{opacity: 1}
+						}
+					}
+				
+					// &.arrow-left{
+					// 	right: calc(120px + 1rem);
+				
+					// 	@include for_breakpoint(mobile){
+					// 		right: calc(80px + 1rem);
+					// 	}
+					// }
+				
+					// &.arrow-right{
+					// 	right: calc(40px + 1rem);
+					// }
+					
+					&.arrow-center{
+						// top: 12px;
+						// font-size: 25px;
+						// right: calc(80px + 1rem);
+
+						position: relative;
+
+						display: flex;
+						flex-direction: row;
+						justify-content: center;
+						align-items: center;
+					
+						@include for_breakpoint(mobile){
+							display: none !important;
+						}
+					}
+				
+					&.arrow-center-text{
+						position: absolute;
+
+						display: flex;
+						flex-direction: row;
+						justify-content: center;
+						align-items: center;
+						// position: relative;
+						// position: absolute;
+						top: 0px;
+						// top: 13.5px;
+						color: rgb(35,155,185);
+						background: linear-gradient(68deg, rgba(25,21,93,1) 0%, rgba(67,67,178,1) 37%, rgba(23,160,188,1) 96%); /* the standard */ 
+						background-size: 100vw auto; 
+						background-position: calc(80px + 1rem) center;
+						background-clip: text;
+						-webkit-background-clip: text;
+						color: transparent;
+						font-size: 17.5px;
+						text-shadow: none;
+						font-family: "Rubik", sans-serif;
+					}
+					
+				}
+
+				.menuButton{
+					// right: .5rem;
+					// top: 5px;
+					font-size: 30px;
+					padding-top: 4px;
+				}
+		
 			}
 		}
 	
@@ -434,9 +498,9 @@ body{
 				}
 			}
 
-			&.school_selector{
-				height: 95vh;
-			}
+			// &.school_selector{
+			// 	height: 95vh;
+			// }
 
 			a{
 				text-decoration: none;

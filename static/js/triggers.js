@@ -8,17 +8,13 @@ $(window).on("load", function(){
 
     //update timetable to fit new window size
     var update_timetable_to_fit_new_window_size = debounce(function() {
-        console.log("update timetable to fit new window size");
-        screenSize = [$(window).width(),$(window).height()];
-        $("#schedule").fadeOut(500);
-        updateMenuButtonsBasedOnSize();
-        updateTimetable();
-        checkIfIDTextFits();
+        update_timetable_to_fit_new_window_size_function()
     }, 250);
     window.addEventListener('resize', update_timetable_to_fit_new_window_size);
 
     //update timetable on related input
     var update_timetable_on_related_input = debounce(function() {
+        $("#background-roller").fadeIn("fast");
         $("#schedule").fadeOut(500, function(){
             console.log('update timetable on related input (AFTER DEBOUNCE)');
             updateTimetable();
@@ -28,6 +24,7 @@ $(window).on("load", function(){
 
     //If private ID, then this textbox shows up, so that the user can change the ID
     var update_timetable_on_related_input2 = debounce(function() {
+        $("#background-roller").fadeIn("fast");
         $("#schedule").fadeOut(500, function(){
             $('#id-input-box').val($('#id-input-box2').val());
 
@@ -48,6 +45,7 @@ $(window).on("load", function(){
     //blink arrow and go move week on timetable
     $(".arrow-left").on("click", function(){
         $('.arrow-left').addClass('arrow-loading');
+        $("#background-roller").fadeIn("fast");
         $("#schedule").fadeOut(500, function(){
             if ($("#input-day").is(':checked')){
                 day -= 1;
@@ -73,6 +71,7 @@ $(window).on("load", function(){
 
     //blink arrow and go move week on timetable
     $(".arrow-center").on("click", function(){
+        $("#background-roller").fadeIn("fast");
         $('.arrow-center').addClass('arrow-loading');
         $("#schedule").fadeOut(500, function(){
             if ($("#input-day").is(':checked')){
@@ -88,6 +87,7 @@ $(window).on("load", function(){
 
     //blink arrow and go move week on timetable
     $(".arrow-right").on("click", function(){
+        $("#background-roller").fadeIn("fast");
         $('.arrow-right').addClass('arrow-loading');
         $("#schedule").fadeOut(500, function(){
             if ($("#input-day").is(':checked')){
@@ -124,14 +124,20 @@ $(window).on("load", function(){
 
     //update timetable on related input
     $('.input-week').on('input', function() {
+        $("#background-roller").fadeIn("fast");
         console.log('update timetable on related input 2');
         updateTimetable();
     });
 
     //update timetable on related button click
     $('#input-day').on('click', function() {
-        console.log('update timetable on related button click');
-        updateTimetable();
+        $("#background-roller").fadeIn("fast");
+        $('#schedule').fadeOut(500, function(){
+            console.log('update timetable on related button click');
+            updateTimetable();
+        });
+        // $('#schedule').fadeIn(500);
+
     });
 
     //handles menu button clicking
@@ -170,7 +176,32 @@ $(window).on("load", function(){
     });
 
     $("#school-select-box").change(function(){
-        schoolSelected(document.getElementById("school-select-box").value);
+        schoolSelected(this.value);
+        // console.log(this.value)
+        // $('#schedule').fadeOut(500, function(){
+        //     console.log(this.value)
+        //     schoolSelected(this.value);
+        // });
+    });
+
+    $("#classes-select-box").change(function(){
+        // overwrite_saveIdToCookie = false;
+        $("#id-input-box").val(this.value)
+        	
+	    $("#background-roller").fadeIn("fast");
+        $('#schedule').fadeOut(500, function(){
+            updateTimetable()
+        });
+    });
+
+    $("#teachers-select-box").change(function(){
+        // overwrite_saveIdToCookie = false;
+        $("#id-input-box").val(this.value)
+
+        $("#background-roller").fadeIn("fast");
+        $('#schedule').fadeOut(500, function(){
+            updateTimetable()
+        });
     });
 
     // close saveIDs if clicked outside of div

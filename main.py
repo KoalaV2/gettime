@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-version = "GTM.1.0.1"
+version = "GTM.1.0.2.5 BETA"
 #region ASCII ART
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #               _   _   _                    __            _          _                             #
@@ -240,7 +240,7 @@ def global_time_argument_handler(request, handle_overflow=True):
     """
         Handles all time related arguments.
 
-        This function handles date overflow (if week is 53, it sets the 
+        This function handles date overflow (if week is 53, it sets the
         week to 1 and adds one year instead)
 
         It also handles offset operators (`<` and `>`)
@@ -305,13 +305,13 @@ def global_time_argument_handler(request, handle_overflow=True):
                 d = datetime.datetime.strptime(f"{request.args['date']}-{t['year']}", '%d-%m-%Y')
             elif request.args['date'].count("-") == 2:
                 d = datetime.datetime.strptime(request.args['date'], '%d-%m-%Y')
-            
+
             initDayMode = True
             initDay = d.weekday() + 1
             initDateActualWeekday = d.weekday() + 1
         except:
             d = datetime.datetime.strptime(request.args['date'], '%Y-%m')
-        
+
         initYear = d.year
         initWeek = d.isocalendar()[1]
     if 'daymode' in request.args:
@@ -451,13 +451,16 @@ class GetTime:
                 except TimeoutError:
                     return {"status":-9,"message":"Response 1 Error (TimeoutError)","data":""}
                 except Exception:
-                    return {"status":-10,"message":"Response 1 Error (Other)","data":traceback.format_exc}
+                    return {"status":-10,"message":"Response 1 Error (Other)","data":traceback.format_exc()}
 
-                try:response1 = json.loads(response1.text)['data']['signature']
+                try:
+                    response1 = json.loads(response1.text)['data']['signature']
                 except Exception as e:
-                    if "Our service is down for maintenance. We apologize for any inconvenience this may cause." in response1.text:
-                        return {"status":-69,"message":f"Skola24 is currently down for maintenance","data":response1.text}
                     logging.info(f"Response 1 Error : {str(e)}")
+
+                    if "Our service is down for maintenance. We apologize for any inconvenience this may cause." in response1.text or "The service is unavailable." in response1.text:
+                        return {"status":-69.1,"message":f"Skola24 is currently down for maintenance (Request 1)","data":response1.text}
+
                     return {"status":-2,"message":f"Response 1 Error : {str(e)}","data":str(response1)}
                 #endregion
                 #region Request 2
@@ -482,11 +485,16 @@ class GetTime:
                 url2 = 'https://web.skola24.se/api/get/timetable/render/key'
                 payload2 = "null"
                 response2 = requests.post(url2, data=payload2, headers=headers2)
-                try:response2 = json.loads(response2.text)['data']['key']
+                try:
+                    response2 = json.loads(response2.text)['data']['key']
                 except TimeoutError:
                     return {"status":-11,"message":"Response 2 Error (TimeoutError)","data":""}
                 except Exception as e:
                     logging.info(f"Response 2 Error : {str(e)}")
+
+                    if "The service is unavailable." in response2.text:
+                        return {"status":-69.2,"message":f"Skola24 is currently down for maintenance (Request 2)","data":response2.text}
+
                     return {"status":-3,"message":f"Response 2 Error : {str(e)}","data":str(response2)}
                 #endregion
                 #region Request 3
@@ -545,6 +553,90 @@ class GetTime:
             if allowCache:
                 dataCache[myHash] = {'maxage':configfile['getDataMaxAge'],'age':time.time(),'data':toReturn}
         return toReturn
+    def getMoreData(self, allowCache=True) -> dict:
+
+        # myHash = self.getHash()
+        # if allowCache and myHash in dataCache and time.time() - dataCache[myHash]['age'] < dataCache[myHash]['maxage']:
+        #     logging.info("Using cache!")
+        #     toReturn = dataCache[myHash]['data']
+        # else:
+        #     pass
+
+        toReturn = {
+            "data": {
+                "classes": [],
+                "courses": [],
+                "groups": [],
+                "periods": [],
+                "rooms": [],
+                "students": [],
+                "subjects": [],
+                "teachers": []
+            },
+            "error": None,
+            "exception": None,
+            "validation": []
+        }
+
+        if self._school in allSchools:
+            try:
+                headers = {
+                    'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101 Firefox/91.0',
+                    'Accept': 'application/json, text/javascript, */*; q=0.01',
+                    'Accept-Language': 'en-US,en;q=0.5',
+                    'Content-Type': 'application/json',
+                    'X-Scope': '8a22163c-8662-4535-9050-bc5e1923df48',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Origin': 'https://web.skola24.se',
+                    'Connection': 'keep-alive',
+                    'Referer': allSchools[self._school]['Referer'],
+                    'Sec-Fetch-Dest': 'empty',
+                    'Sec-Fetch-Mode': 'cors',
+                    'Sec-Fetch-Site': 'same-origin',
+                    'Sec-GPC': '1',
+                    'DNT': '1',
+                }
+
+                data = '''{
+                    "hostName":"%s",
+                    "unitGuid":"%s",
+                    "filters":{
+                        "class":true,
+                        "course":true,
+                        "group":true,
+                        "period":true,
+                        "room":true,
+                        "student":true,
+                        "subject":true,
+                        "teacher":true
+                    }
+                }''' % (
+                    allSchools[self._school]['host'],
+                    allSchools[self._school]['unitGuid']
+                )
+
+                response = requests.post('https://web.skola24.se/api/get/timetable/selection', headers=headers, data=data)
+
+                try:
+                    toReturn = response.json()
+                except:
+                    toReturn['error'] = 'BAD DATA'
+                    toReturn['traceback'] = traceback.format_exc()
+                    toReturn['BAD_DATA'] = response.text
+            except:
+                toReturn['error'] = 'Other Error'
+                toReturn['traceback'] = traceback.format_exc()
+        else:
+            toReturn['error'] = f'"{self._school}" is not a valid school ID'
+
+        if "overwriteOtherData" in allSchools[self._school]:
+            overwriteData = allSchools[self._school]["overwriteOtherData"]['data']
+
+            for key in overwriteData:
+                for x in overwriteData[key]:
+                    toReturn["data"][key].append(x)
+
+        return toReturn
     def fetch(self, allowCache=True) -> list:
         """
             Fetches and formats data into <lesson> objects.
@@ -570,7 +662,7 @@ class GetTime:
         for x in response['data']['data']['lessonInfo']:
             try:
                 currentLesson = Lesson()
-                
+
                 try:currentLesson.lessonName=x['texts'][0]
                 except:pass
                 try:currentLesson.teacherName=x['texts'][1]
@@ -586,7 +678,7 @@ class GetTime:
 
                 if currentLesson.classroomName == "":
                     currentLesson.classroomName = None
-                
+
                 toReturn.append(currentLesson)
             except:pass
         toReturn.sort(key=attrgetter('timeStart'))
@@ -619,11 +711,14 @@ class GetTime:
         #region boxList
         logging.info("Looping through boxList...")
         toReturn_boxList = []
+        colors = []
         for current in j['data']['data']['boxList']:
             # Saves the color in a seperate variable so that we can modify it
             bColor = current['bColor']
 
             if current['type'] == "Lesson":
+                # Add bodycolor to dictionary and leaave fColor empty to store the bodycolor.
+                colors.append({ "bColor": bColor, "fColor": []})
                 if darkModeSetting == 2:
                     bColor = "#525252"
                 elif darkModeSetting == 3:
@@ -656,11 +751,36 @@ class GetTime:
         scriptBuilder = {}
         logging.info("Looping through textList...")
         toReturn_textList = []
-        for current in j['data']['data']['textList']:
+        numlist = []
+        for i,current in enumerate(j['data']['data']['textList']):
             # Saves the color in a seperate variable so that we can modify it
             fColor = current['fColor']
 
             if current['type'] == "Lesson":
+                # Add current lesson number to numlist.
+                numlist.append(i)
+
+                # Turn the existing 32,33,34 etc dictionary into 1,2,3,4.
+                newi = numlist[-1]-numlist[0]
+                # Store fontcolor in dictionary and divide newi by 3 since there is 3 fonts per lesson.
+                colors[newi//3]["fColor"].append(fColor)
+
+                newbColor = colors[newi//3]["bColor"]
+                newFcolor = colors[newi//3]["fColor"][0]
+
+                # Calculate the color luminance: https://stackoverflow.com/questions/9780632/how-do-i-determine-if-a-color-is-closer-to-white-or-black
+                FY = (tuple(int(newFcolor[i:i + 2], 16) / 255. for i in (1, 3, 5)))
+                BY = (tuple(int(newbColor[i:i + 2], 16) / 255. for i in (1, 3, 5)))
+                whitescalefont = 0.2126*FY[0]+0.7152*FY[1]+0.0722*FY[2]
+                whitescalebody = 0.2126*BY[0]+0.7152*BY[1]+0.0722*BY[2]
+
+                # # If lesson body is bright and font is bright change font to dark.
+                if whitescalebody > 0.5 and whitescalefont == 1.0:
+                    fColor = "#000000"
+
+                # # If lesson body is dark and font is dark change font to bright.
+                # if whitescalebody < 0.5 and whitescalefont == 0.0:
+                #     fColor = "#FFFFFF"
 
                 if darkModeSetting == 2:
                     fColor = "#FFFFFF"
@@ -987,6 +1107,7 @@ if __name__ == "__main__":
         Rule('/API/TERMINAL_SCHEDULE', endpoint='API_TERMINAL_SCHEDULE'),
         Rule('/API/FOOD', endpoint='API_FOOD'),
         Rule('/API/FOOD_REDIRECT', endpoint='FOOD_REDIRECT'),
+        Rule('/API/MORE_DATA', endpoint='MORE_DATA'),
 
         #PWA stuff
         Rule('/service-worker.js', endpoint="SW"),
@@ -1049,7 +1170,7 @@ if __name__ == "__main__":
             return render_template('error.html',message="\n".join(errorMessage))
         else:
             raise e
-    #endregion 
+    #endregion
     #region INDEX
     buttons = {
         # Redirect to school lunch link
@@ -1269,7 +1390,7 @@ if __name__ == "__main__":
             menus_params[1] = 'private'
         if initPWA:
             menus_params[1] = 'pwa'
-        
+
         dropDownButtons = [buttons[x].render() for x in menus[menus_params[0]][menus_params[1]]]
         #endregion
         return render_template(
@@ -1304,10 +1425,19 @@ if __name__ == "__main__":
         )
     #endregion
     #region API
+    @app.endpoint('MORE_DATA')
+    def MORE_DATA():
+
+        myRequest = GetTime(
+            _school=request.args['school']
+        )
+
+        return jsonify(myRequest.getMoreData())
+
     @app.endpoint('textfiles')
     def textfiles():
         return send_from_directory('static', str(request.url_rule)[1:])
-    
+
     @app.endpoint('API_QR_CODE')
     def API_QR_CODE():
         return render_template(

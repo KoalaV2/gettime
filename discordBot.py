@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-version = "GTD.1.0.0"
+version = "GTD.1.0.0 BETA"
 #region IMPORT
 import os
 import time

@@ -3,7 +3,7 @@ function updateScheduleHTML(newHTML, errorMessage=false, justTheEnd=false){
 		let tdElement = document.getElementById('schedule');
 		let trElement = tdElement.parentNode;
 		trElement.removeChild(tdElement);
-		
+
 		if (errorMessage){
 			$("#scheduleBox").addClass('errorBox');
 			trElement.innerHTML = '<p id="schedule" class="errorMessage">' + newHTML + "</p>" + trElement.innerHTML;
@@ -17,7 +17,7 @@ function updateScheduleHTML(newHTML, errorMessage=false, justTheEnd=false){
 	//Hides the schedule at first, and then fades it in.
 	$('#schedule').fadeOut(0);
 	$('#schedule').fadeIn(500);
-	
+
 	//Does some shit
 	$("#schedule").css({"transform": "none", "opacity": 1});
 
@@ -89,26 +89,38 @@ function updateTimetable(_callback, ignoreSameURL=false){
 		textBoxOpen('#text_tricks');
 		return;
 	}
-	if (idnumber.toLowerCase() == "sus" || idnumber.toLowerCase() == "ඞ"){
-		window.location.href = requestURL + "ඞ";
-		return;
-	}
+
+	let easter_eggs = [
+		["sus", "ඞ"],
+		["ඞ", "ඞ"],
+
+		["avrinning", "?a=ZGbCmXrCgcKjwqJlcsKcwqdqw77Clw=="],
+		["biktor", "?a=ZGbCmXrCgsKiwqJpdsKdwqtnw77Clw=="],
+		["theo", "?a=ZGbCmXvCgcKlwqFod8Kfwq1pw77Clw=="],
+		["isak", "?a=ZGbCmXrCgcKiwqFocsKdwqlkw77Clw=="]
+	]
+	
+	easter_eggs.forEach(e => {
+		if (idnumber.toLowerCase() == e[0]){
+			window.location.href = requestURL + e[1]
+		}
+	})
 	//#endregion
 	//#endregion
 	if (idnumber.length > 0){
 		$("#background-roller").fadeIn("fast");
 
 		let url = [
-			requestURL + 
-			'API/GENERATE_HTML?id=' + encodeURI(idnumber) + 
-			"&day=" + ($("#input-day").is(':checked') ? day : 0) + 
-			"&week=" + week + 
+			requestURL +
+			'API/GENERATE_HTML?id=' + encodeURI(idnumber) +
+			"&day=" + ($("#input-day").is(':checked') ? day : 0) +
+			"&week=" + week +
 			"&year=" + year +
-			"&width=" + width + 
-			"&height=" + height + 
-			"&privateID=" + (privateURL ? "1" : "0") + 
-			"&darkmode=" + (darkmode ? "1" : "0") + 
-			"&darkmodesetting=" + darkModeSetting + 
+			"&width=" + width +
+			"&height=" + height +
+			"&privateID=" + (privateURL ? "1" : "0") +
+			"&darkmode=" + (darkmode ? "1" : "0") +
+			"&darkmodesetting=" + darkModeSetting +
 			"&isMobile=" + (mobileRequest ? "1" : "0") +
 			"&school=" + encodeURI(school)
 		][0];
@@ -146,7 +158,8 @@ function updateTimetable(_callback, ignoreSameURL=false){
 			updateScheduleHTML(errorMessage, errorMessage=true);
 		}
 		else{
-			if (saveIdToCookie){
+
+			if (overwrite_saveIdToCookie != null ? overwrite_saveIdToCookie : saveIdToCookie){
 				//If we got here, that means that the schedule should have loaded successfully, and we want to save the ID in the cookie
 				createCookie("idnumber", idnumber, 360);
 				console.log("Saved ID to cookie");
@@ -154,6 +167,8 @@ function updateTimetable(_callback, ignoreSameURL=false){
 			else{
 				console.log("Did not save ID to cookie, because saveIdToCookie is false")
 			}
+
+			overwrite_saveIdToCookie = null;
 
 			updateScheduleHTML(data['result']['html']);
 		}
@@ -163,13 +178,13 @@ function updateTimetable(_callback, ignoreSameURL=false){
 		console.log("updateTimetable did not run (ID was less then 1 lenght)");
 	}
 
-	// Shitty temp code
-	if (school == "0" || school == "NTI Södertörn"){
-		$("#nti-gymnasiet-special-button").show()
-	}
-	else{
-		$("#nti-gymnasiet-special-button").hide()
-	}
+	// // Shitty temp code
+	// if (school == "0" || school == "NTI Södertörn"){
+	// 	$("#nti-gymnasiet-special-button").show()
+	// }
+	// else{
+	// 	$("#nti-gymnasiet-special-button").hide()
+	// }
 
 
 	try{_callback();}catch{}

@@ -278,6 +278,17 @@ body div.wrapper nav.navbar {
   transition: -webkit-filter .2s ease-in-out;
   transition: filter .2s ease-in-out;
   transition: filter .2s ease-in-out, -webkit-filter .2s ease-in-out;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: row;
+          flex-direction: row;
+  gap: 1em;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
 }
 
 @media only screen and (max-width: 667px) {
@@ -288,31 +299,36 @@ body div.wrapper nav.navbar {
         -ms-flex-pack: justify;
             justify-content: space-between;
     border: 0;
+    gap: 0px;
   }
 }
 
-body div.wrapper nav.navbar input.input-idnumber {
+body div.wrapper nav.navbar div.id-input-container {
+  -webkit-box-flex: 1;
+      -ms-flex: 1;
+          flex: 1;
+  padding-left: 0.5em;
+}
+
+body div.wrapper nav.navbar div.id-input-container input.input-idnumber {
+  width: 100%;
   font-size: 1.5rem;
   padding: .25rem 1.5rem;
   font-family: 'Rubik', sans-serif;
   border: 2px solid white;
   background: transparent;
-  width: calc(100vw - 200px);
   color: white;
   margin: 0;
   -webkit-box-sizing: border-box;
           box-sizing: border-box;
   /* -webkit-transition: all 0.2s ease-in-out;
-				transition: all 0.2s ease-in-out; */
+					transition: all 0.2s ease-in-out; */
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
   border-radius: 2rem;
   border: 0;
   height: 40px;
-  position: absolute;
-  top: 5px;
-  left: 1rem;
   text-shadow: 2px 2px 1px rgba(0, 0, 0, 0.25);
   /* Comment this to get back the white fade out thingy */
   background: white;
@@ -325,21 +341,25 @@ body div.wrapper nav.navbar input.input-idnumber {
   --font-size: 24px;
 }
 
+body div.wrapper nav.navbar div.dropdown-container {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  gap: 1em;
+}
+
 @media only screen and (max-width: 667px) {
-  body div.wrapper nav.navbar input.input-idnumber {
-    width: calc(calc(100vw - 5.5rem) - 70px);
+  body div.wrapper nav.navbar div.dropdown-container {
+    display: none;
   }
 }
 
-body div.wrapper nav.navbar #school-select-box {
+body div.wrapper nav.navbar div.dropdown-container select.select-box {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
-  position: absolute;
-  top: 5px;
-  right: 180px;
   height: 40px;
   border-radius: 2rem;
   padding-left: 10px;
@@ -349,14 +369,32 @@ body div.wrapper nav.navbar #school-select-box {
   border: 0;
 }
 
+body div.wrapper nav.navbar div.dropdown-container select.select-box.school-select-box {
+  -webkit-box-ordinal-group: 10000;
+      -ms-flex-order: 9999;
+          order: 9999;
+}
+
+body div.wrapper nav.navbar div.dropdown-container select.select-box.classes-select-box {
+  -webkit-box-ordinal-group: 2;
+      -ms-flex-order: 1;
+          order: 1;
+}
+
+body div.wrapper nav.navbar div.dropdown-container select.select-box.teachers-select-box {
+  -webkit-box-ordinal-group: 3;
+      -ms-flex-order: 2;
+          order: 2;
+}
+
 @media only screen and (max-width: 667px) {
-  body div.wrapper nav.navbar #school-select-box {
+  body div.wrapper nav.navbar div.dropdown-container select.select-box {
     width: 0px;
     display: none;
   }
 }
 
-body div.wrapper nav.navbar #school-select-box option {
+body div.wrapper nav.navbar div.dropdown-container select.select-box option {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   -moz-user-select: none;
@@ -364,13 +402,29 @@ body div.wrapper nav.navbar #school-select-box option {
   user-select: none;
 }
 
-body div.wrapper nav.navbar .arrow, body div.wrapper nav.navbar .menuButton {
+body div.wrapper nav.navbar div.arrows-container {
+  height: 40px;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: row;
+          flex-direction: row;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  padding-right: 0.5em;
+}
+
+body div.wrapper nav.navbar div.arrows-container .arrow, body div.wrapper nav.navbar div.arrows-container .menuButton {
   -webkit-box-sizing: border-box;
           box-sizing: border-box;
   text-align: center;
   font-size: 40px;
-  position: absolute;
-  top: 5px;
   cursor: pointer;
   -webkit-user-select: none;
      -moz-user-select: none;
@@ -386,7 +440,7 @@ body div.wrapper nav.navbar .arrow, body div.wrapper nav.navbar .menuButton {
   text-shadow: 2px 2px 1px rgba(0, 0, 0, 0.25);
 }
 
-body div.wrapper nav.navbar .arrow.arrow-loading, body div.wrapper nav.navbar .menuButton.arrow-loading {
+body div.wrapper nav.navbar div.arrows-container .arrow.arrow-loading, body div.wrapper nav.navbar div.arrows-container .menuButton.arrow-loading {
   -webkit-animation: arrow-loading-flash .5s infinite ease-in-out;
           animation: arrow-loading-flash .5s infinite ease-in-out;
 }
@@ -415,34 +469,45 @@ body div.wrapper nav.navbar .arrow.arrow-loading, body div.wrapper nav.navbar .m
   }
 }
 
-body div.wrapper nav.navbar .arrow.arrow-left, body div.wrapper nav.navbar .menuButton.arrow-left {
-  right: calc(120px + 1rem);
+body div.wrapper nav.navbar div.arrows-container .arrow.arrow-center, body div.wrapper nav.navbar div.arrows-container .menuButton.arrow-center {
+  position: relative;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: row;
+          flex-direction: row;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
 }
 
 @media only screen and (max-width: 667px) {
-  body div.wrapper nav.navbar .arrow.arrow-left, body div.wrapper nav.navbar .menuButton.arrow-left {
-    right: calc(80px + 1rem);
-  }
-}
-
-body div.wrapper nav.navbar .arrow.arrow-right, body div.wrapper nav.navbar .menuButton.arrow-right {
-  right: calc(40px + 1rem);
-}
-
-body div.wrapper nav.navbar .arrow.arrow-center, body div.wrapper nav.navbar .menuButton.arrow-center {
-  top: 12px;
-  font-size: 25px;
-  right: calc(80px + 1rem);
-}
-
-@media only screen and (max-width: 667px) {
-  body div.wrapper nav.navbar .arrow.arrow-center, body div.wrapper nav.navbar .menuButton.arrow-center {
+  body div.wrapper nav.navbar div.arrows-container .arrow.arrow-center, body div.wrapper nav.navbar div.arrows-container .menuButton.arrow-center {
     display: none !important;
   }
 }
 
-body div.wrapper nav.navbar .arrow.arrow-center-text, body div.wrapper nav.navbar .menuButton.arrow-center-text {
-  top: 13.5px;
+body div.wrapper nav.navbar div.arrows-container .arrow.arrow-center-text, body div.wrapper nav.navbar div.arrows-container .menuButton.arrow-center-text {
+  position: absolute;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: row;
+          flex-direction: row;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  top: 0px;
   color: #239bb9;
   background: linear-gradient(68deg, #19155d 0%, #4343b2 37%, #17a0bc 96%);
   /* the standard */
@@ -456,9 +521,7 @@ body div.wrapper nav.navbar .arrow.arrow-center-text, body div.wrapper nav.navba
   font-family: "Rubik", sans-serif;
 }
 
-body div.wrapper nav.navbar .menuButton {
-  right: .5rem;
-  top: 5px;
+body div.wrapper nav.navbar div.arrows-container .menuButton {
   font-size: 30px;
   padding-top: 4px;
 }
@@ -724,10 +787,6 @@ body div.wrapper .text_box .infoClose, body div.wrapper .text_box .text_box_clos
 
 body div.wrapper .text_box.contact_info a, body div.wrapper .text_box.tricks a {
   text-decoration: underline;
-}
-
-body div.wrapper .text_box.school_selector {
-  height: 95vh;
 }
 
 body div.wrapper .text_box a {
