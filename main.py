@@ -32,7 +32,7 @@ import requests
 import traceback
 import threading
 import feedparser
-import numpy as np
+import tinynumpy as np
 from functools import lru_cache
 from urllib.parse import urlencode
 from operator import attrgetter
