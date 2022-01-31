@@ -1,9 +1,17 @@
 version: "3.9"
 services:
-  gettime:
-    build: .
+  site:
+    build:
+      context: .
+      target: flaskapp
     ports:
       - "7331:7331"
+    volumes:
+      - ${PWD}/settings.json:/app/settings.json
+  bot:
+    build:
+      context: .
+      target: discordbot
     volumes:
       - ${PWD}/settings.json:/app/settings.json
 

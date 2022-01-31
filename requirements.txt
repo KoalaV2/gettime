@@ -4,5 +4,6 @@ flask_cors
 flask_minify
 flask_mobility
 werkzeug
+discord
 feedparser
 tinynumpy

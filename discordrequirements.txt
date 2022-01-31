@@ -1,4 +1,0 @@
-requests
-discord
-werkzeug
-feedparser
