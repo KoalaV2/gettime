@@ -14,3 +14,4 @@ services:
       target: discordbot
     volumes:
       - ${PWD}/settings.json:/app/settings.json
+      - ${PWD}/settings.json:/app/users.json
