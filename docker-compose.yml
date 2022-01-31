@@ -8,6 +8,7 @@ services:
       - "7331:7331"
     volumes:
       - ${PWD}/settings.json:/app/settings.json
+      - ${PWD}/logs/:/app/logs/
   bot:
     build:
       context: .
@@ -15,3 +16,4 @@ services:
     volumes:
       - ${PWD}/settings.json:/app/settings.json
       - ${PWD}/settings.json:/app/users.json
+      - ${PWD}/logs/:/app/logs/
