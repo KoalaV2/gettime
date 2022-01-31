@@ -1,0 +1,9 @@
+version: "3.9"
+services:
+  gettime:
+    build: .
+    ports:
+      - "7331:7331"
+    volumes:
+      - ${PWD}/settings.json:/app/settings.json
+
