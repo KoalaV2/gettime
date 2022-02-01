@@ -10,6 +10,8 @@ services:
     volumes:
       - ${PWD}/settings.json:/app/settings.json
       - ${PWD}/logs/:/app/logs/
+    environment:
+      - TZ=Europe/Stockholm
   bot:
     build:
       context: .
@@ -19,3 +21,5 @@ services:
       - ${PWD}/settings.json:/app/settings.json
       - ${PWD}/users.json:/app/users.json
       - ${PWD}/logs/:/app/logs/
+    environment:
+      - TZ=Europe/Stockholm
