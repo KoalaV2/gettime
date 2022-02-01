@@ -6,7 +6,7 @@ services:
       target: flaskapp
     restart: unless-stopped
     ports:
-      - "7332:7331"
+      - "7331:7331"
     volumes:
       - ${PWD}/settings.json:/app/settings.json
       - ${PWD}/logs/:/app/logs/
