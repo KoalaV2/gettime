@@ -16,7 +16,7 @@ workon gettime
 pip install -r requirements.txt
 ```
 
-# Build
+### Build
 ```shell script
 docker-compose build
 docker-compose up
