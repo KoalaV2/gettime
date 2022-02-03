@@ -52,7 +52,7 @@ def urlEmbed(text, url) -> str:
 def updateUserFile():
     global idsToCheck
     with open("users.json", "w") as outfile:
-        json.dump(idsToCheck, outfile)
+        json.dump(idsToCheck, outfile,indent=4)
 #endregion
 #region CLASSES
 class EmbedMessage:
