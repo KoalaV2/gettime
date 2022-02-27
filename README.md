@@ -6,6 +6,22 @@ Example: https://www.gettime.ga/?a=ZGbDiMKswr3Dj8OSw7By
 
 ***
 
+### Development Setup
+
+Must have a working settings.json before running and optionally a users.json file created for  the discord bot.
+
+```shell script
+mkvirtualenv gettime
+workon gettime
+pip install -r requirements.txt
+```
+
+### Build
+```shell script
+docker-compose build
+docker-compose up
+```
+
 ## How does `settings.json` work?
 
 ```json
@@ -46,7 +62,7 @@ The port that the server will run on.
 If set to `true`, then all the logging will be sent to a file, instead of the console window. This applies to both the main program and the Discord bot
 
 ### logToSameFile
-If set to `true`, then it will create one log file, and overwrite it every time you start the server. If you set it to `false`, then it will instead create new files for every time you run it, with the current date as the filename. 
+If set to `true`, then it will create one log file, and overwrite it every time you start the server. If you set it to `false`, then it will instead create new files for every time you run it, with the current date as the filename.
 
 ### logFileLocation
 Where the log files should go (Default is `"logs/"`)
@@ -90,7 +106,7 @@ Here is an example of what one entry in `schools.json` could look like.
 ```json
 {
     "NTI Södertörn": {
-        "id": 0, 
+        "id": 0,
         "name": "NTI Södertörn",
         "Referer": "https://web.skola24.se/timetable/timetable-viewer/it-gymnasiet.skola24.se/IT-Gymnasiet%20S%C3%B6dert%C3%B6rn/",
         "host": "it-gymnasiet.skola24.se",
