@@ -763,24 +763,27 @@ class GetTime:
                 # Turn the existing 32,33,34 etc dictionary into 1,2,3,4.
                 newi = numlist[-1]-numlist[0]
                 # Store fontcolor in dictionary and divide newi by 3 since there is 3 fonts per lesson.
-                colors[newi//3]["fColor"].append(fColor)
+                try:
+                    colors[newi//3]["fColor"].append(fColor)
 
-                newbColor = colors[newi//3]["bColor"]
-                newFcolor = colors[newi//3]["fColor"][0]
+                    newbColor = colors[newi//3]["bColor"]
+                    newFcolor = colors[newi//3]["fColor"][0]
 
-                # Calculate the color luminance: https://stackoverflow.com/questions/9780632/how-do-i-determine-if-a-color-is-closer-to-white-or-black
-                FY = (tuple(int(newFcolor[i:i + 2], 16) / 255. for i in (1, 3, 5)))
-                BY = (tuple(int(newbColor[i:i + 2], 16) / 255. for i in (1, 3, 5)))
-                whitescalefont = 0.2126*FY[0]+0.7152*FY[1]+0.0722*FY[2]
-                whitescalebody = 0.2126*BY[0]+0.7152*BY[1]+0.0722*BY[2]
+                    # Calculate the color luminance: https://stackoverflow.com/questions/9780632/how-do-i-determine-if-a-color-is-closer-to-white-or-black
+                    FY = (tuple(int(newFcolor[i:i + 2], 16) / 255. for i in (1, 3, 5)))
+                    BY = (tuple(int(newbColor[i:i + 2], 16) / 255. for i in (1, 3, 5)))
+                    whitescalefont = 0.2126*FY[0]+0.7152*FY[1]+0.0722*FY[2]
+                    whitescalebody = 0.2126*BY[0]+0.7152*BY[1]+0.0722*BY[2]
 
-                # # If lesson body is bright and font is bright change font to dark.
-                if whitescalebody > 0.5 and whitescalefont == 1.0:
-                    fColor = "#000000"
+                    # # If lesson body is bright and font is bright change font to dark.
+                    if whitescalebody > 0.5 and whitescalefont == 1.0:
+                        fColor = "#000000"
 
-                # # If lesson body is dark and font is dark change font to bright.
-                # if whitescalebody < 0.5 and whitescalefont == 0.0:
-                #     fColor = "#FFFFFF"
+                    # # If lesson body is dark and font is dark change font to bright.
+                    # if whitescalebody < 0.5 and whitescalefont == 0.0:
+                    #     fColor = "#FFFFFF"
+                except:
+                    pass
 
                 if darkModeSetting == 2:
                     fColor = "#FFFFFF"
