@@ -42,7 +42,7 @@ with open("users.json") as f:
     try:idsToCheck = json.load(f)
     except:idsToCheck = {}
 
-client = discord.Client()
+client = discord.Client(intents=discord.Intents.default())
 
 discordColor = discord.Colour.from_rgb(configfile['discordRGB'][0],configfile['discordRGB'][1],configfile['discordRGB'][2])
 #endregion

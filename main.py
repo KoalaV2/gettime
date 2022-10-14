@@ -48,6 +48,7 @@ from flask_minify import minify
 from flask_mobility import Mobility
 from werkzeug.routing import Rule
 from werkzeug.exceptions import NotFound
+from waitress import serve
 #endregion
 #region FUNCTIONS
 def searchInDict(listInput, keyInput, valueInput):
@@ -1663,6 +1664,12 @@ if __name__ == "__main__":
         logging.warning('"DEBUGMODE" is true. The server is not live... right?')
     if configfile['limpMode']:
         logging.warning('"limpMode" is true. This should be a backup server.')
-    app.run(debug=configfile['DEBUGMODE'], host=configfile['ip'], port=configfile['port'], use_reloader=False) # Run website
+
+    if not configfile['DEBUGMODE']:
+        serve(app, host=configfile['ip'], port=configfile['port'])
+    else:
+        app.run(debug=configfile['DEBUGMODE'], host=configfile['ip'], port=configfile['port'], use_reloader=False) # Run website
+
+
 else:
     logging.info("main.py was imported")
