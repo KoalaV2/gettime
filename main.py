@@ -1112,6 +1112,7 @@ if __name__ == "__main__":
         Rule('/API/FOOD', endpoint='API_FOOD'),
         Rule('/API/FOOD_REDIRECT', endpoint='FOOD_REDIRECT'),
         Rule('/API/MORE_DATA', endpoint='MORE_DATA'),
+        Rule('/API/HEALTH', endpoint='HEALTH'),
 
         #PWA stuff
         Rule('/service-worker.js', endpoint="SW"),
@@ -1586,6 +1587,9 @@ if __name__ == "__main__":
             logging.info(flink)
             return redirect(flink["lunchLink"])
         return("Finns ingen matlänk för din skola, om detta är fel kontakta gärna oss på https://gettime.ga/?contact=1")
+    @app.endpoint('HEALTH')
+    def HEALTH():
+        return "OK"
     #endregion
     #region Logs
     @app.endpoint('logfile')
