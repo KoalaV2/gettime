@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-version = "GTM.1.2.1 BETA"
+version = "GTM.1.2.1"
 #region ASCII ART
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #               _   _   _                    __            _          _                             #
