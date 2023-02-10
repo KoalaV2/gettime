@@ -390,6 +390,12 @@ class GetTime:
         self._day = _day
         self._year = _year
         self._resolution = _resolution
+        self._s = requests.Session()
+        self._s.headers.update({
+            "X-Scope": "8a22163c-8662-4535-9050-bc5e1923df48",
+            "X-Requested-With": "XMLHttpRequest",
+            "Content-Type": "application/json",
+        })
         try:
             # If user has entered the school ID instead, then this converts it back to the name
             # (SHOULD BE THE OTHER WAY AROUND BUT THAT WILL TAKE SOME MORE TIME TO FIX)
@@ -433,22 +439,9 @@ class GetTime:
             try:
                 #region Request 1
                 logging.info("Request 1")
-                headers1 = {
-                    "Connection": "keep-alive",
-                    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:85.0) Gecko/20100101 Firefox/85.0",
-                    "X-Scope": "8a22163c-8662-4535-9050-bc5e1923df48",
-                    "X-Requested-With": "XMLHttpRequest",
-                    "Content-Type": "application/json",
-                    "Accept": "application/json, text/javascript, */*; q=0.01",
-                    "Referer": allSchools[self._school]['Referer'],
-                    "Accept-Encoding": "gzip,deflate",
-                    "Accept-Language": "en-US;q=0.5",
-                    "Cookie": "ASP.NET_SessionId=5hgt3njwnabrqso3cujrrj2p"
-                }
                 url1 = 'https://web.skola24.se/api/encrypt/signature'
-                payload1 = {"signature":self._id}
                 try:
-                    response1 = requests.post(url1, data=json.dumps(payload1), headers=headers1)
+                    response1 = self._s.post(url1, data=json.dumps({"signature":self._id}))
                 except TimeoutError:
                     return {"status":-9,"message":"Response 1 Error (TimeoutError)","data":""}
                 except Exception:
@@ -466,26 +459,8 @@ class GetTime:
                 #endregion
                 #region Request 2
                 logging.info("Request 2")
-                headers2 = {
-                    "Host": "web.skola24.se",
-                    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:85.0) Gecko/20100101 Firefox/85.0",
-                    "Accept": "application/json, text/javascript, */*; q=0.01",
-                    "Accept-Language": "en-US,en;q=0.5",
-                    "Accept-Encoding": "gzip, deflate",
-                    "Content-Type": "application/json",
-                    "X-Scope": "8a22163c-8662-4535-9050-bc5e1923df48",
-                    "X-Requested-With": "XMLHttpRequest",
-                    "Content-Length": "4",
-                    "Origin": "https://web.skola24.se",
-                    "Connection": "close",
-                    "Referer": allSchools[self._school]['Referer'],
-                    "Cookie": "ASP.NET_SessionId=5hgt3njwnabrqso3cujrrj2p",
-                    "Sec-GPC": "1",
-                    "DNT":"1"
-                }
                 url2 = 'https://web.skola24.se/api/get/timetable/render/key'
-                payload2 = "null"
-                response2 = requests.post(url2, data=payload2, headers=headers2)
+                response2 = self._s.post(url2, data="null")
                 try:
                     response2 = json.loads(response2.text)['data']['key']
                 except TimeoutError:
@@ -500,7 +475,6 @@ class GetTime:
                 #endregion
                 #region Request 3
                 logging.info("Request 3")
-                headers3 = headers2
                 url3 = 'https://web.skola24.se/api/render/timetable'
                 payload3 = {
                     "renderKey":response2,
@@ -522,7 +496,7 @@ class GetTime:
                     "privateSelectionMode":"null",
                     "customerKey":""
                 }
-                response3 = requests.post(url3, data=json.dumps(payload3), headers=headers3)
+                response3 = self._s.post(url3, data=json.dumps(payload3))
                 try:response3 = json.loads(response3.text)
                 except TimeoutError:
                     return {"status":-12,"message":"Response 3 Error (TimeoutError)","data":""}
@@ -616,7 +590,7 @@ class GetTime:
                     allSchools[self._school]['unitGuid']
                 )
 
-                response = requests.post('https://web.skola24.se/api/get/timetable/selection', headers=headers, data=data)
+                response = self._s.post('https://web.skola24.se/api/get/timetable/selection', headers=headers, data=data)
 
                 try:
                     toReturn = response.json()
