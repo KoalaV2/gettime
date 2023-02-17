@@ -49,12 +49,19 @@ from flask_mobility import Mobility
 from werkzeug.routing import Rule
 from werkzeug.exceptions import NotFound
 from waitress import serve
+from bs4 import BeautifulSoup
 #endregion
 #region FUNCTIONS
 def searchInDict(listInput, keyInput, valueInput):
     #Code from https://stackoverflow.com/a/8653568
     a = enumerate(listInput)
+    # a = next(item for item in listInput if item[keyInput] == valueInput)
+    # if a["id"]:
+    #     return a["id"]
+    # else:
+    #     return None
     for x, y in a:
+        print(f"x: {x} y:{y}")
         if y[keyInput] == valueInput:
             return x
     return None
@@ -69,7 +76,7 @@ def getSchoolByID(schoolID):
     try:
         b = searchInDict(allSchoolsList,'id',int(schoolID))
         try:
-            return True, allSchools[allSchoolsList[b]['name']]
+            return True, allSchools[allSchoolsList[b]['unitId']]
         except Exception as e:
             return None,None,-1,str(e)
     except Exception as e:
@@ -384,7 +391,7 @@ class GetTime:
         Once created, it can generate alot of information. (HTML schedule, Text schedule, Food, ect)
     """
     t = CurrentTime()
-    def __init__(self, _id=None, _week=t['week2'], _day=t['weekday2'], _year=t['year'], _resolution=(1280,720), _school='NTI Södertörn') -> None:
+    def __init__(self, _id=None, _week=t['week2'], _day=t['weekday2'], _year=t['year'], _resolution=(1280,720), _school='IT-Gymnasiet Södertörn') -> None:
         self._id = _id
         self._week = _week
         self._day = _day
@@ -400,7 +407,7 @@ class GetTime:
             # If user has entered the school ID instead, then this converts it back to the name
             # (SHOULD BE THE OTHER WAY AROUND BUT THAT WILL TAKE SOME MORE TIME TO FIX)
             int(_school)
-            self._school = getSchoolByID(_school)[1]['name']
+            self._school = getSchoolByID(_school)[1]['unitId']
         except:
             self._school = _school
     def getHash(self) -> str:
@@ -478,7 +485,7 @@ class GetTime:
                 url3 = 'https://web.skola24.se/api/render/timetable'
                 payload3 = {
                     "renderKey":response2,
-                    "host": allSchools[self._school]['host'],
+                    "host": allSchools[self._school]['hostName'],
                     "unitGuid": allSchools[self._school]['unitGuid'],
                     "startDate":"null",
                     "endDate":"null",
@@ -556,20 +563,8 @@ class GetTime:
         if self._school in allSchools:
             try:
                 headers = {
-                    'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101 Firefox/91.0',
-                    'Accept': 'application/json, text/javascript, */*; q=0.01',
-                    'Accept-Language': 'en-US,en;q=0.5',
-                    'Content-Type': 'application/json',
                     'X-Scope': '8a22163c-8662-4535-9050-bc5e1923df48',
                     'X-Requested-With': 'XMLHttpRequest',
-                    'Origin': 'https://web.skola24.se',
-                    'Connection': 'keep-alive',
-                    'Referer': allSchools[self._school]['Referer'],
-                    'Sec-Fetch-Dest': 'empty',
-                    'Sec-Fetch-Mode': 'cors',
-                    'Sec-Fetch-Site': 'same-origin',
-                    'Sec-GPC': '1',
-                    'DNT': '1',
                 }
 
                 data = '''{
@@ -586,7 +581,7 @@ class GetTime:
                         "teacher":true
                     }
                 }''' % (
-                    allSchools[self._school]['host'],
+                    allSchools[self._school]['hostName'],
                     allSchools[self._school]['unitGuid']
                 )
 
@@ -1008,19 +1003,69 @@ def init_Load():
         menus = {}
 
     # Load schools file
+    unitssession = requests.Session()
+    def getUnits(hostname):
+        headers = {
+            'X-Scope': '8a22163c-8662-4535-9050-bc5e1923df48',
+            'X-Requested-With': 'XMLHttpRequest',
+        }
+        unitssession.headers.update(headers)
+
+        json_data = {
+            'getTimetableViewerUnitsRequest': {
+                'hostName': hostname,
+            },
+        }
+
+        response = unitssession.post(
+            'https://web.skola24.se/api/services/skola24/get/timetable/viewer/units',
+            json=json_data,
+        )
+        return response
+
+
+
+    print("authentication requst..")
+    response = requests.get(
+        'https://www.skola24.se/Applications/Authentication/login.aspx'
+    )
+    soup = BeautifulSoup(response.text, 'html.parser')
+    domain_dropdown = soup.find(id='DomainDropDown')
+    options = domain_dropdown.find_all('option')
+    counter = 0
+    allSchools = {}
+    for option in options:
+        if option.text == "(Välj domän)":
+            continue
+        results = getUnits(option.text).json()
+        for units in results["data"]["getTimetableViewerUnitsResponse"]["units"]:
+            # print(f"{units['unitId']} ( ID ) - {units['unitGuid']} ( Guid ) - {option.text} ( Host )")
+
+            allSchools[units["unitId"]] = {
+                'id': int(counter),
+                'hostName': option.text,
+                'unitGuid': units['unitGuid'],
+                'unitId': units['unitId']
+                }
+            counter += 1
+    # for x in json_data:
+        # print()
+    # print(json.dumps(json_data,indent=4))
+    # try:
+    #     with open("schools.json", encoding="utf-8") as f:
+    #         allSchools = json.load(f)
+    #     toLogLater.append(("info","\"schools.json\" loaded without issues."))
+    # except:
+    #     toLogLater.append(("critical","\"schools.json\" did not load successfully. Please make sure the file exists."))
+    #     allSchools = {}
     try:
-        with open("schools.json", encoding="utf-8") as f:
-            allSchools = json.load(f)
-        toLogLater.append(("info","\"schools.json\" loaded without issues."))
-    except:
-        toLogLater.append(("critical","\"schools.json\" did not load successfully. Please make sure the file exists."))
-        allSchools = {}
-    try:
+        # things = json.dumps(json_data)
         allSchoolsList = [allSchools[x] for x in allSchools] # Contains all the school objects, but in a list
         allSchoolsNames = [x for x in allSchools] # Contains all the names, sorted by alphabetical order
         allSchoolsNames.sort()
         toLogLater.append(("info","\"schools.json\" data was parsed successfully."))
-    except:
+    except Exception as e:
+        print(e)
         toLogLater.append(("critical","\"schools.json\" data was NOT parsed successfully. This is bad..."))
 
     return{
@@ -1446,7 +1491,7 @@ if __name__ == "__main__":
                 int(float(request.args['width'])),
                 int(float(request.args['height']))
             ),
-            _school=getSchoolByID(str(request.args['school']))[1]['name'],
+            _school=getSchoolByID(str(request.args['school']))[1]['unitId'],
             _year=int(request.args['year'])
         )
         if 'classes' in request.args:
