@@ -55,13 +55,7 @@ from bs4 import BeautifulSoup
 def searchInDict(listInput, keyInput, valueInput):
     #Code from https://stackoverflow.com/a/8653568
     a = enumerate(listInput)
-    # a = next(item for item in listInput if item[keyInput] == valueInput)
-    # if a["id"]:
-    #     return a["id"]
-    # else:
-    #     return None
     for x, y in a:
-        print(f"x: {x} y:{y}")
         if y[keyInput] == valueInput:
             return x
     return None
@@ -487,21 +481,13 @@ class GetTime:
                     "renderKey":response2,
                     "host": allSchools[self._school]['hostName'],
                     "unitGuid": allSchools[self._school]['unitGuid'],
-                    "startDate":"null",
-                    "endDate":"null",
                     "scheduleDay":int(self._day),
-                    "blackAndWhite":"false",
                     "width":int(self._resolution[0]),
                     "height":int(self._resolution[1]),
                     "selectionType":4,
                     "selection":response1,
-                    "showHeader":"false",
-                    "periodText":"",
                     "week":int(self._week),
                     "year":int(self._year),
-                    "privateFreeTextMode":"false",
-                    "privateSelectionMode":"null",
-                    "customerKey":""
                 }
                 response3 = self._s.post(url3, data=json.dumps(payload3))
                 try:response3 = json.loads(response3.text)
@@ -768,9 +754,6 @@ class GetTime:
                 # If the text is of a Lession type, that means that it sits ontop of a block that the user should be able to click to set a URL.
                 # This only happens if privateID is false, because if the ID is private, it doesnt add the scripts anyways, so why bother generating them in the first place?
                 if privateID == False and current['type'] == "Lesson":
-
-
-
                     # If the key does not exist yet, it creates an empty list for it
                     if not current['parentId'] in scriptBuilder:
                         scriptBuilder[current['parentId']] = []
@@ -1025,7 +1008,7 @@ def init_Load():
 
 
 
-    print("authentication requst..")
+    toLogLater.append(("info","Authentication request."))
     response = requests.get(
         'https://www.skola24.se/Applications/Authentication/login.aspx'
     )
@@ -1034,39 +1017,45 @@ def init_Load():
     options = domain_dropdown.find_all('option')
     counter = 0
     allSchools = {}
+    toLogLater.append(("info","Get units request. ( This will take a while. )"))
     for option in options:
         if option.text == "(Välj domän)":
             continue
         results = getUnits(option.text).json()
         for units in results["data"]["getTimetableViewerUnitsResponse"]["units"]:
-            # print(f"{units['unitId']} ( ID ) - {units['unitGuid']} ( Guid ) - {option.text} ( Host )")
 
-            allSchools[units["unitId"]] = {
-                'id': int(counter),
-                'hostName': option.text,
-                'unitGuid': units['unitGuid'],
-                'unitId': units['unitId']
-                }
+            if units['unitId'] == "IT-Gymnasiet-Södertörn":
+                allSchools[units["unitId"]] = {
+                    'id': int(counter),
+                    'hostName': option.text,
+                    'unitGuid': units['unitGuid'],
+                    'unitId': units['unitId'],
+                    'lunchLink': "https://skolmaten.se/nti-gymnasiet-sodertorn/"
+                    }
+            else:
+                allSchools[units["unitId"]] = {
+                    'id': int(counter),
+                    'hostName': option.text,
+                    'unitGuid': units['unitGuid'],
+                    'unitId': units['unitId'],
+                    'lunchLink': "https://skolmaten.se/nti-gymnasiet-sodertorn/"
+                    }
             counter += 1
-    # for x in json_data:
-        # print()
-    # print(json.dumps(json_data,indent=4))
-    # try:
-    #     with open("schools.json", encoding="utf-8") as f:
-    #         allSchools = json.load(f)
-    #     toLogLater.append(("info","\"schools.json\" loaded without issues."))
-    # except:
-    #     toLogLater.append(("critical","\"schools.json\" did not load successfully. Please make sure the file exists."))
-    #     allSchools = {}
     try:
-        # things = json.dumps(json_data)
         allSchoolsList = [allSchools[x] for x in allSchools] # Contains all the school objects, but in a list
         allSchoolsNames = [x for x in allSchools] # Contains all the names, sorted by alphabetical order
         allSchoolsNames.sort()
-        toLogLater.append(("info","\"schools.json\" data was parsed successfully."))
+        toLogLater.append(("info","skola24 api data was parsed successfully."))
     except Exception as e:
         print(e)
-        toLogLater.append(("critical","\"schools.json\" data was NOT parsed successfully. This is bad..."))
+        toLogLater.append(("critical","skola 24 api data was NOT parsed successfully. This is bad..."))
+        try:
+            with open("schools.json", encoding="utf-8") as f:
+                allSchools = json.load(f)
+            toLogLater.append(("info","\"schools.json\" loaded without issues."))
+        except:
+            toLogLater.append(("critical","\"schools.json\" did not load successfully. Please make sure the file exists."))
+            allSchools = {}
 
     return{
         'toLogLater':toLogLater,
