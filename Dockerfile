@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 FROM python:3.8-alpine as flaskapp
 COPY ./requirements.txt /app/requirements.txt
 WORKDIR /app
