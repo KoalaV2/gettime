@@ -8,3 +8,4 @@ discord
 feedparser
 tinynumpy
 waitress
+bs4

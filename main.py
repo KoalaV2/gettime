@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-version = "GTM.1.2.3"
+version = "GTM.1.3.1"
 #region ASCII ART
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #               _   _   _                    __            _          _                             #
@@ -49,6 +49,7 @@ from flask_mobility import Mobility
 from werkzeug.routing import Rule
 from werkzeug.exceptions import NotFound
 from waitress import serve
+from bs4 import BeautifulSoup
 #endregion
 #region FUNCTIONS
 def searchInDict(listInput, keyInput, valueInput):
@@ -69,7 +70,7 @@ def getSchoolByID(schoolID):
     try:
         b = searchInDict(allSchoolsList,'id',int(schoolID))
         try:
-            return True, allSchools[allSchoolsList[b]['name']]
+            return True, allSchools[allSchoolsList[b]['unitId']]
         except Exception as e:
             return None,None,-1,str(e)
     except Exception as e:
@@ -384,7 +385,7 @@ class GetTime:
         Once created, it can generate alot of information. (HTML schedule, Text schedule, Food, ect)
     """
     t = CurrentTime()
-    def __init__(self, _id=None, _week=t['week2'], _day=t['weekday2'], _year=t['year'], _resolution=(1280,720), _school='NTI Södertörn') -> None:
+    def __init__(self, _id=None, _week=t['week2'], _day=t['weekday2'], _year=t['year'], _resolution=(1280,720), _school='IT-Gymnasiet Södertörn') -> None:
         self._id = _id
         self._week = _week
         self._day = _day
@@ -400,7 +401,7 @@ class GetTime:
             # If user has entered the school ID instead, then this converts it back to the name
             # (SHOULD BE THE OTHER WAY AROUND BUT THAT WILL TAKE SOME MORE TIME TO FIX)
             int(_school)
-            self._school = getSchoolByID(_school)[1]['name']
+            self._school = getSchoolByID(_school)[1]['unitId']
         except:
             self._school = _school
     def getHash(self) -> str:
@@ -478,23 +479,15 @@ class GetTime:
                 url3 = 'https://web.skola24.se/api/render/timetable'
                 payload3 = {
                     "renderKey":response2,
-                    "host": allSchools[self._school]['host'],
+                    "host": allSchools[self._school]['hostName'],
                     "unitGuid": allSchools[self._school]['unitGuid'],
-                    "startDate":"null",
-                    "endDate":"null",
                     "scheduleDay":int(self._day),
-                    "blackAndWhite":"false",
                     "width":int(self._resolution[0]),
                     "height":int(self._resolution[1]),
                     "selectionType":4,
                     "selection":response1,
-                    "showHeader":"false",
-                    "periodText":"",
                     "week":int(self._week),
                     "year":int(self._year),
-                    "privateFreeTextMode":"false",
-                    "privateSelectionMode":"null",
-                    "customerKey":""
                 }
                 response3 = self._s.post(url3, data=json.dumps(payload3))
                 try:response3 = json.loads(response3.text)
@@ -556,20 +549,8 @@ class GetTime:
         if self._school in allSchools:
             try:
                 headers = {
-                    'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101 Firefox/91.0',
-                    'Accept': 'application/json, text/javascript, */*; q=0.01',
-                    'Accept-Language': 'en-US,en;q=0.5',
-                    'Content-Type': 'application/json',
                     'X-Scope': '8a22163c-8662-4535-9050-bc5e1923df48',
                     'X-Requested-With': 'XMLHttpRequest',
-                    'Origin': 'https://web.skola24.se',
-                    'Connection': 'keep-alive',
-                    'Referer': allSchools[self._school]['Referer'],
-                    'Sec-Fetch-Dest': 'empty',
-                    'Sec-Fetch-Mode': 'cors',
-                    'Sec-Fetch-Site': 'same-origin',
-                    'Sec-GPC': '1',
-                    'DNT': '1',
                 }
 
                 data = '''{
@@ -586,7 +567,7 @@ class GetTime:
                         "teacher":true
                     }
                 }''' % (
-                    allSchools[self._school]['host'],
+                    allSchools[self._school]['hostName'],
                     allSchools[self._school]['unitGuid']
                 )
 
@@ -682,7 +663,7 @@ class GetTime:
         timeTakenToHandleData = time.time()
         #endregion
         #region Start of the SVG
-        toReturn.append(f"""<svg id="schedule" class="{classes}" style="width:{self._resolution[0]}; height:{self._resolution[1]};" viewBox="0 0 {self._resolution[0]} {self._resolution[1]}" shape-rendering="crispEdges">""")
+        toReturn.append(f"""<svg id="schedule" class="{classes}" style="width:{self._resolution[0]}px; height:{self._resolution[1]}px;" viewBox="0 0 {self._resolution[0]} {self._resolution[1]}" shape-rendering="crispEdges">""")
         #region boxList
         logging.info("Looping through boxList...")
         toReturn_boxList = []
@@ -773,9 +754,6 @@ class GetTime:
                 # If the text is of a Lession type, that means that it sits ontop of a block that the user should be able to click to set a URL.
                 # This only happens if privateID is false, because if the ID is private, it doesnt add the scripts anyways, so why bother generating them in the first place?
                 if privateID == False and current['type'] == "Lesson":
-
-
-
                     # If the key does not exist yet, it creates an empty list for it
                     if not current['parentId'] in scriptBuilder:
                         scriptBuilder[current['parentId']] = []
@@ -1008,20 +986,77 @@ def init_Load():
         menus = {}
 
     # Load schools file
-    try:
-        with open("schools.json", encoding="utf-8") as f:
-            allSchools = json.load(f)
-        toLogLater.append(("info","\"schools.json\" loaded without issues."))
-    except:
-        toLogLater.append(("critical","\"schools.json\" did not load successfully. Please make sure the file exists."))
-        allSchools = {}
+    unitssession = requests.Session()
+    def getUnits(hostname):
+        headers = {
+            'X-Scope': '8a22163c-8662-4535-9050-bc5e1923df48',
+            'X-Requested-With': 'XMLHttpRequest',
+        }
+        unitssession.headers.update(headers)
+
+        json_data = {
+            'getTimetableViewerUnitsRequest': {
+                'hostName': hostname,
+            },
+        }
+
+        response = unitssession.post(
+            'https://web.skola24.se/api/services/skola24/get/timetable/viewer/units',
+            json=json_data,
+        )
+        return response
+
+
+
+    toLogLater.append(("info","Authentication request."))
+    response = requests.get(
+        'https://www.skola24.se/Applications/Authentication/login.aspx'
+    )
+    soup = BeautifulSoup(response.text, 'html.parser')
+    domain_dropdown = soup.find(id='DomainDropDown')
+    options = domain_dropdown.find_all('option')
+    counter = 0
+    allSchools = {}
+    toLogLater.append(("info","Get units request. ( This will take a while. )"))
+    print("Get units request. ( This will take a while. ) ")
+    for option in options:
+        if option.text == "(Välj domän)":
+            continue
+        results = getUnits(option.text).json()
+        for units in results["data"]["getTimetableViewerUnitsResponse"]["units"]:
+
+            if units['unitId'] == "IT-Gymnasiet-Södertörn":
+                allSchools[units["unitId"]] = {
+                    'id': int(counter),
+                    'hostName': option.text,
+                    'unitGuid': units['unitGuid'],
+                    'unitId': units['unitId'],
+                    'lunchLink': "https://skolmaten.se/nti-gymnasiet-sodertorn/"
+                    }
+            else:
+                allSchools[units["unitId"]] = {
+                    'id': int(counter),
+                    'hostName': option.text,
+                    'unitGuid': units['unitGuid'],
+                    'unitId': units['unitId'],
+                    'lunchLink': "https://skolmaten.se/nti-gymnasiet-sodertorn/"
+                    }
+            counter += 1
     try:
         allSchoolsList = [allSchools[x] for x in allSchools] # Contains all the school objects, but in a list
         allSchoolsNames = [x for x in allSchools] # Contains all the names, sorted by alphabetical order
         allSchoolsNames.sort()
-        toLogLater.append(("info","\"schools.json\" data was parsed successfully."))
-    except:
-        toLogLater.append(("critical","\"schools.json\" data was NOT parsed successfully. This is bad..."))
+        toLogLater.append(("info","skola24 api data was parsed successfully."))
+    except Exception as e:
+        print(e)
+        toLogLater.append(("critical","skola 24 api data was NOT parsed successfully. This is bad..."))
+        try:
+            with open("schools.json", encoding="utf-8") as f:
+                allSchools = json.load(f)
+            toLogLater.append(("info","\"schools.json\" loaded without issues."))
+        except:
+            toLogLater.append(("critical","\"schools.json\" did not load successfully. Please make sure the file exists."))
+            allSchools = {}
 
     return{
         'toLogLater':toLogLater,
@@ -1446,7 +1481,7 @@ if __name__ == "__main__":
                 int(float(request.args['width'])),
                 int(float(request.args['height']))
             ),
-            _school=getSchoolByID(str(request.args['school']))[1]['name'],
+            _school=getSchoolByID(str(request.args['school']))[1]['unitId'],
             _year=int(request.args['year'])
         )
         if 'classes' in request.args:
