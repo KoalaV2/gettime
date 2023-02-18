@@ -663,6 +663,7 @@ class GetTime:
         timeTakenToHandleData = time.time()
         #endregion
         #region Start of the SVG
+        # TODO: Firefox seems to ignore set style width and height causing it to not render schedule.
         toReturn.append(f"""<svg id="schedule" class="{classes}" style="width:{self._resolution[0]}; height:{self._resolution[1]};" viewBox="0 0 {self._resolution[0]} {self._resolution[1]}" shape-rendering="crispEdges">""")
         #region boxList
         logging.info("Looping through boxList...")
