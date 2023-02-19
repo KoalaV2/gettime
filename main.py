@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-version = "GTM.1.3.1"
+version = "GTM.1.3.2"
 #region ASCII ART
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #               _   _   _                    __            _          _                             #
@@ -1024,7 +1024,6 @@ def init_Load():
             continue
         results = getUnits(option.text).json()
         for units in results["data"]["getTimetableViewerUnitsResponse"]["units"]:
-
             if units['unitId'] == "IT-Gymnasiet-Södertörn":
                 allSchools[units["unitId"]] = {
                     'id': int(counter),
