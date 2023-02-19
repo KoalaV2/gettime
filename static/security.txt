@@ -1,5 +1,5 @@
 # Our security address
-Contact: mailto:security@gettime.ga
+Contact: mailto:theo.johanson@gmail.com
 
 # When this information expires.
 

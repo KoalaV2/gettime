@@ -1024,7 +1024,6 @@ def init_Load():
             continue
         results = getUnits(option.text).json()
         for units in results["data"]["getTimetableViewerUnitsResponse"]["units"]:
-
             if units['unitId'] == "IT-Gymnasiet-Södertörn":
                 allSchools[units["unitId"]] = {
                     'id': int(counter),
