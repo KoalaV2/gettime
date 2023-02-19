@@ -12,11 +12,6 @@ services:
       - ${PWD}/logs/:/app/logs/
     environment:
       - TZ=Europe/Stockholm
-    healthcheck:
-      test: curl --fail -s http://localhost:7331/API/HEALTH || exit 1
-      interval: 1m
-      timeout: 10s
-      retries: 3
   bot:
     build:
       context: .
