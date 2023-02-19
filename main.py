@@ -1037,8 +1037,7 @@ def init_Load():
                     'id': int(counter),
                     'hostName': option.text,
                     'unitGuid': units['unitGuid'],
-                    'unitId': units['unitId'],
-                    'lunchLink': "https://skolmaten.se/nti-gymnasiet-sodertorn/"
+                    'unitId': units['unitId']
                     }
             counter += 1
     try:
