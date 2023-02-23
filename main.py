@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-version = "GTM.1.3.2"
+version = "GTM.1.3.4"
 #region ASCII ART
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #               _   _   _                    __            _          _                             #
@@ -987,6 +987,34 @@ def init_Load():
 
     # Load schools file
     unitssession = requests.Session()
+    lunchid = dict()
+    headers = {'Client': configfile["foodKey"]}
+
+    print("Getting all lunches.")
+    lunchsession = requests.Session()
+    lunchsession.headers.update(headers)
+    r = lunchsession.get("https://skolmaten.se/api/3/provinces").json()
+    def getlunchid(k):
+        params = {'province': k["id"]}
+        r = lunchsession.get("https://skolmaten.se/api/3/districts",params=params).json()
+        for districts in r["districts"]:
+            params = {'district': districts["id"]}
+            r = lunchsession.get("https://skolmaten.se/api/3/schools",params=params).json()
+            for schools in r["schools"]:
+                lunchid[schools["name"]] = {
+                            "schoolid": schools["id"]
+                        }
+
+    threads = [threading.Thread(target=getlunchid, args=[k,])
+    for k in r["provinces"]]
+
+    # start the threads
+    for thread in threads:
+        thread.start()
+
+    # wait for the threads to complete
+    for thread in threads:
+        thread.join()
     def getUnits(hostname):
         headers = {
             'X-Scope': '8a22163c-8662-4535-9050-bc5e1923df48',
@@ -1024,21 +1052,39 @@ def init_Load():
             continue
         results = getUnits(option.text).json()
         for units in results["data"]["getTimetableViewerUnitsResponse"]["units"]:
-            if units['unitId'] == "IT-Gymnasiet-Södertörn":
+            if units["unitId"] == "Sågbäcksgymnasiet":
                 allSchools[units["unitId"]] = {
                     'id': int(counter),
                     'hostName': option.text,
                     'unitGuid': units['unitGuid'],
                     'unitId': units['unitId'],
-                    'lunchLink': "https://skolmaten.se/nti-gymnasiet-sodertorn/"
+                    "lunchID": "4930670035992576"
                     }
-            else:
+            elif units["unitId"] == "IT-Gymnasiet Södertörn":
                 allSchools[units["unitId"]] = {
                     'id': int(counter),
                     'hostName': option.text,
                     'unitGuid': units['unitGuid'],
-                    'unitId': units['unitId']
+                    'unitId': units['unitId'],
+                    "lunchID": "282367002"
                     }
+            else:
+                try:
+                    allSchools[units["unitId"]] = {
+                        'id': int(counter),
+                        'hostName': option.text,
+                        'unitGuid': units['unitGuid'],
+                        'unitId': units['unitId'],
+                        "lunchID": lunchid[units['unitId']]["schoolid"]
+                        }
+                except:
+                    allSchools[units["unitId"]] = {
+                        'id': int(counter),
+                        'hostName': option.text,
+                        'unitGuid': units['unitGuid'],
+                        'unitId': units['unitId']
+                    }
+
             counter += 1
     try:
         allSchoolsList = [allSchools[x] for x in allSchools] # Contains all the school objects, but in a list
@@ -1516,7 +1562,7 @@ if __name__ == "__main__":
             _week=d['initWeek'],
             _day=d['initDay'],
             _year=d['initYear'],
-            _school=getSchoolByID(request.args['school'])[1]['name']
+            _school=getSchoolByID(request.args['school'])[1]['unitId']
         )
         return jsonify(myRequest.getData())
     @app.endpoint('API_SIMPLE_JSON')
@@ -1528,7 +1574,7 @@ if __name__ == "__main__":
             _week=d['initWeek'],
             _day=d['initDay'],
             _year=d['initYear'],
-            _school=getSchoolByID(request.args['school'])[1]['name']
+            _school=getSchoolByID(request.args['school'])[1]['unitId']
         )
 
         try:
@@ -1570,7 +1616,7 @@ if __name__ == "__main__":
             _week=d['initWeek'],
             _day=d['initDay'],
             _year=d['initYear'],
-            _school=getSchoolByID(request.args['school'])[1]['name']
+            _school=getSchoolByID(request.args['school'])[1]['unitId']
         )
         if arg01_to_bool(request.args,"text"):
             return myRequest.GenerateTextSummary()
@@ -1590,9 +1636,18 @@ if __name__ == "__main__":
             flink = allSchoolsList[b]
         except:
             flink = allSchools[request.args["school"]]
-        if "lunchLink" in flink:
-            logging.info(flink)
-            return redirect(flink["lunchLink"])
+        if "lunchID" in flink:
+            params = {'school': flink["lunchID"]}
+            headers = {'Client': configfile["foodKey"]}
+            r = requests.get("https://skolmaten.se/api/3/menu", headers=headers, params=params).json()
+            try:
+                url = f"https://skolmaten.se/{r['school']['URLName']}"
+                logging.info(url)
+                return redirect(url)
+            except:
+                pass
+
+
         return("Finns ingen matlänk för din skola, om detta är fel kontakta gärna oss på https://gettime.ga/?contact=1")
     @app.endpoint('HEALTH')
     def HEALTH():
