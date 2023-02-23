@@ -42,7 +42,8 @@ docker-compose up
     "discordRGB": [138,194,241],
     "formLink": "",
     "getDataMaxAge": 300,
-    "getFoodMaxAge": 3600
+    "getFoodMaxAge": 3600,
+    "foodKey": ""
 }
 ```
 
