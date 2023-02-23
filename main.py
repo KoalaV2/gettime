@@ -1516,7 +1516,7 @@ if __name__ == "__main__":
             _week=d['initWeek'],
             _day=d['initDay'],
             _year=d['initYear'],
-            _school=getSchoolByID(request.args['school'])[1]['name']
+            _school=getSchoolByID(request.args['school'])[1]['unitId']
         )
         return jsonify(myRequest.getData())
     @app.endpoint('API_SIMPLE_JSON')
@@ -1528,7 +1528,7 @@ if __name__ == "__main__":
             _week=d['initWeek'],
             _day=d['initDay'],
             _year=d['initYear'],
-            _school=getSchoolByID(request.args['school'])[1]['name']
+            _school=getSchoolByID(request.args['school'])[1]['unitId']
         )
 
         try:
@@ -1570,7 +1570,7 @@ if __name__ == "__main__":
             _week=d['initWeek'],
             _day=d['initDay'],
             _year=d['initYear'],
-            _school=getSchoolByID(request.args['school'])[1]['name']
+            _school=getSchoolByID(request.args['school'])[1]['unitId']
         )
         if arg01_to_bool(request.args,"text"):
             return myRequest.GenerateTextSummary()
