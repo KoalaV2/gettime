@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-version = "GTM.1.3.4 BETA"
+version = "GTM.1.3.5 BETA"
 #region ASCII ART
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #               _   _   _                    __            _          _                             #
@@ -1646,8 +1646,6 @@ if __name__ == "__main__":
                 return redirect(url)
             except:
                 pass
-
-
         return("Finns ingen matlänk för din skola, om detta är fel kontakta gärna oss på https://gettime.ga/?contact=1")
     @app.endpoint('HEALTH')
     def HEALTH():

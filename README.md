@@ -2,7 +2,7 @@
 A schedule viewer for Skola24 compatible schools.
 
 Hosted on: https://gettime.ga
-Example: https://www.gettime.ga/?a=ZGbDiMKswr3Dj8OSw7By
+Example: https://www.gettime.ga/?a=ZGbDjsKzwoMtwqNmdcKd
 
 ***
 
@@ -18,8 +18,8 @@ pip install -r requirements.txt
 
 ### Build
 ```shell script
-docker-compose build
-docker-compose up
+docker compose build
+docker compose up
 ```
 
 ## How does `settings.json` work?
@@ -100,7 +100,7 @@ The maximum age for the cache of food data. Default is 3600 secounds (60 minutes
 
 ***
 
-## How does `schools.json` work?
+## How does `schools.json` work? ( SHOULD NOT NEED TO BE USED, only backup if the skola24 fetch fails. )
 
 Here is an example of what one entry in `schools.json` could look like.
 
