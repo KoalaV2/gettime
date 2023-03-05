@@ -1646,8 +1646,6 @@ if __name__ == "__main__":
                 return redirect(url)
             except:
                 pass
-
-
         return("Finns ingen matlänk för din skola, om detta är fel kontakta gärna oss på https://gettime.ga/?contact=1")
     @app.endpoint('HEALTH')
     def HEALTH():
