@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-version = "GTM.1.3.5 BETA"
+version = "GTM.1.3.6 BETA"
 #region ASCII ART
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #               _   _   _                    __            _          _                             #
@@ -59,26 +59,26 @@ def searchInDict(listInput, keyInput, valueInput):
         if y[keyInput] == valueInput:
             return x
     return None
-@lru_cache(maxsize=32)
-def getSchoolByID(schoolID):
-    """
-        Returns `True, {school data}` if `schoolID` was an int\n
-        Returns `False, {school data}` if `schoolID` was an string, and if it existed in the school list\n
-        Returns `None, None` if `schoolID` was not in the school list at all.
-    """
-    global allSchools, allSchoolsList
-    try:
-        b = searchInDict(allSchoolsList,'id',int(schoolID))
-        try:
-            return True, allSchools[allSchoolsList[b]['unitId']]
-        except Exception as e:
-            return None,None,-1,str(e)
-    except Exception as e:
-        try:
-            # Tests if schoolID was just the school name
-            return False, allSchools[schoolID]
-        except:
-            return None,None,-2,str(e)
+# @lru_cache(maxsize=32)
+# def getSchoolByID(schoolID):
+#     """
+#         Returns `True, {school data}` if `schoolID` was an int\n
+#         Returns `False, {school data}` if `schoolID` was an string, and if it existed in the school list\n
+#         Returns `None, None` if `schoolID` was not in the school list at all.
+#     """
+#     global allSchools, allSchoolsList
+#     try:
+#         b = searchInDict(allSchoolsList,'id',int(schoolID))
+#         try:
+#             return True, allSchools[allSchoolsList[b]['unitId']]
+#         except Exception as e:
+#             return None,None,-1,str(e)
+#     except Exception as e:
+#         try:
+#             # Tests if schoolID was just the school name
+#             return False, allSchools[schoolID]
+#         except:
+#             return None,None,-2,str(e)
 def SetLogging(path="", filename="log.log", format=None): # '%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s'
     """
         Changes logging settings.
@@ -145,7 +145,7 @@ def DecodeString(key, enc):
     return "".join(dec)
 @lru_cache(maxsize=32)
 def GenerateHiddenURL(key, idInput, schoolInput, mainLink):
-    a = EncodeString(key,idInput + "½" + str(getSchoolByID(schoolInput)[1]['id']))
+    a = EncodeString(key,idInput + "½" + str(schoolInput))
     return mainLink + f"?a={a}",a
 @lru_cache(maxsize=32)
 def sha256(hash_string):
@@ -397,13 +397,13 @@ class GetTime:
             "X-Requested-With": "XMLHttpRequest",
             "Content-Type": "application/json",
         })
-        try:
+        # try:
             # If user has entered the school ID instead, then this converts it back to the name
             # (SHOULD BE THE OTHER WAY AROUND BUT THAT WILL TAKE SOME MORE TIME TO FIX)
-            int(_school)
-            self._school = getSchoolByID(_school)[1]['unitId']
-        except:
-            self._school = _school
+            # int(_school)
+            # self._school = getSchoolByID(_school)[1]['unitId']
+        # except:
+        self._school = _school
     def getHash(self) -> str:
         """
             Generates a sha256 hash of all the settings of this object.
@@ -1525,7 +1525,7 @@ if __name__ == "__main__":
                 int(float(request.args['width'])),
                 int(float(request.args['height']))
             ),
-            _school=getSchoolByID(str(request.args['school']))[1]['unitId'],
+            _school=request.args['school'],#getSchoolByID(str(request.args['school']))[1]['unitId'],
             _year=int(request.args['year'])
         )
         if 'classes' in request.args:
@@ -1562,7 +1562,7 @@ if __name__ == "__main__":
             _week=d['initWeek'],
             _day=d['initDay'],
             _year=d['initYear'],
-            _school=getSchoolByID(request.args['school'])[1]['unitId']
+            _school=request.args['school']
         )
         return jsonify(myRequest.getData())
     @app.endpoint('API_SIMPLE_JSON')
@@ -1574,7 +1574,7 @@ if __name__ == "__main__":
             _week=d['initWeek'],
             _day=d['initDay'],
             _year=d['initYear'],
-            _school=getSchoolByID(request.args['school'])[1]['unitId']
+            _school=request.args['school']
         )
 
         try:
@@ -1616,7 +1616,7 @@ if __name__ == "__main__":
             _week=d['initWeek'],
             _day=d['initDay'],
             _year=d['initYear'],
-            _school=getSchoolByID(request.args['school'])[1]['unitId']
+            _school=request.args['school']
         )
         if arg01_to_bool(request.args,"text"):
             return myRequest.GenerateTextSummary()

@@ -116,7 +116,7 @@
 					<select class="select-box school-select-box" title="School select box" id="school-select-box">
 						<option value="" selected disabled hidden>Byt skola</option>
 						{% for x in allSchoolsNames %}
-							<option value="{{allSchools[x]['id']}}">{{x}}</option>
+							<option value="{{allSchools[x]['unitId']}}">{{x}}</option>
 						{% endfor %}
 					</select>
 
@@ -404,7 +404,7 @@
 				<ul>
 				{% for x in allSchoolsNames %}
 					<li>
-                        <p style="text-decoration: underline !important; cursor: pointer;" onclick="schoolSelected('{{allSchools[x]['id']}}')">{{x}}</p>
+                        <p style="text-decoration: underline !important; cursor: pointer;" onclick="schoolSelected('{{allSchools[x]['unitId']}}')">{{x}}</p>
 					</li>
 				{% endfor %}
 				</ul>
@@ -498,6 +498,7 @@
 					{% endif %}
 				</p>
 			{% endif %}
+            <p id="errorMessage"> ⚠ NO SCHEDULE? PLEASE RESELECT SCHOOLS. ( WE ARE WORKING ON A FIX )</p>
 		</div>
 
 	</body>

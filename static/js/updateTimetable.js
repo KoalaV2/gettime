@@ -43,8 +43,9 @@ function updateTimetable(_callback, ignoreSameURL=false){
 		}
 	}
 
-	//If school is not set, and no school was specified, then bring up the school selector.
-	if (isNaN(school) || school == null || school == "" || school == "null"){
+    //If school is not set, and no school was specified, then bring up the school selector.
+    console.log("School: " + school);
+	if (school == null || school == "" || school == "null"){
 		console.log("School not set!")
 		textBoxOpen('#text_school_selector');
 		return;
@@ -99,7 +100,7 @@ function updateTimetable(_callback, ignoreSameURL=false){
 		["theo", "?a=ZGbCmXvCgcKlwqFod8Kfwq1pw77Clw=="],
 		["isak", "?a=ZGbCmXrCgcKiwqFocsKdwqlkw77Clw=="]
 	]
-	
+
 	easter_eggs.forEach(e => {
 		if (idnumber.toLowerCase() == e[0]){
 			window.location.href = requestURL + e[1]
@@ -109,7 +110,6 @@ function updateTimetable(_callback, ignoreSameURL=false){
 	//#endregion
 	if (idnumber.length > 0){
 		$("#background-roller").fadeIn("fast");
-
 		let url = [
 			requestURL +
 			'API/GENERATE_HTML?id=' + encodeURI(idnumber) +
@@ -177,15 +177,5 @@ function updateTimetable(_callback, ignoreSameURL=false){
 		updateScheduleHTML("Inget ID skrivit", errorMessage=true);
 		console.log("updateTimetable did not run (ID was less then 1 lenght)");
 	}
-
-	// // Shitty temp code
-	// if (school == "0" || school == "NTI Södertörn"){
-	// 	$("#nti-gymnasiet-special-button").show()
-	// }
-	// else{
-	// 	$("#nti-gymnasiet-special-button").hide()
-	// }
-
-
 	try{_callback();}catch{}
 };
