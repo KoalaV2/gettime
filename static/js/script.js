@@ -9,6 +9,12 @@ var school = initSchool;
 var screenSize = [0,0];
 var overwrite_saveIdToCookie = null;
 
+// Remove old ID cookies and force user to re-enter school
+function isNumber(n) { return !isNaN(parseFloat(n)) && !isNaN(n - 0) }
+if (isNumber(readCookie("school"))){
+    eraseCookie("school");
+    location.reload();
+}
 //#region toggleDarkMode
 function toggleDarkMode(disableAnimation=false, saveToCookie=true, updateTimeTableAfter=true){
 	// Set the dark mode switch first
@@ -30,7 +36,7 @@ function toggleDarkMode(disableAnimation=false, saveToCookie=true, updateTimeTab
 		});
 		// document.querySelector("link.favicon").href = '/static/img/' + (dark_mode_is_currently ? "favicon.png" : "favicon_dark.png")
 	}
-	
+
 	if (disableAnimation){
 		doTheThing();
 		if (updateTimeTableAfter){
@@ -81,11 +87,11 @@ function checkIfIDTextFits(){
 			while(inputExceeded()){
 				let oldSize = parseInt(el.css("--font-size"),10);
 				let newSize = oldSize - 1;
-				
+
 				if(newSize < 1){
 					break;
 				}
-	
+
 				el.css({"font-size":"min(" + newSize + "px,24px)","--font-size":newSize + "px"});
 			}
 		}
@@ -93,18 +99,18 @@ function checkIfIDTextFits(){
 			while(!inputExceeded()){
 				let oldSize = parseInt(el.css("--font-size"),10);
 				let newSize = oldSize + 1;
-				
+
 				if(newSize > 24){
 					break;
 				}
-	
+
 				el.css({"font-size":"min(" + newSize + "px,24px)","--font-size":newSize + "px"});
 			}
 		}
 		lastKnownID = el.val();
 		lastKnownScreenSize = screenSize;
 	}
-	
+
 }
 
 // show and update saved url's
@@ -119,8 +125,8 @@ function showSaved(){
 
 	for (var i = savedItems.length - 1; i >= 0; i--) {
 		if (savedItems[i].length > 0){
-			$(".savedList").append('<li class="savedItems" onclick="eraseCookie(' + "'" + savedItems[i] + "'" + ');showSaved();">' + savedItems[i].replace('URL_','') + "</li>");				
-		};	
+			$(".savedList").append('<li class="savedItems" onclick="eraseCookie(' + "'" + savedItems[i] + "'" + ');showSaved();">' + savedItems[i].replace('URL_','') + "</li>");
+		};
 	};
 
 	console.log($(".savedList"));
@@ -132,7 +138,7 @@ function showSaved(){
 	else{
 		$(".savedList").append('<button class="clearSavedItems mobileSaved control-container" onclick="deleteAllURLCookies();">Ta bort alla</button>');
 	}
-	
+
 	$(".savedIDs").fadeIn("fast");
 
 };
@@ -148,7 +154,7 @@ function textBoxOpen(idToOpen){
 function textBoxClose(idToClose){
 	$(idToClose).fadeOut();
 	$('.navbar').fadeIn();
-	$('#scheduleBox').fadeIn();	
+	$('#scheduleBox').fadeIn();
 };
 
 //save inputed item in box
@@ -273,19 +279,19 @@ function update_dropdowns(){
 		}
 		else{
 			let dest = document.querySelector(`.${current[0]}-select-box`)
-			
-			
+
+
 			dest.innerHTML = `<option value="" selected disabled hidden>${current[1]}</option>`;
-	
+
 			x.forEach(i =>{
 				let option = document.createElement("option")
-	
+
 				option.value = i[current[2]]
 				option.innerHTML = i[current[3]]
-	
+
 				dest.appendChild(option)
 			});
-	
+
 			$(`.${current[0]}-select-box`).show()
 		};
 	});
@@ -299,11 +305,11 @@ function schoolSelected(schoolName){
 	createCookie('school',schoolName,365);
 	textBoxClose('#text_school_selector');
 	$('.school-select-box').val(school);
-	
+
 	$("#background-roller").fadeIn("fast", function(){
 		updateTimetable();
 	});
-	
+
 
 	update_dropdowns();
 
@@ -348,11 +354,11 @@ window.addEventListener('beforeinstallprompt', e => {
 		button.appendChild(button_text)
 
 		button_icon.classList.add("fab", "fa-app-store-ios", "control-right")
-		
+
 		button.appendChild(button_icon)
 		document.getElementsByClassName("controls-container")[0].appendChild(button)
 	}
-	
+
 	return false;
 });
 
@@ -369,20 +375,20 @@ function install(){
 			});
 		}
 	});
-	window.deferredPrompt = null;	
+	window.deferredPrompt = null;
 }
 
 function update_timetable_to_fit_new_window_size_function(do_updateTimetable=true){
 	console.log("update timetable to fit new window size");
 	screenSize = [$(window).width(),$(window).height()];
 
-	
+
 	updateMenuButtonsBasedOnSize();
 	if (do_updateTimetable){
 		$("#schedule").fadeOut(500);
 		updateTimetable();
 	}
-	
+
 	checkIfIDTextFits();
 
 	$(".dropdown-container").show()
@@ -402,12 +408,12 @@ $(window).on("load", function(){
 			darkmode = (readCookie('darkmode') == "1" ? true : false);
 		}
 	}
-	
+
 	$('#input-darkmode').prop('checked', darkmode);
 	if (darkmode){ // Dark mode is true by "default", so this will turn it off if dark mode SHOULD be off (confusing as hell but ok)
 		toggleDarkMode(disableAnimation=true, saveToCookie=false, updateTimeTableAfter=false);
 	}
-	//#endregion	
+	//#endregion
 	//#region School
 	if (initSchool != ""){ //If school was specified in the URL:
 		school = initSchool;
@@ -416,7 +422,7 @@ $(window).on("load", function(){
 	else{
 		let schoolNow = readCookie("school");
 
-		if (isNaN(schoolNow) || schoolNow == null){ //if cookie did not contain a number, or nothing at all:
+		if (schoolNow == null){ //if cookie is null do nothing at all
 			if (!(!ignorecookiepolicy && readCookie("infoClosed") != "closed")){
 				textBoxOpen('#text_school_selector');
 			}
@@ -426,12 +432,12 @@ $(window).on("load", function(){
 			$('.school-select-box').val(school);
 		}
 	}
-	//#endregion 
+	//#endregion
 
 	if (school != "" && !mobileRequest){
 		update_dropdowns();
 	}
-	
+
 	//Hides the main input if the URL is private
 	if (privateURL){
 		$('#id-input-box').css("display", "none");
@@ -473,9 +479,9 @@ $(window).on("load", function(){
 	//load timetable after cookie info get
 	if (readCookie("infoClosed") == "closed" || ignorecookiepolicy){
 		console.log("load timetable after cookie info get");
-		updateTimetable();	
+		updateTimetable();
 	}
-	
+
 	if (hideNavbar){
 		f_hideNavbar();
 	}
@@ -498,7 +504,7 @@ $(document).ready(function() {
 	if (mobileRequest){
 		$('.input-idnumber').width(`calc(calc(100vw - 17px) - ${$('.arrows-container').width()}px)`);
 	}
-	
+
 
 	// Moves the timetable down so it doesnt overlay the navbar
 	if (!hideNavbar){

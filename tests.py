@@ -12,7 +12,7 @@ class Test(unittest.TestCase):
         self.assertEqual(r.text, "OK")
     def test_jsonapi(self):
         params = {
-                "school": 2336,
+                "school": "IT-Gymnasiet Södertörn",
                 "id": "20el2",
                 "day": 0
                 }
@@ -20,7 +20,7 @@ class Test(unittest.TestCase):
         self.assertEqual(r['status'], 0)
         self.assertEqual(r['message'], "OK")
     def test_foodapi(self):
-        params = {"school": 45}
+        params = {"school": "Surteskolan"}
         r = requests.get('http://0.0.0.0:7331/API/FOOD_REDIRECT',params)
         self.assertEqual(r.url, "https://skolmaten.se/surteskolan/")
 
