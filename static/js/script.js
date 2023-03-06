@@ -9,6 +9,12 @@ var school = initSchool;
 var screenSize = [0,0];
 var overwrite_saveIdToCookie = null;
 
+// Remove old ID cookies and force user to re-enter school
+function isNumber(n) { return !isNaN(parseFloat(n)) && !isNaN(n - 0) }
+if (isNumber(readCookie("school"))){
+    eraseCookie("school");
+    location.reload();
+}
 //#region toggleDarkMode
 function toggleDarkMode(disableAnimation=false, saveToCookie=true, updateTimeTableAfter=true){
 	// Set the dark mode switch first

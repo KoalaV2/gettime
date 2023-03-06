@@ -1,5 +1,8 @@
 //cookie handling functions
 
+
+// If school is a number remove all cookies
+
 function createCookie(name,value,days,path=""){
 	var expires = "";
 	if (days) {
