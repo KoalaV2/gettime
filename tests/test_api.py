@@ -17,7 +17,6 @@ def test_jsonapi():
     r = requests.get('http://0.0.0.0:7331/API/JSON',params).json()
     assert r['message'] == "OK"
     assert r['status'] ==  0
-
 def test_foodapi():
     params = {"school": "Surteskolan"}
     r = requests.get('http://0.0.0.0:7331/API/FOOD_REDIRECT',params)
