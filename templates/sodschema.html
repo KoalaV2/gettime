@@ -393,6 +393,7 @@
 			<div id="text_school_selector" class="text_box school_selector">
 
 				<h1>Välj din skola här:</h1>
+                <input type="text" placeholder="Search.." id="myInput" onkeyup="filterFunction()">
 
 				{% if oldPrivateUrl %}
 					<p>
@@ -401,7 +402,7 @@
 					</p>
 				{% endif %}
 
-				<ul>
+				<ul id="schoolthing">
 				{% for x in allSchoolsNames %}
 					<li>
                         <p style="text-decoration: underline !important; cursor: pointer;" onclick="schoolSelected('{{allSchools[x]['unitId']}}')">{{x}}</p>
