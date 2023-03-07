@@ -13,27 +13,24 @@ function myFunction() {
     document.getElementById("school-select-box").classList.toggle("show");
 }
 
-function filterFunction() {
-    var input, filter, ul, li, a, i;
-    input = document.getElementById("myInput");
-    filter = input.value.toUpperCase();
-    div = document.getElementById("schoolthing");
-    a = div.getElementsByTagName("p");
-    li = div.getElementsByTagName("li");
-    for (i = 0; i < a.length; i++) {
-        txtValue = a[i].textContent || a[i].innerText;
+const filterFunction = () => {
+    const div = document.getElementById("schoolthing");
+    const a = div.getElementsByTagName("p");
+    const li = div.getElementsByTagName("li");
 
+    Array.from(a).forEach((element, index) => {
+        const txtValue = element.textContent || element.innerText;
+
+        const filter = document.getElementById("myInput").value.toUpperCase();
         if (txtValue.toUpperCase().indexOf(filter) > -1) {
-            a[i].style.display = "";
-            li[i].style.listStyleType = "";
-
+            element.style.display = "";
+            li[index].style.listStyleType = "";
         } else {
-            li[i].style.listStyleType = "none";
-            a[i].style.display = "none";
+            li[index].style.listStyleType = "none";
+            element.style.display = "none";
         }
-    }
+    });
 }
-
 // Remove old ID cookies and force user to re-enter school
 function isNumber(n) {
     return !isNaN(parseFloat(n)) && !isNaN(n - 0);
