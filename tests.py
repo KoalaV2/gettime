@@ -23,6 +23,11 @@ class Test(unittest.TestCase):
         params = {"school": "Surteskolan"}
         r = requests.get('http://0.0.0.0:7331/API/FOOD_REDIRECT',params)
         self.assertEqual(r.url, "https://skolmaten.se/surteskolan/")
+    def test_privatelink(self):
+        params = {"school": "IT-Gymnasiet Södertörn", "id": "20el2"}
+        r = requests.get('http://0.0.0.0:7331/API/SHAREABLE_URL',params)
+        self.assertEqual(r.status_code, 200)
+        self.assertIsNotNone(r.text)
 
 if __name__ == '__main__':
     unittest.main()
