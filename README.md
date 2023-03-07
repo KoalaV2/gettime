@@ -2,7 +2,7 @@
 A schedule viewer for Skola24 compatible schools.
 
 Hosted on: https://gettime.ga
-Example: https://www.gettime.ga/?a=ZGbDjsKzwoMtwqNmdcKd
+Example: https://www.gettime.ga/?a=ZGbDjsKzwoMtwrrCh2_CrsOtwp7Cr8OIw6DCnMK5w5XCl8KrKcK3w5_DpsOsb8K0wrc=
 
 ***
 
