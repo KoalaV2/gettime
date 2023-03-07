@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-version = "GTM.1.3.7"
+version = "GTM.1.3.8"
 #region ASCII ART
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #               _   _   _                    __            _          _                             #
@@ -1411,7 +1411,7 @@ if __name__ == "__main__":
             temp = DecodeString(configfile['key'],request.args['a'])
             if "½" in temp:
                 initID,initSchool = temp.split("½")
-                initSchool = int(initSchool)
+                initSchool = initSchool
             else:
                 initID = temp
                 initSchool = "null"
