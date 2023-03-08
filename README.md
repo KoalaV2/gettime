@@ -40,7 +40,6 @@ docker compose up
     "discordKey": "",
     "discordPrefix": "!gt",
     "discordRGB": [138,194,241],
-    "formLink": "",
     "getDataMaxAge": 300,
     "getFoodMaxAge": 3600,
     "foodKey": ""
@@ -88,9 +87,6 @@ The prefix used by the Discord bot.
 
 ### discordRGB
 The RGB code that the Discord bot will use in most places.
-
-### formLink
-Link to a Google form, where users can request their school to be added.
 
 ### getDataMaxAge
 The maximum age for the cache of schedule data. Default is 300 secounds (5 minutes)
