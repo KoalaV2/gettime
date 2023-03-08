@@ -3,7 +3,7 @@ Contact: mailto:theo.johanson@gmail.com
 
 # When this information expires.
 
-Expires: 2023-01-01T11:00:00.000Z
+Expires: 2024-01-01T11:00:00.000Z
 
 # Our Public GPG key meant to be used for secure communication.
 Encryption: https://gettime.ga/gpg.txt
