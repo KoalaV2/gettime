@@ -33,7 +33,7 @@ $(window).on("load", function(){
 
 		        	updateTimetable();
 
-					// show timetable again	
+					// show timetable again
 					$("#schedule").css({"transform": "translateX(100%) scale(0.8)", "opacity": 0});
 				}
 			}
@@ -71,7 +71,7 @@ $(window).on("load", function(){
 
 				}
 			}
-	        
+
 
         },
         swipeUp:function(event, direction, distance, duration, fingerCount) {
