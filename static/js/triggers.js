@@ -74,7 +74,8 @@ $(window).on("load", function () {
             if ($("#input-day").is(":checked")) {
                 $("#input-day").prop("checked", false);
             }
-            week = new Date().getWeek() - 1;
+            // Bugfix was to remove the '-1 ;' at the end of this line? Why was this here?
+            week = new Date().getWeek();
             year = new Date().getFullYear();
             $(".input-week").val(initWeek);
             console.log("blink arrow and go move week on timetable");

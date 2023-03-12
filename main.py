@@ -1180,7 +1180,6 @@ if __name__ == "__main__":
         Rule('/ඞ', endpoint='ඞ'),
         Rule('/contact', endpoint='CONTACT'),
         Rule('/about', endpoint='CONTACT'),
-        Rule('/form', endpoint='FORM'),
 
         # Obsolete/Old formats
         Rule('/terminal/schedule', endpoint='API_TERMINAL_SCHEDULE'),
@@ -1663,25 +1662,11 @@ if __name__ == "__main__":
             with open(logFileLocation+'discord_logfile.log',"r") as f:
                 return f"<pre>{logFileLocation+logFileName}</pre><pre>{''.join(f.readlines())}</pre>"
     #endregion
-    #region Special easter egg URL's for the creators/contributors AND AMOGUS ඞ
-    @app.endpoint('TheoCredit')
-    def TheoCredit():
-        return redirect('https://theolikes.tech/')
-    @app.endpoint('PierreCredit')
-    def PierreCredit():
-        return redirect('https://github.com/PierreLeFevre')
-    @app.endpoint('ඞ')
-    def ඞ():
-        return render_template('AmongUs.html')
     @app.endpoint('CONTACT')
     def CONTACT():
         a = dict(request.args)
         a['contact'] = "1"
         return INDEX(alternativeArgs=a)
-    @app.endpoint('FORM')
-    def FORM():
-        return redirect(configfile['formLink'])
-    #endregion
     #region PWA
     @app.endpoint('SW')
     def SW():
