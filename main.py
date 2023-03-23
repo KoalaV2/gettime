@@ -945,7 +945,6 @@ def init_Load():
         "discordKey": "Default template",
         "discordPrefix": "!gt",
         "discordRGB": [138,194,241],
-        "formLink": "",
         "getDataMaxAge": 300,
         "getFoodMaxAge": 3600
     }
