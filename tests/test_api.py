@@ -11,7 +11,7 @@ def test_apistatus():
     assert r.text ==  "OK"
 def test_jsonapi():
     params = {
-            "school": "IT-Gymnasiet Södertörn",
+            "school": "NTI Södertörn",
             "id": "20el2",
             "day": 0
             }
