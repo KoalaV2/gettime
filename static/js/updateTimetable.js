@@ -45,7 +45,7 @@ function updateTimetable(_callback, ignoreSameURL=false){
 
     //If school is not set, and no school was specified, then bring up the school selector.
     console.log("School: " + school);
-	if (school == null || school == "" || school == "null"){
+	if (school === null || school == "" || school == "null"){
 		console.log("School not set!")
 		textBoxOpen('#text_school_selector');
 		return;
@@ -159,7 +159,7 @@ function updateTimetable(_callback, ignoreSameURL=false){
 		}
 		else{
 
-			if (overwrite_saveIdToCookie != null ? overwrite_saveIdToCookie : saveIdToCookie){
+			if (overwrite_saveIdToCookie !== null ? overwrite_saveIdToCookie : saveIdToCookie){
 				//If we got here, that means that the schedule should have loaded successfully, and we want to save the ID in the cookie
 				createCookie("idnumber", idnumber, 360);
 				console.log("Saved ID to cookie");

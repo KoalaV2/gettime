@@ -7,7 +7,7 @@ var id = passedID;
 if (id == "None"){
     a_or_id = "?id=";
     var id = readCookie("idnumber");
-    if (id == null){
+    if (id === null){
         id = prompt("Skriv in ditt ID:"); 
     }
 }

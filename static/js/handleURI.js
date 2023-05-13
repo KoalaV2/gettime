@@ -7,7 +7,7 @@ function fixURLArgumentIcons(urlInput){
 }
 
 function readURLArgumentValueFromKey(key,urlInput=null){	
-	if (urlInput==null){urlInput = window.location.href;}
+	if (urlInput===null){urlInput = window.location.href;}
 
 	let a = urlInput.split(key + "=")[1] //Contains what is AFTER "key="
 	if (a == undefined){
@@ -20,7 +20,7 @@ function readURLArgumentValueFromKey(key,urlInput=null){
 }
 
 function removeURLArgument(key,urlInput=null){
-	if (urlInput==null){urlInput = window.location.href;}
+	if (urlInput===null){urlInput = window.location.href;}
 
 	let currentURL = urlInput;
 	let keyIcon = currentURL[currentURL.indexOf(key)-1]; //Contains what is before the key (& or ?)
@@ -41,7 +41,7 @@ function removeURLArgument(key,urlInput=null){
 //takes list with 2 strings, and changes the url to match
 function addURLArgument(key,value="",urlInput=null){
 	// If no url was passed in then it uses the current url instead
-	if (urlInput==null){urlInput = window.location.href;}
+	if (urlInput===null){urlInput = window.location.href;}
 
 	let currentURL = urlInput;
 	let newURL = currentURL;

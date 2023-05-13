@@ -12,7 +12,7 @@ function checkMyUrl(theID,className) {
     parentBlock.attr("onclick", "iWasClicked('" + theID + "','" + className + "')");
     
     // If there is a saved URL, it loads it in aswell
-    if (cookieLoad != null){
+    if (cookieLoad !== null){
         parentBlock.attr("savedURL", cookieLoad);
     }
 }
@@ -32,11 +32,11 @@ function iWasClicked(theID,className){
     var cookieLoad = readCookie("URL_" + className);
     
     // If there is a saved URL it asks you what you want to save in the block
-    if (cookieLoad == null){
+    if (cookieLoad === null){
         var newURL = prompt("Skriv in URL till den här lektionen", "");
         
         // Checks if the user cancelled the input
-        if (newURL != null){
+        if (newURL !== null){
             createCookie("URL_" + className,newURL,365)
             parentBlock.attr("savedURL", newURL);
         }

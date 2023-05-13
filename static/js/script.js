@@ -413,7 +413,7 @@ window.addEventListener("beforeinstallprompt", (e) => {
     if (
         document.querySelector(
             ".controls-container button.install-app-button"
-        ) == null
+        ) === null
     ) {
         let button = document.createElement("button");
         let button_text = document.createElement("span");
@@ -484,8 +484,8 @@ function update_timetable_to_fit_new_window_size_function(
 //events on load & event triggers.
 $(window).on("load", function () {
     //#region Dark mode
-    if (initDarkMode == null) {
-        if (readCookie("darkmode") == null) {
+    if (initDarkMode === null) {
+        if (readCookie("darkmode") === null) {
             darkmode = false;
         } else {
             darkmode = readCookie("darkmode") == "1" ? true : false;
@@ -510,7 +510,7 @@ $(window).on("load", function () {
     } else {
         let schoolNow = readCookie("school");
 
-        if (schoolNow == null) {
+        if (schoolNow === null) {
             //if cookie is null do nothing at all
             if (
                 !(!ignorecookiepolicy && readCookie("infoClosed") != "closed")
